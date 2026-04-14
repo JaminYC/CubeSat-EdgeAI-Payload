@@ -1,0 +1,18 @@
+FPM CALIBRATION SUMMARY
+============================================================
+
+Imagen analizada: D:/Microesferas/drive-download-20260115T201723Z-3-001/ism_20260114_110933_cx64_cy32.tiff
+Fecha: 2026-01-19 12:09:50
+
+Número de microesferas: 3
+Diámetro de referencia: 2.0 umm
+
+ESCALA CALCULADA:
+  Mediana: 0.1387 umm/pixel
+  Desv. estándar: 0.0622 umm/pixel
+  Coef. variación: 44.85%
+
+MEDICIONES INDIVIDUALES:
+  #1: 21.26 px -> 0.0941 umm/px
+  #2: 14.42 px -> 0.1387 umm/px
+  #3: 8.25 px -> 0.2425 umm/px

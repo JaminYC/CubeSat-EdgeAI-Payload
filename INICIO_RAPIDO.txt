@@ -1,0 +1,136 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║                  FPM CALIBRATION TOOL - INICIO RÁPIDO                    ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+📋 PASO 1: INSTALACIÓN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Opción A - Instalación automática:
+   python setup_calibration.py
+
+Opción B - Instalación manual:
+   pip install -r requirements_calibration.txt
+
+
+🚀 PASO 2: USO DE LA HERRAMIENTA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Simplemente ejecuta (SIN argumentos):
+
+   python fpm_calibration_tool.py
+
+Se abrirá un diálogo para seleccionar tu imagen FPM (.tiff, .png, etc.)
+
+
+🎯 PASO 3: CALIBRACIÓN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Presiona 'c' (modo calibración)
+
+2. Para cada microesfera:
+   - Click 1: Centro de la microesfera
+   - Click 2: Borde de la microesfera
+
+3. Repite 10-20 veces con diferentes microesferas
+
+4. Presiona 's' para guardar resultados
+
+
+📏 PASO 4: MEDICIÓN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Presiona 'm' (modo medición)
+
+2. Para medir cualquier estructura:
+   - Click 1: Punto inicial
+   - Click 2: Punto final
+
+3. El resultado aparece en micrómetros (µm)
+
+
+⌨️  CONTROLES COMPLETOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+   MODOS:
+   c - Activar modo CALIBRACIÓN (microesferas 2 µm)
+   m - Activar modo MEDICIÓN (estructuras desconocidas)
+
+   ZOOM Y NAVEGACIÓN:
+   + / - - Zoom in / Zoom out (acercar / alejar)
+   Rueda del ratón - Zoom continuo
+   Flechas ↑↓←→ - Desplazar imagen (pan)
+   Botón derecho + arrastrar - Desplazar imagen (pan)
+
+   OTROS:
+   r - Reset (limpiar medición actual)
+   s - Guardar resultados en CSV
+   q - Salir
+
+
+🧪 PRUEBA RÁPIDA (Imagen sintética)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Generar imagen de prueba:
+   python generate_test_image.py
+
+2. Ejecutar herramienta:
+   python fpm_calibration_tool.py
+
+3. Seleccionar: test_fpm_image.png
+
+
+📦 FORMATOS SOPORTADOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+   ✓ TIFF (.tiff, .tif)  ← Recomendado para imágenes científicas
+   ✓ PNG (.png)
+   ✓ JPEG (.jpg, .jpeg)
+   ✓ BMP (.bmp)
+
+
+📊 ARCHIVOS GENERADOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Después de calibrar y presionar 's', se generan:
+
+   • fpm_calibration_YYYYMMDD_HHMMSS.csv
+     → Datos tabulados de cada medición
+
+   • fpm_calibration_summary_YYYYMMDD_HHMMSS.txt
+     → Resumen estadístico con escala final
+
+
+📚 DOCUMENTACIÓN COMPLETA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+   README_calibration.md   - Documentación técnica completa
+   QUICK_START.md          - Guía de uso rápida
+
+
+⚠️  IMPORTANTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Usa solo imágenes FPM RECONSTRUIDAS (no frames crudos)
+• Calibra con microesferas de 2 µm certificadas
+• Mide al menos 10 microesferas para buena estadística
+• Verifica que CV% < 5% para calibración confiable
+
+
+🆘 SOLUCIÓN DE PROBLEMAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Problema: "ModuleNotFoundError: No module named 'cv2'"
+Solución: pip install opencv-python
+
+Problema: "No se abre el diálogo de selección"
+Solución: Verifica tkinter con: python -m tkinter
+
+Problema: "CV% muy alto (>10%)"
+Solución: Repite calibración con microesferas más claras
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+                    ¡Listo para usar! 🎉
+
+═══════════════════════════════════════════════════════════════════════════

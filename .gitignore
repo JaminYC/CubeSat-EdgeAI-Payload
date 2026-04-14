@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Carpetas pesadas o problemáticas
+Resultados/
+Real-ESRGAN/
+ncnn/
+Minimal/
+Imagenes/
+scan_oled_20260325/
+get-pip.py
+nvsmi.txt
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+venv310/
+venv*/
+ENV/
+env/
+
+# IDE and OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+.claude/
+
+# Data and large files
+*.png
+*.jpg
+*.jpeg
+*.tiff
+*.tif
+*.bmp
+*.7z
+*.zip
+*.rar
+*.tar.gz
+*.mp4
+*.avi
+
+# ML models
+*.pth
+*.pt
+*.onnx
+*.ncnn
+*.bin
+*.param

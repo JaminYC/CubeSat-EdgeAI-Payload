@@ -1,0 +1,131 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║                  REFERENCIA RAPIDA - GEOMETRIA                           ║
+║                  Tarjeta de consulta instantanea                         ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ INICIO RAPIDO                                                            │
+└──────────────────────────────────────────────────────────────────────────┘
+
+1. python fpm_calibration_tool.py
+2. Calibrar: 'c' (microesferas) o 'e' (escala manual)
+3. Geometria: 'g'
+4. Figura: '1' '2' '3' o '4'
+5. Clicks segun tipo
+6. Guardar: 's'
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ TIPOS DE FIGURAS                                                         │
+└──────────────────────────────────────────────────────────────────────────┘
+
+┌────────────┬──────────────┬───────────────────────────────────────────┐
+│ FIGURA     │ TECLA/CLICKS │ CALCULA                                   │
+├────────────┼──────────────┼───────────────────────────────────────────┤
+│ Circulo    │ 1 / 3 clicks │ Centro, Radio, Diametro, Area             │
+│ Rectangulo │ 2 / 2 clicks │ Ancho, Alto, Area, Perimetro              │
+│ Triangulo  │ 3 / 3 clicks │ 3 Lados, Area (Heron), Perimetro          │
+│ Poligono   │ 4 / N+Enter  │ N vertices, Area (Shoelace), Perimetro    │
+└────────────┴──────────────┴───────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ DONDE HACER CLICK                                                        │
+└──────────────────────────────────────────────────────────────────────────┘
+
+CIRCULO (3 puntos):
+  • Click 1: Perimetro (ej: izquierda)
+  • Click 2: Perimetro (ej: arriba)
+  • Click 3: Perimetro (ej: derecha)
+  ⚠️ NO en el centro, en el BORDE
+
+RECTANGULO (2 puntos):
+  • Click 1: Una esquina
+  • Click 2: Esquina OPUESTA (diagonal)
+
+TRIANGULO (3 puntos):
+  • Click 1, 2, 3: Los 3 VERTICES
+
+POLIGONO (N puntos):
+  • Click 1, 2, 3, ..., N: Cada VERTICE
+  • Enter: FINALIZAR
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ CONTROLES ESENCIALES                                                     │
+└──────────────────────────────────────────────────────────────────────────┘
+
+MODOS:
+  c = Calibracion       e = Escala manual
+  m = Medicion lineal   g = Geometria
+
+GEOMETRIA:
+  1 = Circulo          2 = Rectangulo
+  3 = Triangulo        4 = Poligono
+  Enter = Finalizar poligono
+
+ZOOM/PAN:
+  +/- = Zoom           Rueda = Zoom continuo
+  ↑↓←→ = Pan           Boton-der = Pan libre
+
+OTROS:
+  r = Reset            s = Guardar CSV
+  q = Salir
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ COLORES EN PANTALLA                                                      │
+└──────────────────────────────────────────────────────────────────────────┘
+
+  🔵 CYAN    → Circulos
+  🟡 AMARILLO → Rectangulos
+  🟠 NARANJA  → Triangulos y Poligonos
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ TIPS RAPIDOS                                                             │
+└──────────────────────────────────────────────────────────────────────────┘
+
+✓ USA ZOOM antes de hacer clicks (rueda del raton)
+✓ Circulo: distribuye los 3 puntos uniformemente
+✓ Poligono: 10-15 puntos para formas complejas
+✓ Si te equivocas: presiona 'r' y empieza de nuevo
+✓ Todas las mediciones se guardan con 's'
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ EJEMPLO RAPIDO                                                           │
+└──────────────────────────────────────────────────────────────────────────┘
+
+python fpm_calibration_tool.py
+→ Seleccionar imagen
+→ Presionar 'e'  →  Introducir 0.0298
+→ Presionar 'g'
+→ Presionar '1'
+→ Hacer zoom con rueda
+→ Click en 3 puntos del borde de una celula
+→ Ver resultado: "G1: CIRCULO Radio: 15.47um Area: 751.82um^2"
+→ Presionar 's' para guardar
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ SALIDA CSV                                                               │
+└──────────────────────────────────────────────────────────────────────────┘
+
+ID,Tipo,Medida,Valor_um,Valor_px
+G1,Circulo,Radio,15.47,519.0
+G1,Circulo,Diametro,30.94,1038.0
+G1,Circulo,Area_um2,751.82,-
+G2,Rectangulo,Ancho,45.23,1518.0
+G2,Rectangulo,Area_um2,1065.42,-
+...
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+Documentacion completa en:
+  → MEDICION_GEOMETRICA.md (tecnica)
+  → CONTROLES_GEOMETRIA.txt (guia de uso)
+  → GUIA_VISUAL_GEOMETRIA.txt (diagramas visuales)
+
+═══════════════════════════════════════════════════════════════════════════

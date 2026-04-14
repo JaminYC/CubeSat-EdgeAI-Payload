@@ -1,0 +1,12 @@
+# Requisitos para FPM Calibration Tool
+# =====================================
+# Instalación: pip install -r requirements_calibration.txt
+
+opencv-python>=4.8.0
+numpy>=1.24.0
+
+# NOTA: tkinter generalmente viene preinstalado con Python
+# Si no está disponible, en Linux instalar con:
+#   Ubuntu/Debian: sudo apt-get install python3-tk
+#   Fedora: sudo dnf install python3-tkinter
+# En Windows y macOS, tkinter viene incluido con Python

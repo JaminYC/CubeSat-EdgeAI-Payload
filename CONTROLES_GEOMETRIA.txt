@@ -1,0 +1,268 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║              NUEVA FUNCION: MEDICION GEOMETRICA                          ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+🎯 QUE HAY DE NUEVO?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ahora puedes medir figuras geometricas completas:
+  ✓ Circulos
+  ✓ Rectangulos
+  ✓ Triangulos
+  ✓ Poligonos de N lados
+
+
+⌨️  CONTROLES PRINCIPALES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ACTIVAR MODO GEOMETRIA:
+   g - Activar modo geometria
+
+SELECCIONAR TIPO DE FIGURA:
+   1 - Circulo (3 puntos en el perimetro)
+   2 - Rectangulo (2 esquinas opuestas)
+   3 - Triangulo (3 vertices)
+   4 - Poligono (N vertices)
+
+FINALIZAR POLIGONO:
+   Enter - Completar y calcular poligono
+
+
+📐 COMO USAR CADA FIGURA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. CIRCULO (Tecla '1')
+   ─────────────────────
+   Clicks necesarios: 3
+   Donde hacer click: 3 puntos en el PERIMETRO del circulo
+
+   Que calcula:
+   ✓ Centro del circulo (calculado automaticamente)
+   ✓ Radio (en um y px)
+   ✓ Diametro (en um y px)
+   ✓ Area (en um^2)
+
+   Ejemplo:
+     Click 1: Lado izquierdo del circulo
+     Click 2: Parte superior
+     Click 3: Lado derecho
+
+   Resultado en pantalla:
+     G1: CIRCULO
+     Radio: 15.47um (519.0px)
+     Diametro: 30.94um (1038.0px)
+     Area: 751.82um^2
+
+
+2. RECTANGULO (Tecla '2')
+   ───────────────────────
+   Clicks necesarios: 2
+   Donde hacer click: 2 ESQUINAS OPUESTAS
+
+   Que calcula:
+   ✓ Ancho (en um y px)
+   ✓ Alto (en um y px)
+   ✓ Area (en um^2)
+   ✓ Perimetro (en um)
+
+   Ejemplo:
+     Click 1: Esquina superior izquierda
+     Click 2: Esquina inferior derecha
+
+   Resultado en pantalla:
+     G1: RECTANGULO
+     Ancho: 45.23um (1518.0px)
+     Alto: 23.56um (791.0px)
+     Area: 1065.42um^2
+     Perimetro: 137.58um
+
+
+3. TRIANGULO (Tecla '3')
+   ───────────────────────
+   Clicks necesarios: 3
+   Donde hacer click: 3 VERTICES del triangulo
+
+   Que calcula:
+   ✓ Longitud de cada lado (en um y px)
+   ✓ Area usando formula de Heron (en um^2)
+   ✓ Perimetro (en um)
+
+   Ejemplo:
+     Click 1: Vertice superior
+     Click 2: Vertice inferior izquierdo
+     Click 3: Vertice inferior derecho
+
+   Resultado en pantalla:
+     G1: TRIANGULO
+     Lado 1: 34.12um (1145.0px)
+     Lado 2: 29.87um (1002.0px)
+     Lado 3: 25.64um (860.0px)
+     Area: 412.56um^2
+     Perimetro: 89.63um
+
+
+4. POLIGONO (Tecla '4')
+   ─────────────────────
+   Clicks necesarios: N (minimo 3)
+   Donde hacer click: Cada VERTICE del poligono (en orden)
+   Como finalizar: Presiona ENTER
+
+   Que calcula:
+   ✓ Numero de vertices
+   ✓ Area usando formula de Shoelace (en um^2)
+   ✓ Perimetro (en um)
+
+   Ejemplo:
+     Click 1: Primer vertice
+     Click 2: Segundo vertice
+     Click 3: Tercer vertice
+     Click 4: Cuarto vertice
+     Click 5: Quinto vertice
+     ...
+     Enter: Finalizar y calcular
+
+   Resultado en pantalla:
+     G1: POLIGONO (5 vertices)
+     Area: 892.45um^2
+     Perimetro: 124.78um
+
+
+🎨 COLORES EN PANTALLA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Cada tipo de figura tiene su propio color para facil identificacion:
+
+   🔵 CYAN    - Circulos
+   🟡 AMARILLO - Rectangulos
+   🟠 NARANJA  - Triangulos y Poligonos
+
+
+📋 FLUJO DE TRABAJO COMPLETO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PASO 1: Ejecutar herramienta
+   python fpm_calibration_tool.py
+
+PASO 2: Seleccionar imagen
+
+PASO 3: Calibrar (una de estas opciones)
+   Option A: Presionar 'c' -> Medir microesferas
+   Option B: Presionar 'e' -> Introducir escala manual (ej: 0.0298)
+
+PASO 4: Activar modo geometria
+   Presionar 'g'
+
+PASO 5: Seleccionar tipo de figura
+   1 = Circulo
+   2 = Rectangulo
+   3 = Triangulo
+   4 = Poligono
+
+PASO 6: Hacer los clicks necesarios
+   - Usa zoom (+/- o rueda) para precision
+   - Usa flechas para desplazar si es necesario
+   - Para poligono: presiona Enter al final
+
+PASO 7: Medir mas figuras (opcional)
+   - Puedes medir multiples figuras del mismo tipo
+   - O cambiar de tipo presionando otro numero (1-4)
+
+PASO 8: Guardar resultados
+   Presionar 's' -> Se guarda todo en CSV
+
+
+💡 TIPS Y TRUCOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Para CIRCULOS:
+  ✓ Distribuye los 3 puntos uniformemente alrededor del perimetro
+  ✓ No necesitas hacer click en el centro (se calcula automaticamente)
+  ✓ Funciona incluso con circulos parcialmente visibles
+
+Para RECTANGULOS:
+  ✓ Asegurate de hacer click en esquinas OPUESTAS
+  ✓ No importa si es superior-izq + inferior-der o viceversa
+
+Para TRIANGULOS:
+  ✓ Haz click en los 3 vertices en cualquier orden
+  ✓ Los lados se calculan automaticamente
+
+Para POLIGONOS:
+  ✓ Usa 10-15 puntos para formas complejas
+  ✓ Sigue el contorno en orden (horario o antihorario)
+  ✓ No olvides presionar Enter al final
+  ✓ Minimo 3 puntos requeridos
+
+ZOOM y PAN:
+  ✓ Acerca con rueda del raton para clicks precisos
+  ✓ Usa flechas para desplazar la imagen
+  ✓ Boton derecho + arrastrar tambien desplaza
+
+
+📊 ARCHIVO CSV GENERADO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Cuando presionas 's', se guarda un CSV con todas las mediciones:
+
+Ejemplo de contenido:
+ID,Tipo,Medida,Valor_um,Valor_px
+C1,Calibracion,Radio,1.02,34.2
+C2,Calibracion,Radio,0.98,32.9
+M1,Medicion_Lineal,Distancia,45.23,1518.0
+G1,Circulo,Radio,15.47,519.0
+G1,Circulo,Diametro,30.94,1038.0
+G1,Circulo,Area_um2,751.82,-
+G2,Rectangulo,Ancho,45.23,1518.0
+G2,Rectangulo,Alto,23.56,791.0
+G2,Rectangulo,Area_um2,1065.42,-
+G2,Rectangulo,Perimetro_um,137.58,-
+G3,Triangulo,Lado1,34.12,1145.0
+G3,Triangulo,Area_um2,412.56,-
+G4,Poligono,Vertices,5,-
+G4,Poligono,Area_um2,892.45,-
+
+
+🔬 CASOS DE USO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BIOLOGIA:
+  ✓ Medir diametro de celulas -> CIRCULO
+  ✓ Medir area de nucleos irregulares -> POLIGONO
+  ✓ Medir tejidos rectangulares -> RECTANGULO
+  ✓ Medir estructuras triangulares -> TRIANGULO
+
+MATERIALES:
+  ✓ Medir granos cristalinos -> POLIGONO
+  ✓ Medir particulas esfericas -> CIRCULO
+  ✓ Medir defectos rectangulares -> RECTANGULO
+
+ANALISIS DE IMAGENES:
+  ✓ Segmentacion manual
+  ✓ Ground truth para machine learning
+  ✓ Validacion de segmentacion automatica
+
+
+⚠️  IMPORTANTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ Debes calibrar ANTES de medir geometrias (con 'c' o 'e')
+✓ Todas las mediciones se guardan en coordenadas de imagen originales
+✓ El zoom NO afecta la precision de las mediciones
+✓ Puedes mezclar diferentes tipos de mediciones en la misma sesion
+✓ Presiona 'r' para limpiar la medicion actual si te equivocas
+
+
+📚 DOCUMENTACION COMPLETA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Para mas detalles, consulta:
+   MEDICION_GEOMETRICA.md     - Documentacion completa con ejemplos
+   README_calibration.md      - Documentacion general de la herramienta
+   NUEVAS_FUNCIONES.md        - Documentacion de escala manual
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+                    ¡Listo para medir geometrias! 🎉
+
+═══════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,326 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║           GUIA VISUAL - MEDICION GEOMETRICA                              ║
+║           Donde hacer click para cada tipo de figura                     ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+
+1️⃣  CIRCULO - 3 CLICKS EN EL PERIMETRO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tecla: 1
+Clicks necesarios: 3
+Objetivo: El centro se calcula automaticamente
+
+
+         (1) ← Click aqui (lado izquierdo)
+          ↓
+        ●─────────
+      ╱           ╲
+     │      X      │  ← (X) = Centro calculado automaticamente
+     │             │
+      ╲           ╱
+        ─────────●
+                 ↑
+        Click aqui (3) (lado derecho)
+
+               ●
+               ↑
+      Click aqui (2) (parte superior)
+
+
+DISTRIBUCION RECOMENDADA:
+  - Click 1: Posicion de las 9 en punto (izquierda)
+  - Click 2: Posicion de las 12 en punto (arriba)
+  - Click 3: Posicion de las 3 en punto (derecha)
+
+RESULTADO:
+  G1: CIRCULO
+  Radio: 15.47um (519.0px)
+  Diametro: 30.94um (1038.0px)
+  Area: 751.82um^2
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+
+2️⃣  RECTANGULO - 2 CLICKS EN ESQUINAS OPUESTAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tecla: 2
+Clicks necesarios: 2
+Objetivo: Esquinas diagonalmente opuestas
+
+
+      ●──────────────────────
+      │   ↑                  │
+      │   Click 1            │
+      │   (Superior Izq)     │
+      │                      │
+      │         ALTO         │
+      │                      │
+      │                      │
+      │            Click 2 ↓ │
+      ──────────────────────●
+              ANCHO
+
+
+OPCIONES VALIDAS:
+  Option A: Sup-Izq (1) + Inf-Der (2)
+  Option B: Sup-Der (1) + Inf-Izq (2)
+  Option C: Inf-Izq (1) + Sup-Der (2)
+  Option D: Inf-Der (1) + Sup-Izq (2)
+
+RESULTADO:
+  G1: RECTANGULO
+  Ancho: 45.23um (1518.0px)
+  Alto: 23.56um (791.0px)
+  Area: 1065.42um^2
+  Perimetro: 137.58um
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+
+3️⃣  TRIANGULO - 3 CLICKS EN LOS VERTICES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tecla: 3
+Clicks necesarios: 3
+Objetivo: Los 3 vertices del triangulo
+
+
+                 ●  ← Click 1 (Vertice superior)
+                ╱ ╲
+               ╱   ╲
+       Lado 1 ╱     ╲ Lado 2
+             ╱       ╲
+            ╱         ╲
+           ╱           ╲
+          ●─────────────●
+          ↑   Lado 3    ↑
+      Click 2        Click 3
+   (Vertice Izq)   (Vertice Der)
+
+
+ORDEN DE CLICKS:
+  - Cualquier orden es valido
+  - Los 3 lados se calculan automaticamente
+  - Area calculada con formula de Heron
+
+RESULTADO:
+  G1: TRIANGULO
+  Lado 1: 34.12um (1145.0px)
+  Lado 2: 29.87um (1002.0px)
+  Lado 3: 25.64um (860.0px)
+  Area: 412.56um^2
+  Perimetro: 89.63um
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+
+4️⃣  POLIGONO - N CLICKS + ENTER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tecla: 4
+Clicks necesarios: Minimo 3, sin limite superior
+Finalizar: Presiona ENTER
+Objetivo: Seguir el contorno de la figura
+
+
+EJEMPLO: PENTAGONO
+
+        ●  ← Click 1
+       ╱ ╲
+      ╱   ╲
+  (5)●     ●(2)
+     │     │
+     │     │
+      ╲   ╱
+       ╲ ╱
+    (4)●─●(3)
+
+         ↓
+    Presiona ENTER
+
+
+ESTRATEGIA RECOMENDADA:
+
+Para formas SIMPLES (4-6 lados):
+  - Usa los vertices principales
+  - Sigue el contorno en orden (horario o antihorario)
+
+Para formas COMPLEJAS (curvas irregulares):
+  - Usa 10-15 puntos
+  - Mas puntos = mayor precision
+  - Sigue el contorno con puntos distribuidos uniformemente
+
+
+EJEMPLO: CELULA IRREGULAR
+
+    ●────●────●  ← Clicks 1, 2, 3 (lado superior)
+   ╱           ╲
+  ●             ● ← Clicks 9, 4 (laterales)
+  │             │
+  ●             ● ← Clicks 8, 5 (laterales)
+   ╲           ╱
+    ●────●────●  ← Clicks 7, 6, ... (lado inferior)
+
+    Presiona ENTER cuando termines
+
+
+RESULTADO:
+  G1: POLIGONO (9 vertices)
+  Area: 892.45um^2
+  Perimetro: 124.78um
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+
+🎯 CONSEJOS PRACTICOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ANTES DE HACER CLICKS:
+
+1. USA ZOOM para precision
+   Rueda del raton: Acercar/Alejar
+   +/- en teclado: Pasos fijos
+
+2. DESPLAZA la imagen si es necesario
+   Flechas: Pan en pasos
+   Boton derecho + arrastrar: Pan libre
+
+3. VERIFICA que estas en el modo correcto
+   Panel superior muestra: "MODO ACTIVO: GEOMETRÍA - CIRCULO"
+
+
+DURANTE LOS CLICKS:
+
+✓ Haz click EXACTAMENTE en el punto deseado
+✓ Los puntos aparecen marcados en la imagen
+✓ Para poligono, veras las lineas conectandose
+
+SI TE EQUIVOCAS:
+
+✗ Presiona 'r' para limpiar y empezar de nuevo
+✗ O simplemente presiona el numero de figura nuevamente (1-4)
+
+
+VISUALIZACION:
+
+Los puntos temporales (mientras mides) aparecen en:
+  - CYAN para modo geometria
+  - Con numeros (1, 2, 3, ...)
+
+El resultado final aparece en:
+  - CYAN para circulos
+  - AMARILLO para rectangulos
+  - NARANJA para triangulos y poligonos
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+
+📐 FORMULAS MATEMATICAS USADAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CIRCULO (desde 3 puntos):
+
+Dados 3 puntos (x1,y1), (x2,y2), (x3,y3) en el perimetro:
+
+  d = 2 * (x1*(y2-y3) + x2*(y3-y1) + x3*(y1-y2))
+
+  Centro:
+    ux = ((x1²+y1²)*(y2-y3) + (x2²+y2²)*(y3-y1) + (x3²+y3²)*(y1-y2)) / d
+    uy = ((x1²+y1²)*(x3-x2) + (x2²+y2²)*(x1-x3) + (x3²+y3²)*(x2-x1)) / d
+
+  Radio = distancia((x1,y1), (ux,uy))
+  Diametro = 2 * Radio
+  Area = π * Radio²
+
+
+TRIANGULO (Formula de Heron):
+
+Dados los 3 lados a, b, c:
+
+  s = (a + b + c) / 2  ← Semi-perimetro
+
+  Area = √(s * (s-a) * (s-b) * (s-c))
+
+
+POLIGONO (Formula de Shoelace):
+
+Dados N vertices (x0,y0), (x1,y1), ..., (xN-1,yN-1):
+
+  Area = 0.5 * |Σ(xi * yi+1 - xi+1 * yi)| para i=0 hasta N-1
+
+  donde xN = x0 y yN = y0 (cierra el poligono)
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+
+🔄 WORKFLOW VISUAL COMPLETO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌─────────────────────────────────────────────────────────────┐
+│  PASO 1: Iniciar herramienta                                │
+│  python fpm_calibration_tool.py                             │
+│  → Se abre dialogo para seleccionar imagen                  │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│  PASO 2: Calibrar (una de estas opciones)                   │
+│  → Presionar 'c' + medir microesferas                       │
+│  → Presionar 'e' + introducir escala (ej: 0.0298)          │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│  PASO 3: Activar modo geometria                             │
+│  → Presionar 'g'                                            │
+│  Panel muestra: "MODO ACTIVO: GEOMETRÍA"                    │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│  PASO 4: Seleccionar tipo de figura                         │
+│  → Presionar 1 (Circulo)                                    │
+│  → Presionar 2 (Rectangulo)                                 │
+│  → Presionar 3 (Triangulo)                                  │
+│  → Presionar 4 (Poligono)                                   │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│  PASO 5: Hacer clicks                                       │
+│  → Usa zoom (+/- o rueda) para precision                    │
+│  → Usa flechas para desplazar                               │
+│  → Haz los clicks segun la guia visual de arriba           │
+│  → Para poligono: presiona Enter al terminar               │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│  PASO 6: Ver resultado                                      │
+│  → La figura aparece dibujada en color                      │
+│  → Las mediciones se muestran como etiqueta                 │
+│  → Los datos se guardan internamente                        │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│  PASO 7: Medir mas figuras (opcional)                       │
+│  → Repetir clicks para misma figura                         │
+│  → Cambiar tipo con 1/2/3/4                                 │
+│  → O salir del modo geometria con 'r'                       │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│  PASO 8: Guardar resultados                                 │
+│  → Presionar 's'                                            │
+│  → Se crea archivo CSV con todas las mediciones             │
+└─────────────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+             ¡Usa esta guia visual como referencia! 📐
+
+═══════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,310 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║                   GUIA RAPIDA - ANALISIS DE DATOS                        ║
+║                   Como visualizar tus calibraciones                      ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+
+📋 PASO 1: INSTALAR LIBRERIAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ejecuta UNA VEZ:
+
+   pip install -r requirements_analisis.txt
+
+Esto instala:
+   ✓ pandas (manejo de datos)
+   ✓ numpy (calculos numericos)
+   ✓ matplotlib (graficos)
+   ✓ seaborn (graficos estadisticos)
+   ✓ scipy (estadistica avanzada)
+
+
+🔬 PASO 2A: ANALIZAR UNA CALIBRACION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Para analizar UN archivo CSV:
+
+   python analisis_calibracion.py
+
+→ Se abre dialogo
+→ Seleccionar tu CSV (ej: fpm_calibration_20260119_120950.csv)
+→ Esperar...
+
+RESULTADOS:
+   ✓ Graficos en pantalla (6 subplots)
+   ✓ Reporte en consola
+   ✓ Archivo PNG: nombre_archivo_analisis.png
+   ✓ Archivo TXT: nombre_archivo_reporte.txt
+
+
+📊 QUE VAS A VER:
+─────────────────────────────────────────────────────────────────────────
+
+1. HISTOGRAMA - Distribucion de valores de escala
+   → Barras azules
+   → Linea roja = media
+   → Linea verde = mediana
+
+2. BOXPLOT - Dispersion de datos
+   → Caja = rango intercuartil (Q1-Q3)
+   → Linea central = mediana
+   → Puntos fuera = outliers
+
+3. RADIO EN PIXELES - Tendencia por microesfera
+   → Puntos violetas conectados
+   → Linea roja = promedio
+   → Area sombreada = ±1 SD
+
+4. DIAMETRO MEDIDO vs NOMINAL
+   → Puntos coloreados (verde=bien, rojo=error)
+   → Linea azul = nominal (2 um)
+   → Linea roja = medido
+
+5. ERROR RELATIVO (%)
+   → Barras verdes = error < 5%
+   → Barras rojas = error > 5%
+   → Lineas naranjas = limites ±5%
+
+6. Q-Q PLOT - Test de normalidad
+   → Puntos en linea = datos normales
+   → Desviaciones = outliers
+
+
+🎯 INTERPRETACION RAPIDA:
+─────────────────────────────────────────────────────────────────────────
+
+En la consola veras:
+
+   ==================================================================
+   CALIDAD DE CALIBRACION
+   ==================================================================
+   CV < 5%:  ✓✓ BUENA
+   Escala recomendada: 0.029820 um/px
+   ==================================================================
+
+CV% (Coeficiente de Variacion):
+   < 3%  → EXCELENTE (usa esta escala con confianza)
+   3-5%  → BUENA (aceptable para uso cientifico)
+   5-10% → ACEPTABLE (funciona, pero considera recalibrar)
+   > 10% → POBRE (recalibra!)
+
+
+📈 PASO 2B: COMPARAR MULTIPLES CALIBRACIONES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Para comparar VARIOS archivos CSV:
+
+   python analisis_multiple_calibraciones.py
+
+→ Se abre dialogo
+→ Seleccionar multiples CSV (mantener Ctrl mientras seleccionas)
+→ Esperar...
+
+RESULTADOS:
+   ✓ 2 figuras con graficos comparativos
+   ✓ Tabla resumen en consola
+   ✓ Archivo PNG: comparacion_calibraciones_TIMESTAMP.png
+   ✓ Archivo PNG: datos_individuales_TIMESTAMP.png
+
+
+📊 QUE VAS A VER:
+─────────────────────────────────────────────────────────────────────────
+
+FIGURA 1 - Comparacion de Escalas:
+   1. Barras con error bars por sesion
+   2. Boxplots multiples
+   3. CV% por sesion (colores: verde=bueno, rojo=malo)
+   4. Evolucion temporal (si hay fechas diferentes)
+
+FIGURA 2 - Datos Individuales:
+   1. Violin plots (forma de distribucion)
+   2. Scatter Radio vs Escala (correlaciones)
+
+
+🎯 INTERPRETACION:
+─────────────────────────────────────────────────────────────────────────
+
+Tabla en consola:
+
+   ========================================================================
+   Sesion     N     Escala Media    SD          CV(%)    Radio(px)
+   ------------------------------------------------------------------------
+   S1         15    0.029814        0.001234    4.14     10.25
+   S2         18    0.029856        0.001089    3.65     10.18
+   S3         12    0.029801        0.001456    4.89     10.32
+   ------------------------------------------------------------------------
+   Diferencia max entre sesiones: 0.000055 um/px (0.18%)
+   ========================================================================
+
+PREGUNTAS CLAVE:
+   ¿Las escalas son similares? → Diferencia < 2% = OK
+   ¿CV% consistente? → Todos < 5% = OK
+   ¿Hay drift temporal? → Grafico 4 estable = OK
+
+
+💡 CASOS DE USO PRACTICOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CASO 1: Validar calibracion inicial
+────────────────────────────────────────────
+   1. Calibrar con herramienta FPM
+   2. python analisis_calibracion.py
+   3. Verificar CV% < 5%
+   4. Usar escala recomendada para tus mediciones
+
+
+CASO 2: Comparar dias diferentes
+────────────────────────────────────────────
+   1. Calibrar el Lunes
+   2. Calibrar el Miercoles
+   3. Calibrar el Viernes
+   4. python analisis_multiple_calibraciones.py
+   5. Verificar diferencia < 2%
+   6. Si OK → sistema estable
+
+
+CASO 3: Diferentes magnificaciones
+────────────────────────────────────────────
+   1. Calibrar con objetivo 10x
+   2. Calibrar con objetivo 40x
+   3. python analisis_multiple_calibraciones.py
+   4. Verificar ratio = 4x (esperado)
+   5. Cada magnificacion tiene su escala
+
+
+CASO 4: Para publicacion
+────────────────────────────────────────────
+   1. Calibrar 3 veces (reproducibilidad)
+   2. python analisis_multiple_calibraciones.py
+   3. Guardar graficos PNG (300 DPI, listo para paper)
+   4. Copiar estadisticas para seccion de Metodos
+
+
+📝 EJEMPLO COMPLETO - FLUJO DE TRABAJO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DIA 1: Calibracion inicial
+───────────────────────────────────────────────────────────────────────
+
+   # Terminal
+   python fpm_calibration_tool.py
+
+   # En la herramienta:
+   1. Seleccionar imagen con microesferas
+   2. Presionar 'c' (calibracion)
+   3. Medir 15 microesferas
+   4. Presionar 's' (guardar)
+   → Genera: fpm_calibration_20260119_120950.csv
+
+   # Analizar
+   python analisis_calibracion.py
+   → Seleccionar el CSV recien generado
+
+   # Ver resultado en consola:
+   Escala recomendada: 0.029820 um/px
+   CV: 4.14% → BUENA ✓
+
+   # Anotar en cuaderno:
+   "Escala = 0.029820 um/px (2026-01-19, CV=4.14%)"
+
+
+DIA 2-7: Usar esa escala
+───────────────────────────────────────────────────────────────────────
+
+   # Terminal
+   python fpm_calibration_tool.py
+
+   # En la herramienta:
+   1. Seleccionar imagenes de tejido (sin microesferas)
+   2. Presionar 'e' (escala manual)
+   3. Introducir: 0.029820
+   4. Presionar 'm' o 'g' para medir
+   5. Medir estructuras biologicas
+   6. Presionar 's' (guardar)
+
+
+SEMANA 2: Verificar reproducibilidad
+───────────────────────────────────────────────────────────────────────
+
+   # Calibrar de nuevo
+   python fpm_calibration_tool.py
+   → Medir 15 microesferas nuevamente
+   → Guardar: fpm_calibration_20260126_091534.csv
+
+   # Comparar ambas calibraciones
+   python analisis_multiple_calibraciones.py
+   → Seleccionar ambos CSV (Ctrl+Click)
+
+   # Ver resultado:
+   Diferencia entre sesiones: 0.18% → EXCELENTE ✓
+   Sistema reproducible
+
+
+PARA EL PAPER: Generar figura
+───────────────────────────────────────────────────────────────────────
+
+   # Comparar 3 calibraciones
+   python analisis_multiple_calibraciones.py
+
+   # Graficos generados en 300 DPI:
+   - comparacion_calibraciones_TIMESTAMP.png
+   - datos_individuales_TIMESTAMP.png
+
+   # Copiar texto para Metodos:
+   "La calibracion espacial se realizo mediante microesferas de
+   poliestireno de 2.0 ± 0.04 μm. Se midieron 15 microesferas por
+   imagen. La escala resultante fue de 0.0298 ± 0.0012 μm/pixel
+   (media ± SD, n=15, CV=4.1%). La reproducibilidad se evaluo
+   mediante tres sesiones independientes, mostrando variacion de
+   0.18% entre sesiones."
+
+
+⚠️  SOLUCION DE PROBLEMAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PROBLEMA: "ModuleNotFoundError: No module named 'pandas'"
+SOLUCION:
+   pip install -r requirements_analisis.txt
+
+
+PROBLEMA: "CV% muy alto (>10%)"
+SOLUCION:
+   • Repetir calibracion
+   • Usar zoom para mayor precision
+   • Medir microesferas mas claras y nitidas
+   • Evitar microesferas en bordes de imagen
+
+
+PROBLEMA: "Muchos outliers en boxplot"
+SOLUCION:
+   • Revisar mediciones individuales en CSV
+   • Eliminar microesferas mal medidas
+   • Repetir analisis sin outliers
+
+
+PROBLEMA: "Graficos no se ven bien"
+SOLUCION:
+   • Los PNG se guardan en 300 DPI automaticamente
+   • Abrir con visor de imagenes
+   • Hacer zoom en el archivo PNG
+
+
+PROBLEMA: "Error de encoding en Windows"
+SOLUCION:
+   • Ya manejado en los scripts
+   • Si persiste, abre CSV con Notepad++ y guarda como UTF-8
+
+
+📚 ARCHIVOS DE DOCUMENTACION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+   ANALISIS_DATOS_README.md    - Documentacion completa tecnica
+   COMO_ANALIZAR_DATOS.txt     - Esta guia rapida (tu estas aqui)
+   requirements_analisis.txt   - Librerias necesarias
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+                    ¡Listo para analizar datos! 📊🔬
+
+═══════════════════════════════════════════════════════════════════════════
