@@ -105,15 +105,13 @@ class PipelineGUI:
         cal_frame.pack(fill=tk.X, pady=(0, 8))
 
         ttk.Label(cal_frame, text="Calibracion:").pack(side=tk.LEFT)
-        self.cal_status = tk.StringVar(value="Sin calibrar (usando default 1.4 um/px)")
+        self.cal_status = tk.StringVar(value="Sin calibrar")
         ttk.Label(cal_frame, textvariable=self.cal_status,
                   font=("Consolas", 9), foreground="#f9e2af",
                   background="#313244").pack(side=tk.LEFT, padx=(8, 8))
         ttk.Button(cal_frame, text="Calibrar con regla",
                    command=self._manual_calibrate).pack(side=tk.RIGHT, padx=(4, 0))
-        ttk.Button(cal_frame, text="Sensor/FPM",
-                   command=self._sensor_calibration).pack(side=tk.RIGHT, padx=(4, 0))
-        ttk.Button(cal_frame, text="Ingresar valor",
+        ttk.Button(cal_frame, text="Ingresar um/px",
                    command=self._enter_calibration).pack(side=tk.RIGHT)
 
         self.manual_um_per_pixel = None
@@ -263,99 +261,6 @@ class PipelineGUI:
                 dialog.destroy()
             except ValueError:
                 messagebox.showerror("Error", "Ingresa un numero valido",
-                                      parent=dialog)
-
-        ttk.Button(dialog, text="Aceptar", command=_accept).pack(pady=8)
-        dialog.bind("<Return>", lambda e: _accept())
-
-    def _sensor_calibration(self):
-        """Calibracion por parametros del sensor (lensless/FPM)."""
-        dialog = tk.Toplevel(self.root)
-        dialog.title("Calibracion Sensor / FPM")
-        dialog.geometry("440x320")
-        dialog.configure(bg="#313244")
-        dialog.transient(self.root)
-        dialog.grab_set()
-
-        ttk.Label(dialog, text="Calibracion Lensless / FPM",
-                  font=("Segoe UI", 12, "bold")).pack(pady=(12, 4))
-        ttk.Label(dialog, text="Muestra directa al sensor, sin lentes").pack()
-
-        # Pixel pitch
-        f1 = ttk.Frame(dialog)
-        f1.pack(fill=tk.X, padx=20, pady=(12, 4))
-        ttk.Label(f1, text="Pixel pitch del sensor (um):").pack(side=tk.LEFT)
-        pitch_var = tk.StringVar(value="1.4")
-        ttk.Entry(f1, textvariable=pitch_var, width=8,
-                  font=("Consolas", 11)).pack(side=tk.RIGHT)
-
-        # Reconstruccion FPM
-        f2 = ttk.Frame(dialog)
-        f2.pack(fill=tk.X, padx=20, pady=4)
-        ttk.Label(f2, text="Factor reconstruccion FPM (1=sin):").pack(side=tk.LEFT)
-        fpm_var = tk.StringVar(value="1")
-        ttk.Entry(f2, textvariable=fpm_var, width=8,
-                  font=("Consolas", 11)).pack(side=tk.RIGHT)
-
-        # Super-resolucion
-        f3 = ttk.Frame(dialog)
-        f3.pack(fill=tk.X, padx=20, pady=4)
-        ttk.Label(f3, text="Super-resolucion aplicada (1, 2, 4):").pack(side=tk.LEFT)
-        sr_var = tk.StringVar(value="1")
-        ttk.Entry(f3, textvariable=sr_var, width=8,
-                  font=("Consolas", 11)).pack(side=tk.RIGHT)
-
-        # Resultado preview
-        result_var = tk.StringVar(value="")
-        result_lbl = ttk.Label(dialog, textvariable=result_var,
-                               font=("Consolas", 10, "bold"), foreground="#a6e3a1",
-                               background="#313244")
-        result_lbl.pack(pady=(8, 4))
-
-        def _update_preview(*args):
-            try:
-                pitch = float(pitch_var.get().replace(",", "."))
-                fpm = float(fpm_var.get().replace(",", "."))
-                sr = float(sr_var.get().replace(",", "."))
-                fpm = max(fpm, 1)
-                sr = max(sr, 1)
-                um_px = pitch / (fpm * sr)
-                result_var.set(f"= {um_px:.4f} um/pixel")
-            except ValueError:
-                result_var.set("")
-
-        pitch_var.trace_add("write", _update_preview)
-        fpm_var.trace_add("write", _update_preview)
-        sr_var.trace_add("write", _update_preview)
-        _update_preview()
-
-        # Formula
-        ttk.Label(dialog, text="Formula: um/px = pitch / (FPM x SR)",
-                  font=("Consolas", 8), foreground="#6c7086",
-                  background="#313244").pack()
-
-        def _accept():
-            try:
-                pitch = float(pitch_var.get().replace(",", "."))
-                fpm = float(fpm_var.get().replace(",", "."))
-                sr = float(sr_var.get().replace(",", "."))
-                fpm = max(fpm, 1)
-                sr = max(sr, 1)
-                um_px = pitch / (fpm * sr)
-
-                self.manual_um_per_pixel = um_px
-                parts = []
-                parts.append(f"pitch={pitch}")
-                if fpm > 1:
-                    parts.append(f"FPM={fpm}x")
-                if sr > 1:
-                    parts.append(f"SR={sr}x")
-                detail = ", ".join(parts)
-                self.cal_status.set(f"{um_px:.4f} um/px  ({detail})")
-                self.status_var.set(f"Calibrado sensor: {um_px:.4f} um/pixel")
-                dialog.destroy()
-            except ValueError:
-                messagebox.showerror("Error", "Ingresa numeros validos",
                                       parent=dialog)
 
         ttk.Button(dialog, text="Aceptar", command=_accept).pack(pady=8)
