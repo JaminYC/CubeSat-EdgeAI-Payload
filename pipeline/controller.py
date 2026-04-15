@@ -53,9 +53,12 @@ class PipelineController:
             if files:
                 self.log(f"  {img_type}: {len(files)} imagen(es)")
 
-        # ── 2. Calibración (primero las reglas) ──
+        # ── 2. Calibracion ──
         self.log("Calibrando...")
-        if classified["ruler"]:
+        if self.cal_info and self.cal_info.get("method") == "manual":
+            # Calibracion manual ya fue seteada desde la GUI
+            self.log(f"  {self.cal_info['message']}")
+        elif classified["ruler"]:
             ruler_path = classified["ruler"][0]
             self.log(f"  Usando regla: {os.path.basename(ruler_path)}")
             _, ruler_gray = load_image(ruler_path)
@@ -154,6 +157,7 @@ class PipelineController:
             output_dir=output_dir,
             image_name=os.path.basename(fpath),
             img_color=img_color,
+            img_gray=img_gray,
             seg_result=seg,
             cell_measurements=cells,
             summary=summary,

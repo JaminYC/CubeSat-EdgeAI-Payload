@@ -2,26 +2,31 @@
 CubeSat EdgeAI — Entry point.
 
 Uso:
-    python main.py              # Abre GUI
-    python main.py --cli        # Corre pipeline sin GUI
-    python main.py --folder X   # Especifica carpeta de entrada
+    python main.py                  # Abre GUI
+    python main.py --cli            # Corre pipeline sin GUI
+    python main.py --viewer         # Abre visor interactivo
+    python main.py --folder X       # Especifica carpeta de entrada
 """
 
 import argparse
-import sys
 
 
 def main():
     parser = argparse.ArgumentParser(description="CubeSat EdgeAI Pipeline")
     parser.add_argument("--cli", action="store_true",
                         help="Ejecutar en modo CLI (sin GUI)")
+    parser.add_argument("--viewer", action="store_true",
+                        help="Abrir visor interactivo de resultados")
     parser.add_argument("--folder", type=str, default=None,
                         help="Carpeta de imagenes de entrada")
     parser.add_argument("--config", type=str, default=None,
                         help="Ruta al archivo config.yaml")
     args = parser.parse_args()
 
-    if args.cli:
+    if args.viewer:
+        from pipeline.viewer import run_viewer
+        run_viewer(input_folder=args.folder, config_path=args.config)
+    elif args.cli:
         from pipeline.controller import PipelineController
         controller = PipelineController(config_path=args.config)
         result = controller.run(input_folder=args.folder)
