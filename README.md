@@ -10,7 +10,6 @@ Pipeline de procesamiento de imágenes embebido para CubeSat con microscopía FP
 flowchart TD
     subgraph SAT["🛰️ CubeSat Payload"]
         CAM["Cámara FPM\n(captura multi-ángulo)"]
-        THERMAL["Thermal Logger\nESP32 + MAX6675"]
     end
 
     subgraph GROUND["🖥️ Estación Terrena / Edge Processing"]
@@ -24,7 +23,6 @@ flowchart TD
         CSV["CSV de mediciones"]
         IMG["Imágenes mejoradas ×4"]
         STATS["Estadísticas celulares"]
-        THERM["Perfil térmico"]
     end
 
     CAM --> CAL
@@ -33,7 +31,6 @@ flowchart TD
     CELL --> CSV
     CELL --> IMG
     CELL --> STATS
-    THERMAL --> THERM
 ```
 
 ---
@@ -78,38 +75,6 @@ flowchart LR
 
 ---
 
-## Pipeline Térmico (Monitoreo de Payload)
-
-```mermaid
-flowchart LR
-    subgraph HW["Hardware"]
-        TC["Termocupla tipo K"]
-        MAX["MAX6675"]
-        ESP["ESP32"]
-        TC --> MAX --> ESP
-    end
-
-    subgraph FW["Firmware"]
-        direction TB
-        SAMPLE["Muestreo periódico"]
-        SPIKE["Rechazo de spikes EMI"]
-        EMA["Filtro EMA\n(α configurable)"]
-        SAMPLE --> SPIKE --> EMA
-    end
-
-    subgraph SW["Software PC"]
-        direction TB
-        SERIAL["Lectura Serial\n115200 baud"]
-        GUI["GUI de monitoreo\n(matplotlib + tkinter)"]
-        EXPORT["Exportar CSV + PNG"]
-        SERIAL --> GUI --> EXPORT
-    end
-
-    ESP --> SERIAL
-```
-
----
-
 ## Estructura del Proyecto
 
 ```
@@ -128,11 +93,6 @@ CubeSat-EdgeAI-Payload/
 │
 ├── Real-ESRGAN/                 # Repositorio completo Real-ESRGAN
 ├── Modelo/                      # Pesos del modelo (copia)
-│
-├── thermal_logger/              # Monitor térmico ESP32
-│   ├── src/main.cpp             # Firmware ESP32 (MAX6675 + filtro EMA)
-│   ├── tools/                   # Herramientas de análisis térmico
-│   └── platformio.ini           # Config PlatformIO
 │
 ├── Imagenes/                    # Imágenes de prueba y escaneos
 ├── Resultados/                  # Salidas procesadas
@@ -157,10 +117,6 @@ Upscaling ×4 con Real-ESRGAN (RRDBNet: 64 filtros, 23 bloques residuales). Sopo
 
 Segmentación automática de células con remoción de viñeteo, umbral adaptativo (Canny + morfología), y extracción de métricas (área, perímetro, circularidad).
 
-### 4. Thermal Logger (`thermal_logger/`)
-
-Firmware ESP32 para monitoreo térmico del payload con termocupla tipo K, filtro EMA, rechazo de spikes EMI, y GUI de visualización en PC.
-
 ---
 
 ## Requisitos
@@ -172,9 +128,6 @@ pip install -r requirements_calibration.txt
 # Super-resolución (GPU recomendado)
 pip install torch torchvision opencv-python numpy
 
-# Thermal logger
-# PlatformIO (firmware ESP32)
-pip install platformio
 ```
 
 ---
@@ -190,7 +143,4 @@ python Minimal/inference_minimal.py
 
 # Análisis celular
 python cell_analyzer_gui.py
-
-# Thermal logger — compilar y subir firmware
-cd thermal_logger && pio run --target upload
 ```
