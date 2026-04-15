@@ -22,7 +22,7 @@ calibration:
   microsphere_diameter_um: 2.0
   ruler_spacing_mm: 1.0
   # Fallback si no hay imagen de calibración
-  default_um_per_pixel: 0.5
+  default_um_per_pixel: 1.4  # OV5647 pixel pitch (lensless)
 
 # Preprocesamiento
 preprocess:
