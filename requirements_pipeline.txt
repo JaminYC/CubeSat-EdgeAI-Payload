@@ -1,0 +1,19 @@
+# CubeSat EdgeAI — Dependencias del pipeline
+# Funciona en PC (Windows/Linux) y Raspberry Pi 5
+
+# Core (siempre requerido)
+opencv-python>=4.8.0
+numpy>=1.24.0
+scikit-image>=0.21.0
+PyYAML>=6.0
+
+# Fase 2-3: Modelos IA (opcional en RPi, instalar solo si se necesita)
+# cellpose>=3.0
+# torch>=2.0
+
+# Fase 4: Deploy en RPi (alternativa ligera a torch)
+# onnxruntime>=1.16.0
+
+# Análisis y exportación
+# pandas>=2.0      # opcional, para análisis avanzado
+# matplotlib>=3.7  # opcional, para gráficos

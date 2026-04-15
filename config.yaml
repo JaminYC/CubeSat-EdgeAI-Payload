@@ -1,0 +1,92 @@
+# ─────────────────────────────────────────────────────
+# CubeSat EdgeAI — Configuración del pipeline
+# ─────────────────────────────────────────────────────
+
+# Carpetas de entrada/salida
+paths:
+  input_folder: "./Imagenes"
+  output_folder: "./Resultados/pipeline_output"
+
+# Clasificación de imágenes por nombre de archivo
+classifier:
+  ruler_keywords: ["ruler", "regla", "calibra", "regleta", "scale"]
+  onion_keywords: ["onion", "cebolla", "cell", "celula", "epidermis", "skin", "piel"]
+  fiber_keywords: ["fiber", "fibra", "cotton", "algodon", "hilo", "thread"]
+  # Extensiones válidas
+  extensions: [".tiff", ".tif", ".png", ".jpg", ".jpeg", ".bmp"]
+
+# Calibración
+calibration:
+  # Método: "microspheres" (esferas 2µm) o "ruler" (marcas de regla)
+  method: "ruler"
+  microsphere_diameter_um: 2.0
+  ruler_spacing_mm: 1.0
+  # Fallback si no hay imagen de calibración
+  default_um_per_pixel: 0.5
+
+# Preprocesamiento
+preprocess:
+  apply_clahe: true
+  clahe_clip_limit: 3.0
+  clahe_grid_size: 8
+  denoise: true
+  denoise_strength: 7
+  # Normalizar iluminación (corrige viñeteo)
+  correct_vignette: true
+
+# Segmentación de cebolla (células)
+onion:
+  # Método: "opencv" (baseline), "cellpose", "onnx"
+  method: "opencv"
+  # OpenCV params
+  opencv:
+    blur_kernel: 5
+    morph_kernel: 3
+    morph_iterations: 2
+    min_cell_area_px: 200
+    max_cell_area_px: 50000
+  # Cellpose params (Fase 2+)
+  cellpose:
+    model_type: "cyto3"
+    diameter: null  # null = auto-detect
+    flow_threshold: 0.4
+    cellprob_threshold: 0.0
+  # ONNX params (Fase 4 — RPi deploy)
+  onnx:
+    model_path: "./models/cellpose_onion.onnx"
+
+# Segmentación de fibras
+fiber:
+  canny_low: 50
+  canny_high: 150
+  hough_threshold: 50
+  hough_min_length: 30
+  hough_max_gap: 10
+  min_fiber_length_px: 20
+
+# Medición
+measurement:
+  # Métricas a calcular para células
+  cell_metrics: ["area", "perimeter", "circularity", "aspect_ratio", "solidity"]
+  # Métricas para fibras
+  fiber_metrics: ["length", "thickness", "angle", "crossings"]
+
+# Exportación
+export:
+  save_overlays: true
+  save_masks: true
+  save_csv: true
+  save_json: true
+  save_summary: true
+  overlay_alpha: 0.4
+  overlay_colormap: "tab20"
+
+# Modo de operación (graceful degradation)
+# "full" = IA + medición, "classic" = OpenCV only, "minimal" = solo medición
+mode: "classic"
+
+# Hardware target
+hardware:
+  target: "pc"  # "pc" o "rpi5"
+  max_ram_mb: 4096
+  use_gpu: true
