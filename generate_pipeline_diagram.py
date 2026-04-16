@@ -212,263 +212,286 @@ def generate_simple():
 # ══════════════════════════════════════════════════════════════
 
 def generate_detailed():
-    """Diagrama detallado del pipeline con ramificaciones."""
-    W, H = 1800, 1650
+    """Diagrama detallado del pipeline — replica exacta del mermaid del README."""
+    W, H = 2400, 2100
     img = np.full((H, W, 3), BG, dtype=np.uint8)
 
     # Titulo
     put_text_centered(img, "Pipeline de Microscopia - Arquitectura Detallada", W // 2, 45,
-                     font_scale=1.0, color=COL_TEXT, thickness=2)
-    put_text_centered(img, "CubeSat EdgeAI Payload", W // 2, 72,
-                     font_scale=0.55, color=COL_SUBTEXT)
+                     font_scale=1.1, color=COL_TEXT, thickness=2)
+    put_text_centered(img, "CubeSat EdgeAI Payload", W // 2, 75,
+                     font_scale=0.6, color=COL_SUBTEXT)
 
     cx = W // 2
 
     # ── ETAPA 1: CARGA ──
-    bw, bh = 400, 55
-    y = 100
+    bw, bh = 500, 65
+    y = 105
     draw_rounded_rect(img, (cx - bw//2, y), (cx + bw//2, y + bh), COL_LOAD,
                      border_color=COL_BORDER)
-    put_text_centered(img, "1. Carga de imagenes", cx, y + 22, 0.6, COL_TEXT, 1)
-    put_text_centered(img, "Lee archivos de la carpeta de entrada", cx, y + 42, 0.42, COL_SUBTEXT)
+    put_text_centered(img, "Carga de imagenes", cx, y + 25, 0.65, COL_TEXT, 1)
+    put_text_centered(img, "Lee todos los archivos de imagen de la carpeta seleccionada",
+                     cx, y + 48, 0.42, COL_SUBTEXT)
 
-    draw_arrow_down(img, cx, y + bh + 3, y + bh + 30, COL_ARROW)
+    draw_arrow_down(img, cx, y + bh + 3, y + bh + 32, COL_ARROW)
 
     # ── ETAPA 2: CLASIFICACION ──
-    y = 190
-    draw_rounded_rect(img, (cx - bw//2, y), (cx + bw//2, y + bh), COL_CLASS,
+    y = 205
+    draw_rounded_rect(img, (cx - bw//2, y), (cx + bw//2, y + 80), COL_CLASS,
                      border_color=COL_BORDER)
-    put_text_centered(img, "2. Clasificacion automatica", cx, y + 22, 0.6, COL_TEXT, 1)
-    put_text_centered(img, "Histogramas, bordes, patrones", cx, y + 42, 0.42, COL_SUBTEXT)
+    put_text_centered(img, "Clasificacion automatica", cx, y + 25, 0.65, COL_TEXT, 1)
+    put_multiline_centered(img, [
+        "Analiza histogramas, bordes y patrones",
+        "para determinar el tipo de cada imagen",
+    ], cx, y + 48, 16, 0.40, COL_SUBTEXT)
 
-    # Ramificacion en 3
-    y_branch = y + bh + 5
-    branch_y = 300
-    col_x = [cx - 500, cx, cx + 500]
+    # ── Ramificacion en 4 ──
+    y_branch_top = y + 80 + 5
+    branch_y = 355
+    col_x = [280, 780, 1380, 1980]  # 4 columnas: regla, cebolla, fibra, desconocida
+    bw2 = 420
 
-    cv2.line(img, (cx, y_branch), (cx, y_branch + 15), COL_ARROW, 2, cv2.LINE_AA)
-    cv2.line(img, (col_x[0], y_branch + 15), (col_x[2], y_branch + 15), COL_ARROW, 2, cv2.LINE_AA)
+    cv2.line(img, (cx, y_branch_top), (cx, y_branch_top + 18), COL_ARROW, 2, cv2.LINE_AA)
+    cv2.line(img, (col_x[0], y_branch_top + 18), (col_x[3], y_branch_top + 18), COL_ARROW, 2, cv2.LINE_AA)
     for x in col_x:
-        draw_arrow_down(img, x, y_branch + 15, branch_y - 3, COL_ARROW)
+        draw_arrow_down(img, x, y_branch_top + 18, branch_y - 3, COL_ARROW)
 
-    # ── Columna REGLA ──
-    bw2, bh2 = 380, 50
+    # ── Col 0: REGLA ──
+    bh2 = 60
     draw_rounded_rect(img, (col_x[0] - bw2//2, branch_y), (col_x[0] + bw2//2, branch_y + bh2),
                      COL_CAL, border_color=COL_BORDER)
-    put_text_centered(img, "Imagen de regla", col_x[0], branch_y + 20, 0.55, COL_TEXT, 1)
-    put_text_centered(img, "Marcas de escala conocidas", col_x[0], branch_y + 40, 0.40, COL_SUBTEXT)
+    put_text_centered(img, "Imagen de regla", col_x[0], branch_y + 22, 0.55, COL_TEXT, 1)
+    put_text_centered(img, "Contiene marcas de escala conocidas para calibrar",
+                     col_x[0], branch_y + 44, 0.38, COL_SUBTEXT)
 
-    draw_arrow_down(img, col_x[0], branch_y + bh2 + 3, branch_y + bh2 + 35, COL_ARROW)
+    draw_arrow_down(img, col_x[0], branch_y + bh2 + 3, branch_y + bh2 + 38, COL_ARROW)
 
-    y_cal = branch_y + bh2 + 38
-    bh3 = 80
-    draw_rounded_rect(img, (col_x[0] - bw2//2, y_cal), (col_x[0] + bw2//2, y_cal + bh3),
+    y_cal = branch_y + bh2 + 41
+    cal_h = 90
+    draw_rounded_rect(img, (col_x[0] - bw2//2, y_cal), (col_x[0] + bw2//2, y_cal + cal_h),
                      COL_CAL, border_color=COL_BORDER)
     put_multiline_centered(img, [
-        "3. Calibracion",
-        "Hough Transform -> lineas paralelas",
-        "Calcula um/pixel",
-        "Aplica a todo el lote",
+        "Calibracion",
+        "Detecta lineas de la regla con",
+        "Transformada de Hough y calcula",
+        "la relacion micrometros por pixel",
     ], col_x[0], y_cal + 20, 18, 0.42, COL_TEXT)
 
-    y_scale = y_cal + bh3 + 35
-    draw_arrow_down(img, col_x[0], y_cal + bh3 + 3, y_scale - 20, COL_ARROW)
-    cv2.circle(img, (col_x[0], y_scale), 28, COL_CAL, -1)
-    cv2.circle(img, (col_x[0], y_scale), 28, COL_BORDER, 2)
-    put_text_centered(img, "um/px", col_x[0], y_scale + 5, 0.45, COL_TEXT, 1)
+    y_scale = y_cal + cal_h + 40
+    draw_arrow_down(img, col_x[0], y_cal + cal_h + 3, y_scale - 25, COL_ARROW)
+    cv2.circle(img, (col_x[0], y_scale), 35, COL_CAL, -1)
+    cv2.circle(img, (col_x[0], y_scale), 35, COL_BORDER, 2)
+    put_multiline_centered(img, [
+        "Factor de",
+        "escala",
+        "um/pixel",
+    ], col_x[0], y_scale - 12, 14, 0.35, COL_TEXT)
 
-    # ── Columna CEBOLLA ──
+    # ── Col 1: CEBOLLA ──
     draw_rounded_rect(img, (col_x[1] - bw2//2, branch_y), (col_x[1] + bw2//2, branch_y + bh2),
                      COL_SEG, border_color=COL_BORDER)
-    put_text_centered(img, "Piel de cebolla", col_x[1], branch_y + 20, 0.55, COL_TEXT, 1)
-    put_text_centered(img, "Tejido epidermal con celulas", col_x[1], branch_y + 40, 0.40, COL_SUBTEXT)
+    put_text_centered(img, "Piel de cebolla", col_x[1], branch_y + 22, 0.55, COL_TEXT, 1)
+    put_text_centered(img, "Tejido epidermal con celulas rectangulares visibles",
+                     col_x[1], branch_y + 44, 0.38, COL_SUBTEXT)
 
-    # MEJORA IA OBLIGATORIA (cebolla)
-    draw_arrow_down(img, col_x[1], branch_y + bh2 + 3, branch_y + bh2 + 35, COL_ARROW)
-    y_enh = branch_y + bh2 + 38
-    enh_h = 170
+    # Mejora IA cebolla (OBLIGATORIA)
+    draw_arrow_down(img, col_x[1], branch_y + bh2 + 3, branch_y + bh2 + 38, COL_ARROW)
+    y_enh = branch_y + bh2 + 41
+    enh_h = 260
     draw_rounded_rect(img, (col_x[1] - bw2//2, y_enh), (col_x[1] + bw2//2, y_enh + enh_h),
-                     COL_ENHANCE, border_color=(200, 140, 60), border_thick=2)
+                     COL_ENHANCE, border_color=(200, 140, 60), border_thick=3)
     put_multiline_centered(img, [
-        "3. Mejora de imagen (OBLIGATORIA)",
-        "Condiciones espaciales: ruido sensor,",
-        "radiacion cosmica, optica lensless",
+        "Mejora de imagen por IA",
+        "Etapa obligatoria: en el espacio las",
+        "imagenes llegan con ruido del sensor,",
+        "radiacion y optica limitada (lensless)",
         "",
         "Denoising:",
-        "  N2V: blind-spot U-Net, entrena en la",
-        "  propia imagen sin referencia limpia",
-        "  CARE: noise2clean con ruido sintetico",
+        "N2V - self-supervised, no necesita",
+        "imagen limpia de referencia",
+        "CARE - noise2clean con ruido sintetico",
+        "",
         "Super-resolucion:",
-        "  FPM: multi-angulo real (lensless+OLED)",
-    ], col_x[1], y_enh + 16, 15, 0.38, COL_TEXT)
+        "Real-ESRGAN - upscaling x4 con red",
+        "generativa adversarial (RRDBNet)",
+        "FPM - reconstruccion multi-angulo,",
+        "aumenta resolucion real desde",
+        "multiples capturas lensless+OLED",
+    ], col_x[1], y_enh + 18, 15, 0.38, COL_TEXT)
 
     # Segmentacion cebolla
-    draw_arrow_down(img, col_x[1], y_enh + enh_h + 3, y_enh + enh_h + 35, COL_ARROW)
-    y_seg = y_enh + enh_h + 38
-    seg_h = 130
+    draw_arrow_down(img, col_x[1], y_enh + enh_h + 3, y_enh + enh_h + 38, COL_ARROW)
+    y_seg = y_enh + enh_h + 41
+    seg_h = 195
     draw_rounded_rect(img, (col_x[1] - bw2//2, y_seg), (col_x[1] + bw2//2, y_seg + seg_h),
                      COL_SEG, border_color=COL_BORDER)
     put_multiline_centered(img, [
-        "4. Segmentacion celular",
+        "Segmentacion celular",
         "",
-        "Cellpose cyto3: campos de flujo",
-        "vectorial -> centro de cada celula",
-        "StarDist: distancias radiales en 32",
-        "direcciones -> poligonos convexos",
-        "OpenCV: watershed + morfologia",
-    ], col_x[1], y_seg + 16, 16, 0.40, COL_TEXT)
+        "Cellpose cyto3: predice campos de flujo",
+        "vectorial que apuntan al centro de cada",
+        "celula y agrupa pixeles que convergen",
+        "al mismo centro para formar mascaras",
+        "",
+        "StarDist: predice distancias radiales",
+        "desde cada pixel al borde del objeto en",
+        "multiples direcciones y reconstruye",
+        "poligonos convexos como contorno celular",
+        "",
+        "OpenCV: umbral adaptativo + watershed",
+        "con marcadores morfologicos como fallback",
+    ], col_x[1], y_seg + 16, 13, 0.37, COL_TEXT)
 
     # Medicion cebolla
-    draw_arrow_down(img, col_x[1], y_seg + seg_h + 3, y_seg + seg_h + 35, COL_ARROW)
-    y_meas = y_seg + seg_h + 38
-    meas_h = 75
+    draw_arrow_down(img, col_x[1], y_seg + seg_h + 3, y_seg + seg_h + 38, COL_ARROW)
+    y_meas = y_seg + seg_h + 41
+    meas_h = 80
     draw_rounded_rect(img, (col_x[1] - bw2//2, y_meas), (col_x[1] + bw2//2, y_meas + meas_h),
                      COL_MEAS, border_color=COL_BORDER)
     put_multiline_centered(img, [
-        "5. Medicion celular",
-        "Area (um2), perimetro (um)",
-        "Circularidad (4piA/P2)",
-        "Conteo total, estadisticas",
+        "Medicion celular",
+        "Area en um2, perimetro en um,",
+        "circularidad, conteo total,",
+        "estadisticas por imagen",
     ], col_x[1], y_meas + 18, 16, 0.40, COL_TEXT)
 
-    # ── Columna FIBRA ──
+    # ── Col 2: FIBRA ──
     draw_rounded_rect(img, (col_x[2] - bw2//2, branch_y), (col_x[2] + bw2//2, branch_y + bh2),
                      (50, 120, 140), border_color=COL_BORDER)
-    put_text_centered(img, "Fibra de algodon", col_x[2], branch_y + 20, 0.55, COL_TEXT, 1)
-    put_text_centered(img, "Estructuras filamentosas", col_x[2], branch_y + 40, 0.40, COL_SUBTEXT)
+    put_text_centered(img, "Fibra de algodon", col_x[2], branch_y + 22, 0.55, COL_TEXT, 1)
+    put_text_centered(img, "Estructuras filamentosas alargadas y delgadas",
+                     col_x[2], branch_y + 44, 0.38, COL_SUBTEXT)
 
-    # MEJORA IA OBLIGATORIA (fibra)
-    draw_arrow_down(img, col_x[2], branch_y + bh2 + 3, branch_y + bh2 + 35, COL_ARROW)
-    y_enh_f = branch_y + bh2 + 38
-    enh_f_h = 100
+    # Mejora IA fibra (OBLIGATORIA)
+    draw_arrow_down(img, col_x[2], branch_y + bh2 + 3, branch_y + bh2 + 38, COL_ARROW)
+    y_enh_f = branch_y + bh2 + 41
+    enh_f_h = 110
     draw_rounded_rect(img, (col_x[2] - bw2//2, y_enh_f), (col_x[2] + bw2//2, y_enh_f + enh_f_h),
-                     COL_ENHANCE, border_color=(200, 140, 60), border_thick=2)
+                     COL_ENHANCE, border_color=(200, 140, 60), border_thick=3)
     put_multiline_centered(img, [
-        "3. Mejora de imagen (OBLIGATORIA)",
-        "Denoising obligatorio antes de",
-        "detectar bordes finos de fibra:",
-        "  N2V o CARE para reducir ruido",
-        "  sin difuminar bordes",
-    ], col_x[2], y_enh_f + 16, 16, 0.38, COL_TEXT)
+        "Mejora de imagen por IA",
+        "Denoising obligatorio para fibras:",
+        "N2V o CARE para reducir ruido",
+        "antes de detectar bordes finos",
+    ], col_x[2], y_enh_f + 22, 20, 0.42, COL_TEXT)
 
     # Deteccion de fibras
-    draw_arrow_down(img, col_x[2], y_enh_f + enh_f_h + 3, y_enh_f + enh_f_h + 35, COL_ARROW)
-    y_seg_f = y_enh_f + enh_f_h + 38
-    seg_f_h = 100
+    draw_arrow_down(img, col_x[2], y_enh_f + enh_f_h + 3, y_enh_f + enh_f_h + 38, COL_ARROW)
+    y_seg_f = y_enh_f + enh_f_h + 41
+    seg_f_h = 110
     draw_rounded_rect(img, (col_x[2] - bw2//2, y_seg_f), (col_x[2] + bw2//2, y_seg_f + seg_f_h),
                      (50, 120, 140), border_color=COL_BORDER)
     put_multiline_centered(img, [
-        "4. Deteccion de fibras",
+        "Deteccion de fibras",
         "",
-        "Canny: deteccion de bordes",
-        "Hough: segmentos de linea",
-        "Esqueletizacion: eje central",
-        "de 1 pixel de ancho",
-    ], col_x[2], y_seg_f + 16, 16, 0.40, COL_TEXT)
+        "Canny para bordes + Hough para",
+        "lineas + esqueletizacion para",
+        "extraer el eje central de cada fibra",
+    ], col_x[2], y_seg_f + 18, 18, 0.40, COL_TEXT)
 
     # Medicion fibra
-    draw_arrow_down(img, col_x[2], y_seg_f + seg_f_h + 3, y_seg_f + seg_f_h + 35, COL_ARROW)
-    y_meas_f = y_seg_f + seg_f_h + 38
+    draw_arrow_down(img, col_x[2], y_seg_f + seg_f_h + 3, y_seg_f + seg_f_h + 38, COL_ARROW)
+    y_meas_f = y_seg_f + seg_f_h + 41
     draw_rounded_rect(img, (col_x[2] - bw2//2, y_meas_f), (col_x[2] + bw2//2, y_meas_f + meas_h),
                      COL_MEAS, border_color=COL_BORDER)
     put_multiline_centered(img, [
-        "5. Medicion de fibras",
-        "Longitud (um), grosor (um)",
-        "Cruces entre fibras",
-        "Estadisticas por imagen",
+        "Medicion de fibras",
+        "Grosor promedio en um,",
+        "longitud en um, numero de",
+        "cruces entre fibras",
     ], col_x[2], y_meas_f + 18, 16, 0.40, COL_TEXT)
 
-    # ── Linea de calibracion a mediciones ──
-    scale_x = col_x[0]
-    scale_y_bottom = y_scale + 28
-    cv2.line(img, (scale_x, scale_y_bottom), (scale_x, y_meas + 37),
-             (50, 150, 180), 1, cv2.LINE_AA)
-    cv2.arrowedLine(img, (scale_x, y_meas + 37), (col_x[1] - bw2//2, y_meas + 37),
-                    (50, 150, 180), 1, tipLength=0.02, line_type=cv2.LINE_AA)
-    cv2.arrowedLine(img, (scale_x, y_meas_f + 37), (col_x[2] - bw2//2, y_meas_f + 37),
-                    (50, 150, 180), 1, tipLength=0.02, line_type=cv2.LINE_AA)
-    put_text_centered(img, "um/px", (scale_x + col_x[1] - bw2//2) // 2, y_meas + 30,
-                     0.35, (50, 150, 180))
+    # ── Col 3: DESCONOCIDA ──
+    draw_rounded_rect(img, (col_x[3] - bw2//2, branch_y), (col_x[3] + bw2//2, branch_y + bh2),
+                     (80, 80, 80), border_color=COL_BORDER)
+    put_text_centered(img, "Imagen no reconocida", col_x[3], branch_y + 22, 0.55, COL_TEXT, 1)
+    put_text_centered(img, "No coincide con ningun patron",
+                     col_x[3], branch_y + 44, 0.38, COL_SUBTEXT)
 
-    # ── Nota: Real-ESRGAN ──
-    note_esrgan_x = col_x[1] + bw2//2 + 15
-    note_esrgan_y = y_enh + 10
-    bw_note = 310
-    bh_note = 80
-    cv2.rectangle(img, (note_esrgan_x, note_esrgan_y),
-                  (note_esrgan_x + bw_note, note_esrgan_y + bh_note), (50, 40, 50), -1)
-    cv2.rectangle(img, (note_esrgan_x, note_esrgan_y),
-                  (note_esrgan_x + bw_note, note_esrgan_y + bh_note), (120, 80, 60), 1)
-    put_multiline_centered(img, [
-        "Real-ESRGAN (solo visualizacion)",
-        "Upscaling x4 con GAN (RRDBNet)",
-        "NO usar para medicion: puede",
-        "inventar bordes celulares falsos",
-    ], note_esrgan_x + bw_note//2, note_esrgan_y + 18, 16, 0.38, (180, 140, 120))
-    cv2.line(img, (col_x[1] + bw2//2, y_enh + 50), (note_esrgan_x, note_esrgan_y + 40),
-             (120, 80, 60), 1, cv2.LINE_AA)
+    # Flecha de desconocida hacia mejora cebolla
+    unk_arrow_y = branch_y + bh2 + 15
+    cv2.line(img, (col_x[3], branch_y + bh2 + 3), (col_x[3], unk_arrow_y), COL_ARROW, 2, cv2.LINE_AA)
+    cv2.arrowedLine(img, (col_x[3], unk_arrow_y), (col_x[1] + bw2//2 + 3, unk_arrow_y),
+                    COL_ARROW, 2, tipLength=0.015, line_type=cv2.LINE_AA)
+    # Linea baja hasta la mejora cebolla
+    cv2.line(img, (col_x[1] + bw2//2 + 3, unk_arrow_y), (col_x[1] + bw2//2 + 3, y_enh + 30),
+             COL_ARROW, 2, cv2.LINE_AA)
+    cv2.arrowedLine(img, (col_x[1] + bw2//2 + 3, y_enh + 30), (col_x[1] + bw2//2, y_enh + 30),
+                    COL_ARROW, 2, tipLength=0.15, line_type=cv2.LINE_AA)
+    put_text_centered(img, "Se procesa como cebolla", (col_x[1] + col_x[3]) // 2, unk_arrow_y - 8,
+                     0.35, (150, 150, 150))
+
+    # ── Lineas de calibracion a mediciones ──
+    scale_x = col_x[0]
+    scale_y_bottom = y_scale + 35
+    # Vertical larga
+    cv2.line(img, (scale_x, scale_y_bottom), (scale_x, y_meas_f + 40),
+             (50, 150, 180), 2, cv2.LINE_AA)
+    # Hacia medicion cebolla
+    cv2.arrowedLine(img, (scale_x, y_meas + 40), (col_x[1] - bw2//2, y_meas + 40),
+                    (50, 150, 180), 2, tipLength=0.015, line_type=cv2.LINE_AA)
+    put_text_centered(img, "um/px", (scale_x + col_x[1] - bw2//2) // 2, y_meas + 33,
+                     0.38, (50, 150, 180))
+    # Hacia medicion fibra
+    cv2.arrowedLine(img, (scale_x, y_meas_f + 40), (col_x[2] - bw2//2, y_meas_f + 40),
+                    (50, 150, 180), 2, tipLength=0.01, line_type=cv2.LINE_AA)
 
     # ── CONVERGENCIA: Agregacion ──
-    y_agg = max(y_meas + 75, y_meas_f + 75) + 50
-    # Flechas de convergencia
-    cv2.line(img, (col_x[1], y_meas + 75 + 3), (col_x[1], y_agg - 3), COL_ARROW, 2, cv2.LINE_AA)
-    cv2.line(img, (col_x[2], y_meas_f + 75 + 3), (col_x[2], y_agg - 3), COL_ARROW, 2, cv2.LINE_AA)
-    # Linea horizontal
+    y_agg = max(y_meas + meas_h, y_meas_f + meas_h) + 55
+    cv2.line(img, (col_x[1], y_meas + meas_h + 3), (col_x[1], y_agg - 3), COL_ARROW, 2, cv2.LINE_AA)
+    cv2.line(img, (col_x[2], y_meas_f + meas_h + 3), (col_x[2], y_agg - 3), COL_ARROW, 2, cv2.LINE_AA)
     cv2.line(img, (col_x[1], y_agg), (col_x[2], y_agg), COL_ARROW, 2, cv2.LINE_AA)
     mid_x = (col_x[1] + col_x[2]) // 2
-    draw_arrow_down(img, mid_x, y_agg, y_agg + 30, COL_ARROW)
+    draw_arrow_down(img, mid_x, y_agg, y_agg + 33, COL_ARROW)
 
-    y_agg_box = y_agg + 33
-    bw_agg = 450
-    draw_rounded_rect(img, (mid_x - bw_agg//2, y_agg_box), (mid_x + bw_agg//2, y_agg_box + 55),
+    y_agg_box = y_agg + 36
+    bw_agg = 550
+    agg_h = 70
+    draw_rounded_rect(img, (mid_x - bw_agg//2, y_agg_box), (mid_x + bw_agg//2, y_agg_box + agg_h),
                      (80, 100, 60), border_color=COL_BORDER)
-    put_text_centered(img, "6. Agregacion de resultados", mid_x, y_agg_box + 22, 0.55, COL_TEXT, 1)
-    put_text_centered(img, "Resumen estadistico global del lote", mid_x, y_agg_box + 42, 0.42, COL_SUBTEXT)
+    put_text_centered(img, "Agregacion de resultados", mid_x, y_agg_box + 25, 0.6, COL_TEXT, 1)
+    put_text_centered(img, "Combina mediciones de todas las imagenes del lote",
+                     mid_x, y_agg_box + 48, 0.42, COL_SUBTEXT)
+    put_text_centered(img, "en un resumen estadistico global",
+                     mid_x, y_agg_box + 64, 0.42, COL_SUBTEXT)
 
     # ── EXPORTACION ──
-    draw_arrow_down(img, mid_x, y_agg_box + 55 + 3, y_agg_box + 55 + 30, COL_ARROW)
-    y_exp = y_agg_box + 55 + 33
+    draw_arrow_down(img, mid_x, y_agg_box + agg_h + 3, y_agg_box + agg_h + 33, COL_ARROW)
+    y_exp = y_agg_box + agg_h + 36
 
-    # 3 cajas de salida
-    exp_w = 230
-    exp_h = 65
-    exp_gap = 30
+    exp_w = 340
+    exp_h = 85
+    exp_gap = 40
     exp_x_start = mid_x - (3 * exp_w + 2 * exp_gap) // 2
 
-    # Linea de ramificacion
-    cv2.line(img, (mid_x, y_exp - 3), (mid_x, y_exp + 10), COL_ARROW, 2, cv2.LINE_AA)
-    cv2.line(img, (exp_x_start + exp_w//2, y_exp + 10),
-             (exp_x_start + 2*(exp_w + exp_gap) + exp_w//2, y_exp + 10), COL_ARROW, 2, cv2.LINE_AA)
+    cv2.line(img, (mid_x, y_exp - 3), (mid_x, y_exp + 12), COL_ARROW, 2, cv2.LINE_AA)
+    cv2.line(img, (exp_x_start + exp_w//2, y_exp + 12),
+             (exp_x_start + 2*(exp_w + exp_gap) + exp_w//2, y_exp + 12), COL_ARROW, 2, cv2.LINE_AA)
 
     exports = [
-        ("Imagenes", "Overlays con contornos", "Mascaras de segmentacion"),
-        ("Datos", "CSV por celula/fibra", "JSON con metadata"),
-        ("Reporte", "Promedios y desviaciones", "Parametros del pipeline"),
+        ("Imagenes procesadas",
+         "Overlays con contornos coloreados",
+         "sobre la imagen original",
+         "Mascaras de segmentacion"),
+        ("Datos estructurados",
+         "CSV con mediciones por celula/fibra",
+         "JSON con metadata completa",
+         "incluyendo calibracion y config"),
+        ("Reporte de texto",
+         "Resumen legible con promedios,",
+         "desviaciones, conteos totales",
+         "y parametros del pipeline"),
     ]
-    for i, (title, line1, line2) in enumerate(exports):
+    for i, (title, l1, l2, l3) in enumerate(exports):
         ex = exp_x_start + i * (exp_w + exp_gap)
-        ey = y_exp + 15
-        draw_arrow_down(img, ex + exp_w//2, y_exp + 10, ey - 2, COL_ARROW)
+        ey = y_exp + 18
+        draw_arrow_down(img, ex + exp_w//2, y_exp + 12, ey - 2, COL_ARROW)
         draw_rounded_rect(img, (ex, ey), (ex + exp_w, ey + exp_h), COL_EXPORT,
                          border_color=COL_BORDER)
-        put_text_centered(img, title, ex + exp_w//2, ey + 20, 0.50, COL_TEXT, 1)
-        put_text_centered(img, line1, ex + exp_w//2, ey + 38, 0.37, COL_SUBTEXT)
-        put_text_centered(img, line2, ex + exp_w//2, ey + 54, 0.37, COL_SUBTEXT)
-
-    # ── Nota: Graceful Degradation ──
-    note_x = col_x[1] + bw2//2 + 20
-    note_y = y_seg
-    bw_note = 280
-    bh_note = 60
-    cv2.rectangle(img, (note_x, note_y), (note_x + bw_note, note_y + bh_note), (40, 40, 60), -1)
-    cv2.rectangle(img, (note_x, note_y), (note_x + bw_note, note_y + bh_note), (100, 80, 120), 1)
-    put_multiline_centered(img, [
-        "Graceful Degradation",
-        "Si Cellpose/StarDist falla",
-        "-> OpenCV automatico",
-    ], note_x + bw_note//2, note_y + 18, 18, 0.42, (180, 150, 200))
-    cv2.line(img, (col_x[1] + bw2//2, y_seg + 30), (note_x, note_y + 30),
-             (100, 80, 120), 1, cv2.LINE_AA)
+        put_text_centered(img, title, ex + exp_w//2, ey + 20, 0.48, COL_TEXT, 1)
+        put_text_centered(img, l1, ex + exp_w//2, ey + 40, 0.37, COL_SUBTEXT)
+        put_text_centered(img, l2, ex + exp_w//2, ey + 56, 0.37, COL_SUBTEXT)
+        put_text_centered(img, l3, ex + exp_w//2, ey + 72, 0.37, COL_SUBTEXT)
 
     # Footer
     put_text_centered(img, "CubeSat EdgeAI Payload - Abril 2026", W // 2, H - 25,

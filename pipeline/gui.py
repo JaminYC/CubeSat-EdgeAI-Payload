@@ -167,11 +167,10 @@ class PipelineGUI:
         info_frame = ttk.Frame(parent, style="Card.TFrame", padding=10)
         info_frame.pack(fill=tk.X, pady=(0, 8))
 
-        # Enhancement (denoising)
-        self.enhance_var = tk.StringVar(value="none")
-        ttk.Label(info_frame, text="Mejora:").pack(side=tk.LEFT)
-        for val, label in [("none", "Ninguna"), ("n2v", "N2V"),
-                            ("care", "CARE")]:
+        # Enhancement (denoising) - obligatorio para condiciones espaciales
+        self.enhance_var = tk.StringVar(value="n2v")
+        ttk.Label(info_frame, text="Mejora (obligatoria):").pack(side=tk.LEFT)
+        for val, label in [("n2v", "N2V"), ("care", "CARE")]:
             ttk.Radiobutton(info_frame, text=label, variable=self.enhance_var,
                             value=val).pack(side=tk.LEFT, padx=4)
 
@@ -627,8 +626,7 @@ class PipelineGUI:
             controller = PipelineController(log_callback=self._log)
 
             # AI enhancement (denoising before segmentation)
-            enhance = self.enhance_var.get()
-            controller.enhance_method = enhance if enhance != "none" else None
+            controller.enhance_method = self.enhance_var.get()  # siempre activo (n2v o care)
 
             # Segmentation method
             seg_method = self.method_var.get()
@@ -869,11 +867,16 @@ class PipelineGUI:
     def _run_ai_all_worker(self, img_path):
         try:
             import cv2 as _cv2
+            import numpy as _np
             image = _cv2.imread(img_path, _cv2.IMREAD_UNCHANGED)
             if image is None:
                 self._log(f"ERROR: No se pudo leer {img_path}")
                 self.root.after(0, self._ai_finished, None)
                 return
+
+            if len(image.shape) == 3 and image.shape[2] == 4:
+                image = _cv2.cvtColor(image, _cv2.COLOR_BGRA2BGR)
+            gray = _cv2.cvtColor(image, _cv2.COLOR_BGR2GRAY) if len(image.shape) == 3 else image
 
             output_dir = os.path.join(os.path.dirname(img_path), "ai_results")
             model_kwargs = {
@@ -888,18 +891,172 @@ class PipelineGUI:
                 **model_kwargs
             )
 
-            self._log(f"\n{'='*50}")
-            self._log("RESUMEN DE TODOS LOS MODELOS:")
+            # ── Recolectar metricas para tabla comparativa ──
+            comparison = {"segmentation": {}, "denoising": {}, "image_name": os.path.basename(img_path)}
+
             for name, res in results.items():
                 if "error" in res:
-                    self._log(f"  {name}: ERROR - {res['error']}")
-                elif "n_cells" in res:
-                    self._log(f"  {name}: {res['n_cells']} celulas ({res['elapsed']:.1f}s)")
-                elif "restored" in res:
-                    self._log(f"  {name}: restaurado ({res['elapsed']:.1f}s)")
-                elif "denoised" in res:
-                    self._log(f"  {name}: denoised ({res['elapsed']:.1f}s)")
-            self._log(f"{'='*50}")
+                    continue
+
+                if "n_cells" in res or "masks" in res or "labels" in res:
+                    # Modelo de segmentacion
+                    labels = res.get("masks", res.get("labels", None))
+                    entry = {
+                        "celulas": res.get("n_cells", 0),
+                        "tiempo_s": round(res.get("elapsed", 0), 1),
+                    }
+                    if labels is not None:
+                        unique = _np.unique(labels)
+                        unique = unique[unique > 0]
+                        if len(unique) > 0:
+                            areas = []
+                            circs = []
+                            for lbl in unique:
+                                mask = (labels == lbl).astype(_np.uint8)
+                                area = _np.sum(mask)
+                                areas.append(area)
+                                contours, _ = _cv2.findContours(mask, _cv2.RETR_EXTERNAL, _cv2.CHAIN_APPROX_SIMPLE)
+                                if contours:
+                                    perim = _cv2.arcLength(contours[0], True)
+                                    if perim > 0 and area > 0:
+                                        circs.append(4 * 3.14159 * area / (perim ** 2))
+                            entry["area_media_px2"] = round(float(_np.mean(areas)), 1)
+                            entry["area_std_px2"] = round(float(_np.std(areas)), 1)
+                            entry["circ_media"] = round(float(_np.mean(circs)), 3) if circs else 0
+                            entry["circ_std"] = round(float(_np.std(circs)), 3) if circs else 0
+                    comparison["segmentation"][name] = entry
+
+                elif "denoised" in res or "restored" in res:
+                    # Modelo de denoising
+                    denoised = res.get("denoised", res.get("restored", None))
+                    entry = {"tiempo_s": round(res.get("elapsed", 0), 1)}
+                    if denoised is not None:
+                        den_gray = _cv2.cvtColor(denoised, _cv2.COLOR_BGR2GRAY) if len(denoised.shape) == 3 else denoised
+                        ref = gray
+                        # Ajustar tamanios si difieren
+                        if den_gray.shape != ref.shape:
+                            den_gray = _cv2.resize(den_gray, (ref.shape[1], ref.shape[0]))
+                        # PSNR
+                        mse = _np.mean((ref.astype(float) - den_gray.astype(float)) ** 2)
+                        entry["psnr_db"] = round(float(10 * _np.log10(255.0**2 / mse)), 2) if mse > 0 else 999
+                        # Contraste (std de intensidad)
+                        c_orig = float(_np.std(ref.astype(float)))
+                        c_den = float(_np.std(den_gray.astype(float)))
+                        entry["contraste_orig"] = round(c_orig, 1)
+                        entry["contraste_den"] = round(c_den, 1)
+                        entry["contraste_cambio"] = f"{(c_den - c_orig) / c_orig * 100:+.1f}%"
+                        # Nitidez (laplaciano)
+                        s_orig = float(_np.mean(_np.abs(_cv2.Laplacian(ref, _cv2.CV_64F))))
+                        s_den = float(_np.mean(_np.abs(_cv2.Laplacian(den_gray, _cv2.CV_64F))))
+                        entry["nitidez_orig"] = round(s_orig, 1)
+                        entry["nitidez_den"] = round(s_den, 1)
+                        entry["nitidez_cambio"] = f"{(s_den - s_orig) / s_orig * 100:+.1f}%"
+                    comparison["denoising"][name] = entry
+
+            # ── Generar imagen comparativa side-by-side ──
+            self._log("\nGenerando imagen comparativa...")
+            try:
+                panels = []
+                titles = []
+                h, w = gray.shape[:2]
+                scale = min(400 / w, 300 / h)
+                nw, nh = int(w * scale), int(h * scale)
+
+                # Original
+                orig_bgr = _cv2.cvtColor(gray, _cv2.COLOR_GRAY2BGR)
+                panels.append(_cv2.resize(orig_bgr, (nw, nh)))
+                titles.append("Original")
+
+                # Segmentacion overlays
+                for name, res in results.items():
+                    labels = res.get("masks", res.get("labels", None))
+                    if labels is not None:
+                        overlay = res.get("overlay", None)
+                        if overlay is not None:
+                            if len(overlay.shape) == 3 and overlay.shape[2] == 4:
+                                overlay = _cv2.cvtColor(overlay, _cv2.COLOR_BGRA2BGR)
+                            panels.append(_cv2.resize(overlay, (nw, nh)))
+                        else:
+                            panels.append(_cv2.resize(orig_bgr, (nw, nh)))
+                        n = res.get("n_cells", "?")
+                        t = res.get("elapsed", 0)
+                        titles.append(f"{name}: {n} cel, {t:.1f}s")
+
+                # Denoising
+                for name, res in results.items():
+                    den = res.get("denoised", res.get("restored", None))
+                    if den is not None:
+                        if len(den.shape) == 2:
+                            den = _cv2.cvtColor(den, _cv2.COLOR_GRAY2BGR)
+                        panels.append(_cv2.resize(den, (nw, nh)))
+                        titles.append(f"{name}: {res.get('elapsed', 0):.1f}s")
+
+                if len(panels) > 1:
+                    # Agregar titulo a cada panel
+                    title_h = 30
+                    labeled = []
+                    for panel, title in zip(panels, titles):
+                        lp = _np.zeros((nh + title_h, nw, 3), dtype=_np.uint8)
+                        lp[:title_h, :] = (40, 40, 40)
+                        _cv2.putText(lp, title, (8, 22), _cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                                    (255, 255, 255), 1, _cv2.LINE_AA)
+                        lp[title_h:, :] = panel
+                        labeled.append(lp)
+
+                    cols = min(3, len(labeled))
+                    rows = (len(labeled) + cols - 1) // cols
+                    ph = nh + title_h
+                    while len(labeled) < rows * cols:
+                        labeled.append(_np.zeros((ph, nw, 3), dtype=_np.uint8))
+
+                    grid_rows = []
+                    for r in range(rows):
+                        grid_rows.append(_np.hstack(labeled[r * cols:(r + 1) * cols]))
+                    grid = _np.vstack(grid_rows)
+
+                    grid_path = os.path.join(output_dir, "comparacion_modelos.png")
+                    _cv2.imwrite(grid_path, grid)
+                    self._log(f"Imagen comparativa: {grid_path}")
+            except Exception as e:
+                self._log(f"Error generando imagen comparativa: {e}")
+
+            # ── Imprimir tabla comparativa en log ──
+            self._log(f"\n{'='*65}")
+            self._log("TABLA COMPARATIVA DE SEGMENTACION")
+            self._log(f"{'='*65}")
+            self._log(f"{'Modelo':<12} {'Celulas':>8} {'Tiempo':>8} {'Area med':>10} {'Area std':>10} {'Circ med':>9} {'Circ std':>9}")
+            self._log(f"{'-'*65}")
+            for name, m in comparison["segmentation"].items():
+                self._log(
+                    f"{name:<12} {m.get('celulas','?'):>8} {m['tiempo_s']:>7.1f}s "
+                    f"{m.get('area_media_px2','?'):>10} {m.get('area_std_px2','?'):>10} "
+                    f"{m.get('circ_media','?'):>9} {m.get('circ_std','?'):>9}"
+                )
+
+            if comparison["denoising"]:
+                self._log(f"\n{'='*65}")
+                self._log("TABLA COMPARATIVA DE DENOISING")
+                self._log(f"{'='*65}")
+                self._log(f"{'Modelo':<8} {'Tiempo':>8} {'PSNR(dB)':>10} {'Contraste':>12} {'Nitidez':>12}")
+                self._log(f"{'-'*65}")
+                for name, m in comparison["denoising"].items():
+                    self._log(
+                        f"{name:<8} {m['tiempo_s']:>7.1f}s {m.get('psnr_db','?'):>10} "
+                        f"{m.get('contraste_cambio','?'):>12} {m.get('nitidez_cambio','?'):>12}"
+                    )
+            self._log(f"{'='*65}")
+
+            # Guardar tabla como JSON
+            import json
+            json_path = os.path.join(output_dir, "comparacion_modelos.json")
+            json_data = {k: v for k, v in comparison.items() if k != "image_name"}
+            json_data["imagen"] = comparison["image_name"]
+            with open(json_path, "w", encoding="utf-8") as f:
+                json.dump(json_data, f, indent=2, ensure_ascii=False)
+            self._log(f"Datos: {json_path}")
+
+            # Mostrar ventana con tabla
+            self.root.after(0, self._show_comparison_window, comparison)
             self.root.after(0, self._ai_finished, results)
 
         except Exception as e:
@@ -916,6 +1073,106 @@ class PipelineGUI:
         elif model_name == "n2v":
             return {"train_on_image": self.ai_n2v_train.get()}
         return {}
+
+    def _show_comparison_window(self, comparison):
+        """Abre ventana con tabla comparativa de modelos."""
+        win = tk.Toplevel(self.root)
+        win.title("Comparacion de Modelos")
+        win.geometry("750x500")
+        win.configure(bg="#1e1e2e")
+
+        ttk.Label(win, text=f"Comparacion: {comparison.get('image_name', '')}",
+                  font=("Segoe UI", 14, "bold"), foreground="#cdd6f4",
+                  background="#1e1e2e").pack(pady=(10, 5))
+
+        # ── Tabla de segmentacion ──
+        if comparison.get("segmentation"):
+            seg_frame = ttk.LabelFrame(win, text="Segmentacion", padding=8)
+            seg_frame.pack(fill=tk.X, padx=10, pady=(5, 5))
+
+            cols_seg = ("Modelo", "Celulas", "Tiempo (s)", "Area media (px2)",
+                        "Area std (px2)", "Circ. media", "Circ. std")
+            tree_seg = ttk.Treeview(seg_frame, columns=cols_seg, show="headings", height=4)
+            for col in cols_seg:
+                tree_seg.heading(col, text=col)
+                w = 100 if "Modelo" in col else 90
+                tree_seg.column(col, width=w, anchor="center")
+            tree_seg.column("Modelo", anchor="w")
+
+            for name, m in comparison["segmentation"].items():
+                tree_seg.insert("", tk.END, values=(
+                    name,
+                    m.get("celulas", "?"),
+                    m.get("tiempo_s", "?"),
+                    m.get("area_media_px2", "--"),
+                    m.get("area_std_px2", "--"),
+                    m.get("circ_media", "--"),
+                    m.get("circ_std", "--"),
+                ))
+            tree_seg.pack(fill=tk.X)
+
+        # ── Tabla de denoising ──
+        if comparison.get("denoising"):
+            den_frame = ttk.LabelFrame(win, text="Denoising / Mejora", padding=8)
+            den_frame.pack(fill=tk.X, padx=10, pady=(5, 5))
+
+            cols_den = ("Modelo", "Tiempo (s)", "PSNR (dB)", "Contraste", "Nitidez")
+            tree_den = ttk.Treeview(den_frame, columns=cols_den, show="headings", height=4)
+            for col in cols_den:
+                tree_den.heading(col, text=col)
+                tree_den.column(col, width=130, anchor="center")
+            tree_den.column("Modelo", anchor="w")
+
+            for name, m in comparison["denoising"].items():
+                tree_den.insert("", tk.END, values=(
+                    name,
+                    m.get("tiempo_s", "?"),
+                    m.get("psnr_db", "--"),
+                    m.get("contraste_cambio", "--"),
+                    m.get("nitidez_cambio", "--"),
+                ))
+            tree_den.pack(fill=tk.X)
+
+        # ── Interpretacion ──
+        interp_frame = ttk.LabelFrame(win, text="Interpretacion", padding=8)
+        interp_frame.pack(fill=tk.X, padx=10, pady=(5, 5))
+
+        interp_text = tk.Text(interp_frame, height=8, font=("Consolas", 9),
+                              bg="#181825", fg="#cdd6f4", relief=tk.FLAT, wrap=tk.WORD)
+        interp_text.pack(fill=tk.X)
+
+        lines = []
+        seg = comparison.get("segmentation", {})
+        den = comparison.get("denoising", {})
+
+        if seg:
+            by_cells = sorted(seg.items(), key=lambda x: x[1].get("celulas", 0), reverse=True)
+            by_speed = sorted(seg.items(), key=lambda x: x[1].get("tiempo_s", 999))
+            by_circ = sorted(seg.items(), key=lambda x: x[1].get("circ_media", 0), reverse=True)
+            lines.append("SEGMENTACION:")
+            lines.append(f"  Mayor deteccion: {by_cells[0][0]} ({by_cells[0][1].get('celulas',0)} celulas)")
+            lines.append(f"  Mas rapido:      {by_speed[0][0]} ({by_speed[0][1].get('tiempo_s',0)}s)")
+            lines.append(f"  Mayor regularidad: {by_circ[0][0]} (circ={by_circ[0][1].get('circ_media',0):.3f})")
+            if len(by_speed) > 1:
+                ratio = by_speed[-1][1].get("tiempo_s", 1) / max(by_speed[0][1].get("tiempo_s", 0.01), 0.01)
+                lines.append(f"  {by_speed[0][0]} es {ratio:.0f}x mas rapido que {by_speed[-1][0]}")
+            lines.append(f"  Para RPi 5: {by_speed[0][0]} es el candidato ideal (ONNX)")
+            lines.append("")
+
+        if den:
+            lines.append("DENOISING:")
+            for name, m in den.items():
+                lines.append(f"  {name}: PSNR={m.get('psnr_db','?')}dB, "
+                           f"contraste {m.get('contraste_cambio','?')}, "
+                           f"nitidez {m.get('nitidez_cambio','?')}")
+            lines.append("  N2V no necesita referencia limpia -> ideal para espacio")
+            lines.append("  Real-ESRGAN: solo para visualizacion (puede inventar detalles)")
+
+        interp_text.insert("1.0", "\n".join(lines))
+        interp_text.configure(state=tk.DISABLED)
+
+        # Boton cerrar
+        ttk.Button(win, text="Cerrar", command=win.destroy).pack(pady=8)
 
     def _ai_finished(self, result):
         self.ai_run_btn.configure(state="normal")
