@@ -8,48 +8,56 @@ Pipeline autónomo de microscopía para CubeSat: calibración, mejora por IA, se
 
 ```mermaid
 flowchart TD
-    START(["▶ Start Analysis"]) --> LOAD["Cargar imágenes\nde carpeta de entrada"]
+    START(["Iniciar analisis"]) --> LOAD["Carga de imagenes\nLee todos los archivos de imagen\nde la carpeta seleccionada"]
 
-    LOAD --> CLASSIFY["Clasificador automático\n(regla / cebolla / fibra / desconocido)"]
+    LOAD --> CLASSIFY["Clasificacion automatica\nAnaliza histogramas, bordes y\npatrones para determinar\nel tipo de cada imagen"]
 
-    CLASSIFY --> R["🔧 Regla / Calibración"]
-    CLASSIFY --> O["🧅 Piel de cebolla"]
-    CLASSIFY --> F["🧵 Fibra de algodón"]
+    CLASSIFY --> R["Imagen de regla\nContiene marcas de escala\nconocidas para calibrar"]
+    CLASSIFY --> O["Piel de cebolla\nTejido epidermal con celulas\nrectangulares visibles"]
+    CLASSIFY --> F["Fibra de algodon\nEstructuras filamentosas\nalargadas y delgadas"]
+    CLASSIFY --> U["Imagen no reconocida\nNo coincide con ningun patron\nSe procesa como cebolla por defecto"]
 
-    R --> CAL["Calibración\n(regla + HoughLines\no manual)"]
-    CAL --> SCALE[("µm/pixel")]
+    R --> CAL["Calibracion\nDetecta lineas de la regla con\nTransformada de Hough y calcula\nla relacion micrometros por pixel"]
+    CAL --> SCALE[("Factor de escala\num/pixel\nAplica a todas las\nmediciones del lote")]
 
-    O --> ENH_O["Mejora IA (opcional)\nN2V / CARE"]
-    F --> ENH_F["Preprocesamiento\nCLAHE + Denoise"]
+    O --> PRE_O["Preprocesamiento\nCLAHE para contraste local\nDenoise para reducir ruido\nsin perder bordes celulares"]
+    F --> PRE_F["Preprocesamiento\nCLAHE para contraste local\nDenoise para reducir ruido\nsin perder bordes de fibra"]
+    U --> PRE_O
 
-    ENH_O --> SEG_O["Segmentación\nCellpose / StarDist / OpenCV"]
-    ENH_F --> SEG_F["Detección de fibras\nCanny + Hough + Skeleton"]
+    PRE_O --> ENH_O["Mejora por IA - opcional\nN2V: denoising self-supervised,\nentrena sobre la propia imagen\nCARE: restauracion con ruido sintetico"]
 
-    SEG_O --> MEAS_O["Medición celular\n(área, perímetro, circularidad)"]
-    SEG_F --> MEAS_F["Medición de fibras\n(grosor, longitud, cruces)"]
+    ENH_O --> SEG_O["Segmentacion celular\nCellpose cyto3: red neuronal generalista\nStarDist: deteccion de formas convexas\nOpenCV: watershed + morfologia\nSi la IA falla, usa OpenCV como fallback"]
+    PRE_F --> SEG_F["Deteccion de fibras\nCanny para bordes + Hough para\nlineas + esqueletizacion para\nextraer el eje central de cada fibra"]
+
+    SEG_O --> MEAS_O["Medicion celular\nArea en um2, perimetro en um,\ncircularidad, conteo total,\nestadisticas por imagen"]
+    SEG_F --> MEAS_F["Medicion de fibras\nGrosor promedio en um,\nlongitud en um, numero de\ncruces entre fibras"]
 
     SCALE --> MEAS_O
     SCALE --> MEAS_F
 
-    MEAS_O --> AGG["Agregación + Resumen global"]
+    MEAS_O --> AGG["Agregacion de resultados\nCombina mediciones de todas\nlas imagenes del lote en\nun resumen estadistico global"]
     MEAS_F --> AGG
 
-    AGG --> OUT_IMG["Imágenes + overlays"]
-    AGG --> OUT_CSV["CSV / JSON"]
-    AGG --> OUT_RPT["Reporte resumen"]
+    AGG --> OUT_IMG["Imagenes procesadas\nOverlays con contornos coloreados\nsobre la imagen original\nMascaras de segmentacion"]
+    AGG --> OUT_CSV["Datos estructurados\nCSV con mediciones por celula/fibra\nJSON con metadata completa\nincluyendo calibracion y config"]
+    AGG --> OUT_RPT["Reporte de texto\nResumen legible con promedios,\ndesviaciones, conteos totales\ny parametros del pipeline"]
 ```
 
-### Flujo detallado
+### Descripcion de cada etapa
 
-| Etapa | Descripción | Métodos disponibles |
-|---|---|---|
-| **1. Calibración** | Establece la escala µm/pixel | Regla (HoughLines), manual (GUI), default |
-| **2. Mejora de imagen** | Denoising / restauración (opcional) | Noise2Void (self-supervised), CARE (noise2clean), ninguno |
-| **3. Segmentación** | Detección de células o fibras | Cellpose cyto3, StarDist 2D, OpenCV (watershed + morfología) |
-| **4. Medición** | Métricas dimensionales calibradas | Área, perímetro, circularidad (células); grosor, longitud (fibras) |
-| **5. Exportación** | Resultados estructurados | JSON, CSV, imágenes con overlay, reporte TXT |
+**1. Carga y clasificacion.** El pipeline lee todas las imagenes de la carpeta de entrada y las clasifica automaticamente segun su contenido. Analiza histogramas de intensidad, densidad de bordes y patrones espaciales para distinguir entre imagenes de regla (para calibracion), piel de cebolla (tejido epidermal), fibra de algodon (estructuras filamentosas) e imagenes no reconocidas. Las imagenes no reconocidas se procesan como cebolla por defecto.
 
-Todas las etapas IA tienen **graceful degradation**: si un modelo falla, el pipeline continúa con OpenCV clásico.
+**2. Calibracion.** Si existe una imagen de regla en el lote, el pipeline detecta las marcas de escala usando la Transformada de Hough para lineas y calcula automaticamente cuantos micrometros equivale cada pixel. Este factor se aplica a todas las mediciones posteriores. Tambien se puede calibrar manualmente desde la GUI o usar un valor por defecto del archivo de configuracion.
+
+**3. Preprocesamiento.** Cada imagen pasa por CLAHE (Contrast Limited Adaptive Histogram Equalization) para mejorar el contraste local sin saturar zonas brillantes, seguido de un filtro de denoising que reduce el ruido preservando los bordes de las estructuras biologicas.
+
+**4. Mejora por IA (opcional).** Solo para imagenes de cebolla. Noise2Void (N2V) es un metodo self-supervised que entrena una red neuronal sobre la propia imagen ruidosa para aprender a eliminar el ruido sin necesitar una referencia limpia. CARE entrena con pares sinteticos donde se agrega ruido gaussiano a la imagen y la red aprende a restaurarla. Si no se selecciona ninguno, se omite este paso.
+
+**5. Segmentacion.** Para cebolla: Cellpose cyto3 es una red neuronal entrenada en miles de imagenes de celulas que generaliza bien a tejidos vegetales. StarDist detecta objetos convexos usando prediccion de distancias radiales. OpenCV usa watershed con marcadores morfologicos. Si el modelo de IA seleccionado falla por cualquier razon, el pipeline cae automaticamente a OpenCV. Para fibras: se usa deteccion de bordes Canny, Transformada de Hough para lineas y esqueletizacion para extraer el eje central.
+
+**6. Medicion.** Convierte las segmentaciones en mediciones fisicas usando el factor de calibracion. Para celulas: area (um2), perimetro (um), circularidad (0-1 donde 1 es circulo perfecto), conteo total. Para fibras: grosor promedio (um), longitud (um), numero de cruces entre fibras.
+
+**7. Exportacion.** Genera tres tipos de salida: imagenes con overlays coloreados sobre la original y mascaras binarias; archivos CSV con una fila por celula/fibra y JSON con metadata completa; y un reporte de texto legible con estadisticas resumidas del lote completo.
 
 ---
 
