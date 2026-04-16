@@ -20,14 +20,12 @@ flowchart TD
     R --> CAL["Calibracion\nDetecta lineas de la regla con\nTransformada de Hough y calcula\nla relacion micrometros por pixel"]
     CAL --> SCALE[("Factor de escala\num/pixel\nAplica a todas las\nmediciones del lote")]
 
-    O --> PRE_O["Preprocesamiento\nCLAHE para contraste local\nDenoise para reducir ruido\nsin perder bordes celulares"]
-    F --> PRE_F["Preprocesamiento\nCLAHE para contraste local\nDenoise para reducir ruido\nsin perder bordes de fibra"]
-    U --> PRE_O
-
-    PRE_O --> ENH_O["Mejora por IA - opcional\nN2V: entrena una U-Net sobre la imagen\nruidosa enmascarando pixeles al azar\npara que la red aprenda a predecir\nel valor limpio de cada pixel sin\nnecesitar una imagen de referencia\nCARE: genera pares entrenamiento\nagregando ruido gaussiano sintetico\na la imagen y entrena una U-Net para\nreconstruir la version sin ruido"]
+    O --> ENH_O["Mejora de imagen por IA\nEtapa obligatoria: en el espacio las\nimagenes llegan con ruido del sensor,\nradiacion y optica limitada (lensless)\n\nDenoising:\nN2V - self-supervised, no necesita\nimagen limpia de referencia\nCARE - noise2clean con ruido sintetico\n\nSuper-resolucion:\nReal-ESRGAN - upscaling x4 con red\ngenerativa adversarial (RRDBNet)\nFPM - reconstruccion multi-angulo,\naumenta resolucion real desde\nmultiples capturas lensless+OLED"]
+    F --> ENH_F["Mejora de imagen por IA\nDenoising obligatorio para fibras:\nN2V o CARE para reducir ruido\nantes de detectar bordes finos"]
 
     ENH_O --> SEG_O["Segmentacion celular\nCellpose cyto3: predice campos de flujo\nvectorial que apuntan al centro de cada\ncelula y agrupa pixeles que convergen\nal mismo centro para formar mascaras\nStarDist: predice distancias radiales\ndesde cada pixel al borde del objeto\nen multiples direcciones y reconstruye\npoligonos convexos como contorno celular\nOpenCV: umbral adaptativo + watershed\ncon marcadores morfologicos como fallback"]
-    PRE_F --> SEG_F["Deteccion de fibras\nCanny para bordes + Hough para\nlineas + esqueletizacion para\nextraer el eje central de cada fibra"]
+    ENH_F --> SEG_F["Deteccion de fibras\nCanny para bordes + Hough para\nlineas + esqueletizacion para\nextraer el eje central de cada fibra"]
+    U --> ENH_O
 
     SEG_O --> MEAS_O["Medicion celular\nArea en um2, perimetro en um,\ncircularidad, conteo total,\nestadisticas por imagen"]
     SEG_F --> MEAS_F["Medicion de fibras\nGrosor promedio en um,\nlongitud en um, numero de\ncruces entre fibras"]
@@ -43,44 +41,67 @@ flowchart TD
     AGG --> OUT_RPT["Reporte de texto\nResumen legible con promedios,\ndesviaciones, conteos totales\ny parametros del pipeline"]
 ```
 
+### Por que la mejora de imagen es obligatoria
+
+En un CubeSat las condiciones de captura son hostiles: el sensor opera sin lente (lensless), la iluminacion proviene de una pantalla OLED programable, hay ruido por radiacion cosmica, ruido termico del sensor en el vacio, y la resolucion optica esta limitada por la apertura numerica del sistema sin lente. Las imagenes crudas llegan con un nivel de ruido y una resolucion que hacen imposible segmentar celulas o fibras directamente. La mejora de imagen no es una optimizacion, es un requisito para que el resto del pipeline funcione.
+
+### Por que N2V/CARE y no solo Real-ESRGAN
+
+El proyecto comenzo usando Real-ESRGAN (RRDBNet, 23 bloques residuales) para super-resolucion x4. Real-ESRGAN produce imagenes visualmente mas nitidas y con mas detalle, pero tiene limitaciones para microscopia cientifica:
+
+| Aspecto | Real-ESRGAN | N2V / CARE | FPM |
+|---|---|---|---|
+| Funcion | Super-resolucion (upscaling) | Denoising (reduccion de ruido) | Reconstruccion multi-angulo |
+| Que hace | Interpola pixeles nuevos con una GAN | Elimina ruido preservando la senal real | Combina capturas reales para resolver frecuencias perdidas |
+| Resolucion nueva | Alucinada (la red inventa detalles) | No cambia resolucion | Real (informacion de multiples angulos) |
+| Riesgo cientifico | Puede inventar estructuras que no existen | Bajo, solo reduce varianza del ruido | Bajo, usa datos reales |
+| Necesita referencia | No (modelo preentrenado) | N2V no, CARE usa ruido sintetico | Si (multiples capturas) |
+| Uso en el pipeline | Post-procesamiento visual | Antes de segmentacion | Antes de todo (reemplaza captura cruda) |
+
+**Conclusion**: Real-ESRGAN sirve para visualizacion y presentacion, pero no debe usarse antes de segmentacion cientifica porque puede crear bordes celulares falsos. N2V y CARE reducen ruido sin inventar informacion. FPM aumenta la resolucion real del sistema. El pipeline usa los tres de forma complementaria:
+
+1. **FPM** (si hay multiples capturas): reconstruccion multi-angulo para obtener imagen de alta resolucion real
+2. **N2V o CARE**: denoising sobre la imagen reconstruida (o cruda si no hay FPM)
+3. **Real-ESRGAN** (opcional, solo para visualizacion): upscaling para reportes visuales, no para medicion
+
 ### Descripcion de cada etapa
 
 **1. Carga y clasificacion.** El pipeline lee todas las imagenes de la carpeta de entrada y las clasifica automaticamente segun su contenido. Analiza histogramas de intensidad, densidad de bordes y patrones espaciales para distinguir entre imagenes de regla (para calibracion), piel de cebolla (tejido epidermal), fibra de algodon (estructuras filamentosas) e imagenes no reconocidas. Las imagenes no reconocidas se procesan como cebolla por defecto.
 
 **2. Calibracion.** Si existe una imagen de regla en el lote, el pipeline detecta las marcas de escala usando la Transformada de Hough para lineas y calcula automaticamente cuantos micrometros equivale cada pixel. Este factor se aplica a todas las mediciones posteriores. Tambien se puede calibrar manualmente desde la GUI o usar un valor por defecto del archivo de configuracion.
 
-**3. Preprocesamiento.** Cada imagen pasa por CLAHE (Contrast Limited Adaptive Histogram Equalization) para mejorar el contraste local sin saturar zonas brillantes, seguido de un filtro de denoising que reduce el ruido preservando los bordes de las estructuras biologicas.
+**3. Mejora de imagen por IA.** Etapa obligatoria. Todas las imagenes pasan por al menos un metodo de mejora antes de la segmentacion. Para denoising hay dos opciones: Noise2Void (N2V) es un metodo self-supervised que entrena una red U-Net (470K parametros) directamente sobre la imagen ruidosa, enmascara pixeles al azar (blind-spot) y obliga a la red a predecir el valor limpio usando solo vecinos. Es ideal para el espacio porque no necesita imagenes limpias de referencia, que son imposibles de obtener en orbita. CARE (Content-Aware Restoration) usa la misma arquitectura U-Net con enfoque noise2clean: genera pares de entrenamiento agregando ruido gaussiano sintetico (30% de intensidad) y entrena la red para reconstruir la version sin ruido. Para super-resolucion: FPM (Fourier Ptychographic Microscopy) combina multiples capturas desde diferentes angulos de iluminacion para reconstruir una imagen de resolucion superior real, no interpolada. Real-ESRGAN (RRDBNet, 64 filtros, 23 bloques residuales) hace upscaling x4 con una red generativa adversarial, pero solo se usa para visualizacion porque puede inventar detalles que no existen en la muestra real.
 
-**4. Mejora por IA (opcional).** Solo para imagenes de cebolla. Se puede activar desde la GUI o se omite. Noise2Void (N2V) es un metodo self-supervised que no necesita imagenes limpias de referencia: entrena una red U-Net (470K parametros) directamente sobre la imagen ruidosa. Durante el entrenamiento, enmascara pixeles al azar (blind-spot) y obliga a la red a predecir el valor de cada pixel enmascarado usando solo sus vecinos. Como el ruido es aleatorio e independiente por pixel, la red aprende a predecir la senal limpia sin haber visto nunca una version sin ruido. Genera 400 patches de 64x64 de la imagen y entrena 10-20 epochs. CARE (Content-Aware Restoration) usa la misma arquitectura U-Net pero con un enfoque noise2clean: toma la imagen original, genera copias con ruido gaussiano sintetico agregado (30% de intensidad) y entrena la red para reconstruir la version sin el ruido agregado. Ambos metodos producen una imagen con menos ruido que se pasa a la etapa de segmentacion.
+**4. Segmentacion.** Para cebolla hay tres opciones. Cellpose cyto3 es una red neuronal entrenada en miles de imagenes de celulas de distintos tipos: predice dos campos de flujo vectorial (horizontal y vertical) donde cada vector apunta hacia el centro de la celula mas cercana, luego agrupa todos los pixeles cuyos flujos convergen al mismo punto para formar la mascara de cada celula individual. Esto le permite separar celulas que se tocan sin sobre-segmentar. StarDist predice desde cada pixel la distancia al borde del objeto mas cercano en 32 direcciones radiales, y con esas distancias reconstruye un poligono convexo que representa el contorno de cada celula. Es mas rapido que Cellpose (4s vs 38s en CPU) porque la inferencia es un solo paso sin iteracion de flujos. OpenCV usa umbral adaptativo para binarizar la imagen, operaciones morfologicas (apertura, cierre) para limpiar ruido, distance transform para encontrar marcadores y watershed para separar celulas tocandose. Si el modelo de IA seleccionado falla por cualquier razon, el pipeline cae automaticamente a OpenCV (graceful degradation). Para fibras: deteccion de bordes Canny, Transformada de Hough para segmentos de linea y esqueletizacion morfologica para extraer el eje central de un pixel de ancho.
 
-**5. Segmentacion.** Para cebolla hay tres opciones. Cellpose cyto3 es una red neuronal entrenada en miles de imagenes de celulas de distintos tipos: predice dos campos de flujo vectorial (horizontal y vertical) donde cada vector apunta hacia el centro de la celula mas cercana, luego agrupa todos los pixeles cuyos flujos convergen al mismo punto para formar la mascara de cada celula individual. Esto le permite separar celulas que se tocan sin sobre-segmentar. StarDist predice desde cada pixel la distancia al borde del objeto mas cercano en 32 direcciones radiales, y con esas distancias reconstruye un poligono convexo que representa el contorno de cada celula. Es mas rapido que Cellpose (4s vs 38s en CPU) porque la inferencia es un solo paso sin iteracion de flujos. OpenCV usa umbral adaptativo para binarizar la imagen, operaciones morfologicas (apertura, cierre) para limpiar ruido, distance transform para encontrar marcadores y watershed para separar celulas tocandose. Si el modelo de IA seleccionado falla por cualquier razon (memoria, dependencia faltante, imagen incompatible), el pipeline cae automaticamente a OpenCV. Para fibras: se usa deteccion de bordes Canny, Transformada de Hough para detectar segmentos de linea y esqueletizacion morfologica para reducir cada fibra a su eje central de un pixel de ancho.
+**5. Medicion.** Convierte las segmentaciones en mediciones fisicas usando el factor de calibracion. Para celulas: area (um2), perimetro (um), circularidad (0-1 donde 1 es circulo perfecto), conteo total. Para fibras: grosor promedio (um), longitud (um), numero de cruces entre fibras.
 
-**6. Medicion.** Convierte las segmentaciones en mediciones fisicas usando el factor de calibracion. Para celulas: area (um2), perimetro (um), circularidad (0-1 donde 1 es circulo perfecto), conteo total. Para fibras: grosor promedio (um), longitud (um), numero de cruces entre fibras.
-
-**7. Exportacion.** Genera tres tipos de salida: imagenes con overlays coloreados sobre la original y mascaras binarias; archivos CSV con una fila por celula/fibra y JSON con metadata completa; y un reporte de texto legible con estadisticas resumidas del lote completo.
+**6. Exportacion.** Genera tres tipos de salida: imagenes con overlays coloreados sobre la original y mascaras binarias; archivos CSV con una fila por celula/fibra y JSON con metadata completa; y un reporte de texto legible con estadisticas resumidas del lote completo.
 
 ---
 
 ## Modelos de IA Integrados
 
-### Segmentación
+### Mejora de imagen (etapa obligatoria)
 
-| Modelo | Tipo | Tamaño | Tiempo (CPU) | Células detectadas* | Viable RPi 5 |
+| Modelo | Funcion | Tipo | Tiempo (CPU) | Para medicion | Para visualizacion |
+|---|---|---|---|---|---|
+| **N2V** | Denoising | Self-supervised (sin referencia limpia) | ~80s (10 epochs) | Si | Si |
+| **CARE** | Denoising | Noise2Clean (ruido sintetico) | ~80s (10 epochs) | Si | Si |
+| **FPM multi-angulo** | Super-resolucion real | Reconstruccion en Fourier | ~5-15s | Si | Si |
+| **Real-ESRGAN** | Super-resolucion visual | GAN (RRDBNet x4) | ~3s GPU, ~30s CPU | No (inventa detalles) | Si |
+
+### Segmentacion
+
+| Modelo | Tipo | Tamanio | Tiempo (CPU) | Celulas detectadas* | Viable RPi 5 |
 |---|---|---|---|---|---|
 | **Cellpose v3 (cyto3)** | Deep Learning | ~25 MB | ~38s | 162 | Con ONNX |
-| **StarDist 2D** | Deep Learning | ~30 MB | ~4s | ~150 | Si (más rápido) |
-| **OpenCV** | Clásico | — | <1s | Variable | Si |
+| **StarDist 2D** | Deep Learning | ~30 MB | ~4s | ~150 | Si (mas rapido) |
+| **OpenCV** | Clasico | -- | <1s | Variable | Si |
 
-*\*Resultados en imagen de prueba 630×1200*
+*\*Resultados en imagen de prueba 630x1200*
 
-### Denoising / Mejora
-
-| Modelo | Tipo | Entrenamiento | Tiempo (CPU) |
-|---|---|---|---|
-| **Noise2Void (N2V)** | Self-supervised | Entrena en la propia imagen (sin referencia limpia) | ~80s (10 epochs) |
-| **CARE** | Noise2Clean | Entrena con ruido sintético añadido | ~80s (10 epochs) |
-
-> **Nota RPi 5:** StarDist es 9× más rápido que Cellpose en CPU — candidato ideal para exportar a ONNX.
+> **Nota RPi 5:** StarDist es 9x mas rapido que Cellpose en CPU -- candidato ideal para exportar a ONNX.
 
 ---
 
