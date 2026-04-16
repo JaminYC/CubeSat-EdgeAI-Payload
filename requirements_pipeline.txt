@@ -7,13 +7,16 @@ numpy>=1.24.0
 scikit-image>=0.21.0
 PyYAML>=6.0
 
-# Fase 2-3: Modelos IA (opcional en RPi, instalar solo si se necesita)
-# cellpose>=3.0
-# torch>=2.0
+# IA Microscopia (modelos pre-entrenados)
+cellpose>=3.0
+csbdeep>=0.7.2       # CARE denoising/restoration
+n2v>=0.3.3           # Noise2Void self-supervised denoising
+stardist>=0.9.0      # StarDist cell detection
+torch>=2.0
 
-# Fase 4: Deploy en RPi (alternativa ligera a torch)
+# Fase 4: Deploy en RPi 5 (alternativa ligera a torch)
 # onnxruntime>=1.16.0
 
-# Análisis y exportación
-# pandas>=2.0      # opcional, para análisis avanzado
-# matplotlib>=3.7  # opcional, para gráficos
+# Analisis y exportacion
+# pandas>=2.0      # opcional, para analisis avanzado
+# matplotlib>=3.7  # opcional, para graficos

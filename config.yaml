@@ -22,7 +22,7 @@ calibration:
   microsphere_diameter_um: 2.0
   ruler_spacing_mm: 1.0
   # Fallback si no hay imagen de calibración
-  default_um_per_pixel: 1.4  # OV5647 pixel pitch (lensless)
+  default_um_per_pixel: 2.66  # Calibrado real: 1mm = 375px @ 2592x1944
 
 # Preprocesamiento
 preprocess:
@@ -80,6 +80,42 @@ export:
   save_summary: true
   overlay_alpha: 0.4
   overlay_colormap: "tab20"
+
+# Reconstrucción FPM / Multi-frame SR
+fpm:
+  method: "multiangle"    # "multiangle" (lensless+OLED), "multiframe" (con shifts), "fourier" (con lente)
+  upscale_factor: 2       # Factor de super-resolución (2, 3, 4)
+  max_iters: 15           # Iteraciones del algoritmo
+  align: true             # Alinear imágenes por ECC
+  roi_size: 0             # ROI centrado en px (0 = imagen completa)
+  na_obj: 0.10            # Apertura numérica efectiva (lensless: 0.05-0.15)
+  # OLED SSD1306 0.96" I2C 128x64 (Soldered 333099)
+  oled_width_mm: 21.744   # Área activa horizontal (datasheet)
+  oled_height_mm: 10.864  # Área activa vertical (datasheet)
+  oled_dot_pitch_mm: 0.17 # Pitch entre pixeles OLED
+  distance_mm: 15.0       # Distancia OLED-sensor (medida real ~15mm)
+
+# Modelos IA para microscopia
+ai_enhance:
+  # Cellpose: segmentacion celular
+  cellpose:
+    model_type: "cyto3"    # cyto3, cyto2, cyto, nuclei
+    diameter: null          # null = auto-detect
+    flow_threshold: 0.4
+    cellprob_threshold: 0.0
+  # CARE (CSBDeep): denoising / restauracion
+  care:
+    model_name: "2D_versatile_fluo"   # 2D_versatile_fluo, 2D_versatile_he
+    model_basedir: "./models"
+  # Noise2Void: denoising self-supervised
+  n2v:
+    model_name: "n2v_2D"
+    model_basedir: "./models"
+    train_on_image: true    # Entrenar en la misma imagen (no requiere ground truth)
+    n_epochs: 20
+  # StarDist: deteccion celular (star-convex polygons)
+  stardist:
+    model_name: "2D_versatile_fluo"   # 2D_versatile_fluo, 2D_versatile_he, 2D_paper_dsb2018
 
 # Modo de operación (graceful degradation)
 # "full" = IA + medición, "classic" = OpenCV only, "minimal" = solo medición
