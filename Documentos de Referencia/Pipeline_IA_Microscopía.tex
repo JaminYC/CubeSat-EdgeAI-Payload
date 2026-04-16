@@ -1,0 +1,574 @@
+\documentclass[11pt,a4paper]{article}
+
+% ── Paquetes ──
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+
+\geometry{margin=2.5cm}
+\hypersetup{colorlinks=true, linkcolor=blue!60!black, citecolor=blue!60!black, urlcolor=blue!60!black}
+
+% ── Comandos ──
+\newcommand{\um}{\,\mu\text{m}}
+\newcommand{\umpx}{\,\mu\text{m/px}}
+\newcommand{\px}{\,\text{px}}
+
+\title{%
+  \textbf{Pipeline de Microscop\'{i}a con Inteligencia Artificial} \\[0.5em]
+  \large Documentaci\'{o}n T\'{e}cnica: Modelos de Mejora y Segmentaci\'{o}n \\[0.3em]
+  \large CubeSat EdgeAI Payload
+}
+\author{Proyecto CubeSat EdgeAI}
+\date{Abril 2026}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════════════════════════
+\section{Visi\'{o}n general del pipeline}
+% ══════════════════════════════════════════════════════════════════
+
+El pipeline procesa im\'{a}genes de microscop\'{i}a en 7 etapas secuenciales. Cada imagen pasa por todas las etapas aplicables a su tipo. El objetivo final es obtener mediciones dimensionales calibradas (en micr\'{o}metros) de estructuras biol\'{o}gicas.
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Carga y clasificaci\'{o}n} -- Lectura de im\'{a}genes y detecci\'{o}n autom\'{a}tica del tipo de muestra.
+  \item \textbf{Calibraci\'{o}n} -- C\'{a}lculo del factor de escala $\mu$m/pixel.
+  \item \textbf{Preprocesamiento} -- Mejora de contraste y reducci\'{o}n de ruido cl\'{a}sica.
+  \item \textbf{Mejora por IA} -- Denoising avanzado con redes neuronales (opcional).
+  \item \textbf{Segmentaci\'{o}n} -- Identificaci\'{o}n y delimitaci\'{o}n de cada c\'{e}lula o fibra individual.
+  \item \textbf{Medici\'{o}n} -- C\'{a}lculo de m\'{e}tricas dimensionales calibradas.
+  \item \textbf{Exportaci\'{o}n} -- Generaci\'{o}n de reportes, archivos de datos e im\'{a}genes anotadas.
+\end{enumerate}
+
+Las etapas 4 y 5 ofrecen m\'{u}ltiples m\'{e}todos (cl\'{a}sicos e IA). Si un modelo de IA falla, el pipeline cae autom\'{a}ticamente al m\'{e}todo cl\'{a}sico OpenCV (\textit{graceful degradation}).
+
+% ══════════════════════════════════════════════════════════════════
+\section{Calibraci\'{o}n}
+% ══════════════════════════════════════════════════════════════════
+
+La calibraci\'{o}n convierte p\'{i}xeles a unidades f\'{i}sicas. Sin ella, las mediciones no tienen significado dimensional.
+
+\subsection{M\'{e}todo autom\'{a}tico (imagen de regla)}
+
+El pipeline busca en el lote una imagen que contenga una regla de calibraci\'{o}n (microsc\'{o}pica o stage micrometer). El proceso es:
+
+\begin{enumerate}
+  \item Convertir a escala de grises y aplicar detecci\'{o}n de bordes Canny.
+  \item Aplicar la Transformada de Hough para l\'{i}neas:
+  \begin{equation}
+    \rho = x \cos\theta + y \sin\theta
+  \end{equation}
+  donde $\rho$ es la distancia perpendicular desde el origen a la l\'{i}nea y $\theta$ es el \'{a}ngulo.
+  \item Filtrar l\'{i}neas paralelas y calcular la distancia media entre marcas consecutivas en p\'{i}xeles.
+  \item Dado que la distancia f\'{i}sica entre marcas es conocida (por ejemplo, $10\um$ o $100\um$), el factor de escala es:
+  \begin{equation}
+    S = \frac{d_{\text{f\'{i}sica}} [\mu\text{m}]}{d_{\text{p\'{i}xeles}} [\text{px}]} \quad [\umpx]
+  \end{equation}
+\end{enumerate}
+
+\subsection{M\'{e}todo manual}
+
+Desde la GUI, el usuario selecciona dos puntos sobre una estructura de tama\~{n}o conocido e ingresa la distancia real. El factor se calcula como:
+\begin{equation}
+  S = \frac{d_{\text{real}} [\mu\text{m}]}{\sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2} \; [\text{px}]}
+\end{equation}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Preprocesamiento}
+% ══════════════════════════════════════════════════════════════════
+
+Antes de cualquier an\'{a}lisis, cada imagen pasa por dos operaciones cl\'{a}sicas.
+
+\subsection{CLAHE (Contrast Limited Adaptive Histogram Equalization)}
+
+A diferencia de la ecualizaci\'{o}n global del histograma, CLAHE divide la imagen en bloques (\textit{tiles}) y ecualiza cada bloque de forma independiente. Esto mejora el contraste local sin saturar zonas brillantes.
+
+\begin{itemize}
+  \item La imagen se divide en bloques de $8 \times 8$ p\'{i}xeles (configurable).
+  \item En cada bloque se calcula el histograma local.
+  \item Se aplica un l\'{i}mite de recorte (\textit{clip limit}, por defecto 2.0) para evitar amplificaci\'{o}n excesiva del ruido: los bins del histograma que superan este l\'{i}mite se recortan y se redistribuyen uniformemente.
+  \item Se ecualiza el histograma recortado.
+  \item Se interpola bilinealmente entre bloques adyacentes para evitar artefactos de borde.
+\end{itemize}
+
+\subsection{Denoising cl\'{a}sico}
+
+Se aplica un filtro bilateral o \texttt{fastNlMeansDenoising} de OpenCV. Ambos preservan bordes mejor que un filtro gaussiano est\'{a}ndar:
+
+\begin{itemize}
+  \item \textbf{Filtro bilateral}: pondera vecinos por proximidad espacial \textit{y} por similitud de intensidad. P\'{i}xeles con intensidad muy diferente (bordes) reciben peso bajo, preserv\'{a}ndose la transici\'{o}n.
+  \item \textbf{Non-local means}: para cada p\'{i}xel, busca parches similares en toda la imagen y promedia los valores. La similitud se mide como distancia eucl\'{i}dea entre parches (ventanas de $7 \times 7$).
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Mejora por IA: Noise2Void (N2V)}
+\label{sec:n2v}
+% ══════════════════════════════════════════════════════════════════
+
+\subsection{Problema que resuelve}
+
+Las im\'{a}genes de microscop\'{i}a tienen ruido intr\'{i}nseco (ruido de lectura del sensor, ruido t\'{e}rmico, ruido de cuantizaci\'{o}n). Los filtros cl\'{a}sicos reducen el ruido pero tambi\'{e}n suavizan bordes y detalles finos. Se necesita un m\'{e}todo que elimine ruido preservando las estructuras biol\'{o}gicas.
+
+\subsection{Principio fundamental: self-supervised denoising}
+
+Noise2Void parte de una observaci\'{o}n clave: \textbf{el ruido en cada p\'{i}xel es estad\'{i}sticamente independiente de sus vecinos, pero la se\~{n}al no lo es}. Si un p\'{i}xel contiene informaci\'{o}n de una pared celular, sus vecinos probablemente tambi\'{e}n. Pero el ruido en ese p\'{i}xel no tiene relaci\'{o}n con el ruido de los vecinos.
+
+Esto permite entrenar una red neuronal con \textbf{una sola imagen ruidosa}, sin necesitar una versi\'{o}n limpia de referencia.
+
+\subsection{Arquitectura: U-Net}
+
+La red tiene arquitectura U-Net con las siguientes caracter\'{i}sticas:
+
+\begin{itemize}
+  \item \textbf{Encoder} (camino de contracci\'{o}n): 4 niveles de bloques convolucionales ($3 \times 3$, ReLU) seguidos de max-pooling $2 \times 2$. Cada nivel duplica el n\'{u}mero de filtros: $32 \to 64 \to 128 \to 256$.
+  \item \textbf{Bottleneck}: bloque convolucional con 512 filtros.
+  \item \textbf{Decoder} (camino de expansi\'{o}n): 4 niveles de upsampling $2 \times 2$ (transpuesta o bilineal) + concatenaci\'{o}n con el mapa del encoder del mismo nivel (\textit{skip connections}) + bloques convolucionales.
+  \item \textbf{Salida}: convoluci\'{o}n $1 \times 1$ con un solo filtro (imagen en escala de grises).
+  \item Total: $\sim$470{,}000 par\'{a}metros entrenables.
+\end{itemize}
+
+Las \textit{skip connections} son esenciales: permiten que el decoder acceda a los detalles de alta frecuencia del encoder sin tener que reconstruirlos desde la representaci\'{o}n comprimida del bottleneck.
+
+\subsection{Entrenamiento blind-spot}
+
+El truco de N2V es el enmascaramiento \textit{blind-spot}:
+
+\begin{algorithm}[H]
+\caption{Entrenamiento Noise2Void}
+\begin{algorithmic}[1]
+\State Recortar imagen a m\'{u}ltiplo de 32 (requisito de la U-Net)
+\State Extraer 400 parches aleatorios de $64 \times 64$ p\'{i}xeles
+\For{cada \textit{epoch} (10--20 iteraciones)}
+  \For{cada parche $P$}
+    \State Crear copia $P'$ del parche
+    \State Seleccionar $\sim$1\% de p\'{i}xeles al azar como \textit{blind spots}
+    \For{cada blind spot en posici\'{o}n $(i, j)$}
+      \State Guardar valor original: $y_{ij} = P(i,j)$
+      \State Reemplazar con valor de un vecino aleatorio: $P'(i,j) \leftarrow P(i + \Delta_i, j + \Delta_j)$
+    \EndFor
+    \State Pasar $P'$ por la U-Net $\to$ predicci\'{o}n $\hat{P}$
+    \State Calcular p\'{e}rdida \textbf{solo en los blind spots}:
+    \begin{equation}
+      \mathcal{L} = \frac{1}{N_{\text{bs}}} \sum_{(i,j) \in \text{blind spots}} \left( \hat{P}(i,j) - y_{ij} \right)^2
+    \end{equation}
+    \State Retropropagar y actualizar pesos (Adam, lr $= 10^{-3}$)
+  \EndFor
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Por qu\'{e} funciona}: la red nunca ve el valor original del p\'{i}xel que debe predecir (est\'{a} enmascarado). Solo puede usar la informaci\'{o}n de los vecinos. Como el ruido es independiente por p\'{i}xel, la mejor predicci\'{o}n que la red puede hacer es la se\~{n}al subyacente (la media condicional dado el contexto). El ruido, al ser aleatorio e incorrelacionado, no puede ser predicho y se cancela.
+
+\subsection{Inferencia}
+
+Una vez entrenada, la red procesa la imagen completa (con padding a m\'{u}ltiplo de 32) en un solo pase forward. No se aplica enmascaramiento durante la inferencia. La salida es la imagen ``limpia'' predicha.
+
+\textbf{Tiempo t\'{i}pico}: $\sim$80 segundos en CPU (10 epochs, imagen 630$\times$1200).
+
+% ══════════════════════════════════════════════════════════════════
+\section{Mejora por IA: CARE}
+\label{sec:care}
+% ══════════════════════════════════════════════════════════════════
+
+\subsection{Diferencia con N2V}
+
+CARE (\textit{Content-Aware Restoration}) usa la misma arquitectura U-Net que N2V, pero con un enfoque \textit{noise2clean} (supervisado) en lugar de \textit{self-supervised}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Aspecto} & \textbf{N2V} & \textbf{CARE} \\
+\midrule
+Tipo de entrenamiento & Self-supervised & Supervisado (noise2clean) \\
+Datos de entrada & 1 imagen ruidosa & Pares (ruidosa, limpia) \\
+Referencia limpia & No necesita & Generada sint\'{e}ticamente \\
+Enmascaramiento & S\'{i} (blind-spot) & No \\
+P\'{e}rdida & Solo en p\'{i}xeles enmascarados & En todos los p\'{i}xeles \\
+\bottomrule
+\end{tabular}
+\caption{Comparaci\'{o}n N2V vs CARE.}
+\end{table}
+
+\subsection{Generaci\'{o}n de pares sint\'{e}ticos}
+
+Como no se dispone de una versi\'{o}n ``limpia'' de la imagen de microscop\'{i}a, CARE genera pares de entrenamiento de la siguiente forma:
+
+\begin{enumerate}
+  \item Tomar la imagen original $I$ como referencia ``limpia'' (tiene ruido real, pero es lo mejor disponible).
+  \item Generar una versi\'{o}n m\'{a}s ruidosa $I_n$ agregando ruido gaussiano sint\'{e}tico:
+  \begin{equation}
+    I_n(x, y) = I(x, y) + \eta(x, y), \quad \eta \sim \mathcal{N}(0, \sigma^2)
+  \end{equation}
+  donde $\sigma = 0.3 \times \max(I)$ (30\% de la intensidad m\'{a}xima).
+  \item Extraer 400 parches de $64 \times 64$ de ambas versiones, alineados espacialmente.
+\end{enumerate}
+
+\subsection{Entrenamiento}
+
+\begin{itemize}
+  \item \textbf{Entrada}: parche ruidoso $I_n$
+  \item \textbf{Target}: parche original $I$ (sin el ruido sint\'{e}tico agregado)
+  \item \textbf{P\'{e}rdida}: MSE en todos los p\'{i}xeles del parche:
+  \begin{equation}
+    \mathcal{L} = \frac{1}{H \times W} \sum_{x,y} \left( \hat{I}(x,y) - I(x,y) \right)^2
+  \end{equation}
+  \item \textbf{Optimizador}: Adam con $\text{lr} = 10^{-3}$
+  \item \textbf{Epochs}: 10--20
+\end{itemize}
+
+La red aprende a eliminar el componente de ruido gaussiano. Como efecto colateral, tambi\'{e}n reduce parcialmente el ruido real de la imagen original, ya que el ruido real y el sint\'{e}tico comparten propiedades estad\'{i}sticas similares.
+
+\subsection{Limitaciones}
+
+\begin{itemize}
+  \item Asume que el ruido real se comporta de forma similar al ruido gaussiano. Si el ruido es estructurado (patrones fijos del sensor, bandas), CARE no lo eliminar\'{a} completamente.
+  \item La imagen ``limpia'' de referencia todav\'{i}a contiene ruido real. La red aprende a remover solo el ruido agregado, no el preexistente.
+  \item N2V puede ser m\'{a}s efectivo en ciertos casos porque no hace suposiciones sobre la distribuci\'{o}n del ruido.
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Segmentaci\'{o}n: Cellpose}
+\label{sec:cellpose}
+% ══════════════════════════════════════════════════════════════════
+
+\subsection{Qu\'{e} hace}
+
+Cellpose toma una imagen de microscop\'{i}a y produce una m\'{a}scara de instancias donde cada c\'{e}lula tiene un identificador \'{u}nico (entero). No solo detecta ``hay una c\'{e}lula aqu\'{i}'' sino que delimita el contorno exacto de cada una y las separa individualmente, incluso cuando se tocan.
+
+\subsection{Arquitectura}
+
+Cellpose usa una red residual (basada en ResNet) modificada para predecir tres mapas simult\'{a}neamente:
+
+\begin{enumerate}
+  \item \textbf{Campo de flujo horizontal} $F_x(i,j)$: para cada p\'{i}xel, un valor entre $-1$ y $+1$ que indica la direcci\'{o}n horizontal hacia el centro de la c\'{e}lula a la que pertenece.
+  \item \textbf{Campo de flujo vertical} $F_y(i,j)$: lo mismo en direcci\'{o}n vertical.
+  \item \textbf{Mapa de probabilidad celular} $P(i,j)$: probabilidad de que el p\'{i}xel pertenezca a una c\'{e}lula (vs fondo).
+\end{enumerate}
+
+\subsection{C\'{o}mo separa c\'{e}lulas que se tocan}
+
+Este es el aporte principal de Cellpose. El proceso es:
+
+\begin{enumerate}
+  \item Para cada c\'{e}lula en la imagen de entrenamiento, se calcula una simulaci\'{o}n de difusi\'{o}n t\'{e}rmica (\textit{heat diffusion}) con temperatura fija en el centro de la c\'{e}lula. El gradiente de temperatura resultante apunta desde cualquier punto de la c\'{e}lula hacia su centro.
+  \item La red aprende a predecir estos gradientes (campos de flujo) directamente desde la imagen.
+  \item Durante la inferencia, se integran los campos de flujo: cada p\'{i}xel ``sigue'' las flechas del flujo durante 200 pasos iterativos. Todos los p\'{i}xeles que convergen al mismo punto terminal pertenecen a la misma c\'{e}lula.
+  \item Se filtran p\'{i}xeles con probabilidad celular $P < 0$ (\texttt{cellprob\_threshold}).
+  \item Se filtran flujos con error de convergencia alto (\texttt{flow\_threshold} $= 0.4$).
+\end{enumerate}
+
+\begin{equation}
+  \text{trayectoria}(x, y) = (x, y) + \sum_{t=1}^{200} \left( F_x^{(t)}, F_y^{(t)} \right)
+\end{equation}
+
+P\'{i}xeles de c\'{e}lulas adyacentes que se tocan convergen a centros \textit{diferentes}, lo que los separa naturalmente sin necesidad de post-procesamiento tipo watershed.
+
+\subsection{Modelo cyto3}
+
+El modelo \texttt{cyto3} es la tercera generaci\'{o}n del modelo citoplasm\'{a}tico de Cellpose:
+
+\begin{itemize}
+  \item Entrenado con $\sim$100{,}000 im\'{a}genes de c\'{e}lulas de m\'{u}ltiples tipos (epiteliales, neuronales, bacterias, levaduras, plantas).
+  \item Tama\~{n}o del modelo: $\sim$25 MB.
+  \item Estima autom\'{a}ticamente el di\'{a}metro celular promedio de la imagen.
+  \item Par\'{a}metros de inferencia usados en el pipeline:
+  \begin{itemize}
+    \item \texttt{diameter}: \texttt{None} (auto-estimado; result\'{o} en $\sim$77.7$\px$ en imagen de prueba).
+    \item \texttt{channels}: $[0, 0]$ (escala de grises, sin canal nuclear).
+    \item \texttt{flow\_threshold}: 0.4.
+    \item \texttt{cellprob\_threshold}: 0.0.
+  \end{itemize}
+  \item Resultado en imagen de prueba (630$\times$1200): 162 c\'{e}lulas detectadas en 38.1 segundos (CPU).
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Segmentaci\'{o}n: StarDist}
+\label{sec:stardist}
+% ══════════════════════════════════════════════════════════════════
+
+\subsection{Principio: distancias radiales}
+
+StarDist aborda la segmentaci\'{o}n de forma diferente a Cellpose. En lugar de campos de flujo, predice directamente la forma de cada objeto como un pol\'{i}gono definido por distancias radiales.
+
+Para cada p\'{i}xel $(x, y)$ que pertenece a un objeto, StarDist predice:
+
+\begin{enumerate}
+  \item \textbf{$n$ distancias radiales} $r_k(x, y)$ para $k = 0, 1, \ldots, n-1$ (por defecto $n = 32$). Cada $r_k$ es la distancia desde el p\'{i}xel hasta el borde del objeto en la direcci\'{o}n angular:
+  \begin{equation}
+    \theta_k = \frac{2\pi k}{n}
+  \end{equation}
+  \item \textbf{Probabilidad de objeto} $p(x, y)$: si el p\'{i}xel pertenece a un objeto o al fondo.
+\end{enumerate}
+
+\subsection{Reconstrucci\'{o}n de pol\'{i}gonos}
+
+Con las $n$ distancias radiales desde un p\'{i}xel central, se reconstruye un pol\'{i}gono de $n$ v\'{e}rtices:
+
+\begin{equation}
+  V_k = \left( x + r_k \cos\theta_k, \; y + r_k \sin\theta_k \right), \quad k = 0, \ldots, n-1
+\end{equation}
+
+Cada p\'{i}xel de la imagen que es ``objeto'' genera un pol\'{i}gono candidato. Luego se aplica \textit{Non-Maximum Suppression} (NMS) para eliminar pol\'{i}gonos redundantes (que representan la misma c\'{e}lula desde p\'{i}xeles diferentes).
+
+\subsection{Arquitectura}
+
+\begin{itemize}
+  \item Backbone: U-Net similar a la de N2V/CARE.
+  \item Cabezas de salida:
+  \begin{itemize}
+    \item Cabeza de distancias: $n$ canales (un mapa por direcci\'{o}n radial).
+    \item Cabeza de probabilidad: 1 canal.
+  \end{itemize}
+  \item Modelo preentrenado usado: \texttt{2D\_versatile\_fluo} (entrenado en im\'{a}genes de fluorescencia variadas).
+\end{itemize}
+
+\subsection{Ventajas sobre Cellpose}
+
+\begin{itemize}
+  \item \textbf{Velocidad}: la inferencia es un solo pase forward por la red + NMS. No requiere los 200 pasos iterativos de integraci\'{o}n de flujos de Cellpose. Resultado: $\sim$4 segundos vs $\sim$38 segundos en la misma imagen.
+  \item \textbf{Pol\'{i}gonos expl\'{i}citos}: la salida es directamente un contorno poligonal, no una m\'{a}scara binaria que requiere extracci\'{o}n de contornos posterior.
+  \item \textbf{Menor uso de memoria}: no necesita almacenar campos de flujo intermedios.
+\end{itemize}
+
+\subsection{Limitaciones}
+
+\begin{itemize}
+  \item \textbf{Asume objetos convexos}: los pol\'{i}gonos radiales desde un punto central solo pueden representar formas convexas. C\'{e}lulas con formas c\'{o}ncavas o muy irregulares se aproximan pobremente.
+  \item \textbf{Resoluci\'{o}n angular}: con 32 direcciones, el pol\'{i}gono tiene 32 v\'{e}rtices. Detalles finos del contorno se pierden (un c\'{i}rculo de 32 v\'{e}rtices es una buena aproximaci\'{o}n, pero protuberancias peque\~{n}as no se capturan).
+  \item Las c\'{e}lulas de piel de cebolla son aproximadamente rectangulares (convexas), por lo que StarDist funciona bien en esta aplicaci\'{o}n.
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Segmentaci\'{o}n: OpenCV (m\'{e}todo cl\'{a}sico)}
+\label{sec:opencv}
+% ══════════════════════════════════════════════════════════════════
+
+Este m\'{e}todo no usa redes neuronales. Es el fallback cuando los modelos de IA no est\'{a}n disponibles o fallan.
+
+\subsection{Proceso paso a paso}
+
+\begin{enumerate}
+  \item \textbf{Binarizaci\'{o}n}: umbral adaptativo gaussiano sobre la imagen preprocesada. Divide la imagen en p\'{i}xeles de primer plano (estructuras) y fondo.
+
+  \item \textbf{Limpieza morfol\'{o}gica}:
+  \begin{itemize}
+    \item \textit{Apertura} (erosi\'{o}n + dilataci\'{o}n): elimina ruido peque\~{n}o sin afectar estructuras grandes.
+    \item \textit{Cierre} (dilataci\'{o}n + erosi\'{o}n): rellena huecos peque\~{n}os dentro de las c\'{e}lulas.
+  \end{itemize}
+
+  \item \textbf{Distance transform}: calcula para cada p\'{i}xel de primer plano su distancia al borde m\'{a}s cercano. Los centros de las c\'{e}lulas tienen valores altos; los bordes tienen valores bajos.
+
+  \item \textbf{Detecci\'{o}n de marcadores}: se aplica un umbral sobre el distance transform para encontrar los ``picos'' (centros de c\'{e}lulas). Cada pico se etiqueta como un marcador \'{u}nico.
+
+  \item \textbf{Watershed}: algoritmo de inundaci\'{o}n. Cada marcador ``crece'' como si fuera agua llenando un valle topogr\'{a}fico (definido por el gradiente de la imagen). Cuando dos regiones de agua se encuentran, se levanta una barrera (l\'{i}nea divisoria) que separa las c\'{e}lulas.
+
+  \item \textbf{Extracci\'{o}n de contornos}: se extraen los contornos de cada regi\'{o}n segmentada con \texttt{findContours}.
+
+  \item \textbf{Filtrado}: se eliminan regiones demasiado peque\~{n}as (ruido) o demasiado grandes (fondo mal segmentado) seg\'{u}n umbrales de \'{a}rea configurables.
+\end{enumerate}
+
+\subsection{Limitaciones}
+
+\begin{itemize}
+  \item Sensible al contraste: si los bordes celulares son tenues, la binarizaci\'{o}n los pierde y las c\'{e}lulas se fusionan.
+  \item Sobre-segmentaci\'{o}n: el watershed tiende a crear l\'{i}neas divisorias donde no hay bordes reales si los marcadores no est\'{a}n bien ubicados.
+  \item No generaliza: los par\'{a}metros deben ajustarse manualmente para cada tipo de muestra.
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Detecci\'{o}n de fibras}
+\label{sec:fibras}
+% ══════════════════════════════════════════════════════════════════
+
+Para im\'{a}genes de fibra de algod\'{o}n se usa un pipeline espec\'{i}fico:
+
+\begin{enumerate}
+  \item \textbf{Detecci\'{o}n de bordes} con Canny: detecta transiciones bruscas de intensidad que corresponden a los bordes de las fibras.
+
+  \item \textbf{Transformada de Hough para l\'{i}neas}: detecta segmentos de l\'{i}nea recta en la imagen de bordes. Cada fibra aparece como uno o m\'{a}s segmentos de l\'{i}nea.
+
+  \item \textbf{Esqueletizaci\'{o}n morfol\'{o}gica}: reduce cada fibra a su eje central de 1 p\'{i}xel de ancho. Se aplica adelgazamiento iterativo (algoritmo de Zhang-Suen) hasta que cada estructura tiene ancho unitario.
+
+  \item \textbf{Mediciones}:
+  \begin{itemize}
+    \item \textbf{Longitud}: n\'{u}mero de p\'{i}xeles del esqueleto $\times$ factor de escala. Para segmentos diagonales se multiplica por $\sqrt{2}$.
+    \item \textbf{Grosor}: distancia promedio desde el esqueleto hasta el borde de la fibra (usando distance transform sobre la m\'{a}scara binaria de la fibra).
+    \item \textbf{Cruces}: puntos del esqueleto con m\'{a}s de 2 vecinos en la vecindad $3 \times 3$ (indican intersecciones entre fibras).
+  \end{itemize}
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Medici\'{o}n dimensional}
+% ══════════════════════════════════════════════════════════════════
+
+Todas las mediciones se convierten de p\'{i}xeles a micr\'{o}metros usando el factor de calibraci\'{o}n $S$ [$\umpx$].
+
+\subsection{M\'{e}tricas celulares}
+
+Para cada c\'{e}lula segmentada (contorno cerrado):
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llll}
+\toprule
+\textbf{M\'{e}trica} & \textbf{F\'{o}rmula} & \textbf{Unidad} & \textbf{Interpretaci\'{o}n} \\
+\midrule
+\'{A}rea & $A = N_{\text{px}} \times S^2$ & $\mu\text{m}^2$ & Superficie de la c\'{e}lula \\
+Per\'{i}metro & $P = L_{\text{contorno}} \times S$ & $\mu$m & Longitud del borde \\
+Circularidad & $C = \dfrac{4\pi A}{P^2}$ & adimensional & 1.0 = c\'{i}rculo perfecto \\
+\bottomrule
+\end{tabular}
+\caption{M\'{e}tricas por c\'{e}lula.}
+\end{table}
+
+Donde $N_{\text{px}}$ es el n\'{u}mero de p\'{i}xeles dentro del contorno y $L_{\text{contorno}}$ es la longitud del contorno en p\'{i}xeles (calculada con \texttt{arcLength}).
+
+\subsection{M\'{e}tricas de fibras}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llll}
+\toprule
+\textbf{M\'{e}trica} & \textbf{C\'{a}lculo} & \textbf{Unidad} & \textbf{Interpretaci\'{o}n} \\
+\midrule
+Longitud & P\'{i}xeles del esqueleto $\times$ $S$ & $\mu$m & Largo total de la fibra \\
+Grosor & Distancia media al borde $\times$ $S \times 2$ & $\mu$m & Di\'{a}metro de la fibra \\
+Cruces & Nodos con $>2$ vecinos & conteo & Intersecciones entre fibras \\
+\bottomrule
+\end{tabular}
+\caption{M\'{e}tricas por fibra.}
+\end{table}
+
+\subsection{Estad\'{i}sticas de resumen}
+
+Para el lote completo se calculan: media, desviaci\'{o}n est\'{a}ndar, mediana, m\'{i}nimo, m\'{a}ximo y conteo total de cada m\'{e}trica.
+
+% ══════════════════════════════════════════════════════════════════
+\section{Comparaci\'{o}n de resultados experimentales}
+% ══════════════════════════════════════════════════════════════════
+
+Resultados obtenidos en una imagen de prueba de piel de cebolla (630 $\times$ 1200 p\'{i}xeles, escala de grises), ejecutando en CPU (Intel, sin GPU):
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{M\'{e}todo} & \textbf{C\'{e}lulas detectadas} & \textbf{Tiempo} & \textbf{Notas} \\
+\midrule
+Cellpose cyto3 & 162 & 38.1 s & Di\'{a}metro auto: 77.7 px \\
+StarDist 2D & $\sim$150 & $\sim$4 s & 9$\times$ m\'{a}s r\'{a}pido \\
+N2V + OpenCV & Variable & $\sim$81 s & 80.9 s denoising + $<$1 s segmentaci\'{o}n \\
+OpenCV solo & Variable & $<$1 s & Depende fuertemente del contraste \\
+\bottomrule
+\end{tabular}
+\caption{Comparaci\'{o}n de m\'{e}todos en imagen de prueba.}
+\end{table}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Consideraciones para despliegue en Raspberry Pi 5}
+% ══════════════════════════════════════════════════════════════════
+
+El objetivo final es ejecutar el pipeline en una Raspberry Pi 5 (4--8 GB RAM, CPU ARM Cortex-A76, sin GPU dedicada).
+
+\subsection{Estrategia de despliegue}
+
+\begin{enumerate}
+  \item \textbf{Exportar a ONNX}: convertir los modelos de PyTorch/TensorFlow a formato ONNX (\textit{Open Neural Network Exchange}) para inferencia optimizada con ONNX Runtime.
+  \item \textbf{Cuantizaci\'{o}n}: reducir los pesos de float32 a int8 para reducir tama\~{n}o del modelo y acelerar inferencia en ARM.
+  \item \textbf{StarDist como modelo principal}: es 9$\times$ m\'{a}s r\'{a}pido que Cellpose en CPU y produce resultados comparables para c\'{e}lulas de cebolla (formas convexas).
+  \item \textbf{Graceful degradation}: si ONNX Runtime no est\'{a} disponible o la inferencia excede el timeout, caer a OpenCV.
+\end{enumerate}
+
+\subsection{Presupuesto de recursos}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{M\'{e}todo} & \textbf{Latencia objetivo} & \textbf{RAM estimada} & \textbf{Viable} \\
+\midrule
+StarDist ONNX (int8) & $<$5 s & $<$500 MB & S\'{i} \\
+Cellpose ONNX & $\sim$15--20 s & $\sim$800 MB & Marginal \\
+N2V entrenamiento & $>$60 s & $\sim$1 GB & Solo pre-entrenado \\
+OpenCV & $<$1 s & $<$100 MB & S\'{i} \\
+\bottomrule
+\end{tabular}
+\caption{Estimaci\'{o}n de recursos en RPi 5.}
+\end{table}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Reconstrucci\'{o}n FPM (Fourier Ptychographic Microscopy)}
+% ══════════════════════════════════════════════════════════════════
+
+M\'{o}dulo adicional para reconstrucci\'{o}n de im\'{a}genes de alta resoluci\'{o}n a partir de m\'{u}ltiples capturas de baja resoluci\'{o}n tomadas desde diferentes \'{a}ngulos de iluminaci\'{o}n.
+
+\subsection{M\'{e}todo multi-\'{a}ngulo (lensless + OLED)}
+
+Dise\~{n}ado para el setup del CubeSat: sensor de imagen sin lente con pantalla OLED como fuente de iluminaci\'{o}n programable.
+
+\begin{enumerate}
+  \item Se capturan $N$ im\'{a}genes de baja resoluci\'{o}n, cada una iluminada desde un \'{a}ngulo diferente.
+  \item Cada \'{a}ngulo de iluminaci\'{o}n desplaza el espectro de frecuencias de la muestra en el espacio de Fourier.
+  \item El algoritmo itera:
+  \begin{enumerate}
+    \item Inicializar la imagen de alta resoluci\'{o}n $H$ (upscale por interpolaci\'{o}n).
+    \item Para cada imagen de baja resoluci\'{o}n $L_i$ con \'{a}ngulo $(\theta_i, \phi_i)$:
+    \begin{itemize}
+      \item Calcular la FFT de $H$.
+      \item Extraer la regi\'{o}n del espectro correspondiente al \'{a}ngulo $i$.
+      \item Reemplazar la amplitud con la de $L_i$ (mantener la fase de $H$).
+      \item Actualizar $H$ con la FFT inversa.
+    \end{itemize}
+    \item Repetir por $M$ iteraciones (t\'{i}picamente 10--15) hasta convergencia.
+  \end{enumerate}
+  \item El resultado es una imagen con resoluci\'{o}n efectiva $2\times$ a $4\times$ superior a cada captura individual.
+\end{enumerate}
+
+\subsection{Otros m\'{e}todos disponibles}
+
+\begin{itemize}
+  \item \textbf{Multiframe}: para microscopios con stage motorizado. Usa desplazamientos sub-pixel entre frames para reconstruir resoluci\'{o}n superior.
+  \item \textbf{Fourier}: ptychography completa con lente de microscopio. Requiere conocer la apertura num\'{e}rica (NA) del objetivo.
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Resumen de dependencias}
+% ══════════════════════════════════════════════════════════════════
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Paquete} & \textbf{Versi\'{o}n} & \textbf{Uso} \\
+\midrule
+opencv-python & $\geq$4.8.0 & Preprocesamiento, segmentaci\'{o}n cl\'{a}sica, I/O \\
+numpy & $\geq$1.24, $<$2.0 & Operaciones matriciales (incomp. torch con numpy 2) \\
+scikit-image & $\geq$0.21.0 & Morfolog\'{i}a, esqueletizaci\'{o}n, m\'{e}tricas \\
+PyYAML & $\geq$6.0 & Lectura de configuraci\'{o}n \\
+cellpose & $\geq$3.0, $<$4.0 & Segmentaci\'{o}n celular (v4 usa CPSAM, inviable en CPU) \\
+tensorflow & $\geq$2.11 & Backend para N2V, CARE, StarDist \\
+stardist & $\geq$0.9.0 & Segmentaci\'{o}n por distancias radiales \\
+csbdeep & $\geq$0.7.2 & Dependencia de StarDist \\
+torch & $\geq$2.0 & Backend de Cellpose \\
+\bottomrule
+\end{tabular}
+\caption{Dependencias principales del pipeline.}
+\end{table}
+
+\end{document}
