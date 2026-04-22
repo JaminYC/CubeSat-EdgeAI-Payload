@@ -2,6 +2,9 @@
 
 Operacion autonoma de la payload de microscopia en Raspberry Pi 5 integrada al bus INTISAT via PC-104.
 
+> Para diagramas de bloques detallados (hardware, stack de SW, ciclo de scan, protocolo I2C,
+> maquina de estados, flujo OTA, pinout) ver **[ARCHITECTURE.md](ARCHITECTURE.md)**.
+
 ## Arquitectura
 
 ```
