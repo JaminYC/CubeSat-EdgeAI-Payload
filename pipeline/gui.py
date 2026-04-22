@@ -264,10 +264,10 @@ class PipelineGUI:
                      textvariable=self.fpm_na, width=5, format="%.2f").pack(side=tk.LEFT, padx=4)
 
         ttk.Label(fpm_row2b, text="  ROI:").pack(side=tk.LEFT, padx=(8, 0))
-        self.fpm_roi = tk.IntVar(value=512)
-        ttk.Spinbox(fpm_row2b, from_=128, to=2048, increment=128,
+        self.fpm_roi = tk.IntVar(value=0)
+        ttk.Spinbox(fpm_row2b, from_=0, to=4096, increment=128,
                      textvariable=self.fpm_roi, width=5).pack(side=tk.LEFT, padx=4)
-        ttk.Label(fpm_row2b, text="px").pack(side=tk.LEFT)
+        ttk.Label(fpm_row2b, text="px (0=completo)").pack(side=tk.LEFT)
 
         self.fpm_align = tk.BooleanVar(value=False)
         ttk.Checkbutton(fpm_row2b, text="  Alinear (ECC)",
