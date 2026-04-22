@@ -1,0 +1,18 @@
+[Unit]
+Description=CubeSat Telemetry Writer (30s snapshots to /run/cubesat/telemetry.json)
+After=local-fs.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/cubesat
+ExecStart=/opt/cubesat/venv/bin/python -m cubesat.telemetry
+Restart=always
+RestartSec=10
+MemoryMax=128M
+Nice=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cubesat-telemetry
+
+[Install]
+WantedBy=multi-user.target

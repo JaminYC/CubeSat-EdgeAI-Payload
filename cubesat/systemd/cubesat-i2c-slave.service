@@ -1,0 +1,19 @@
+[Unit]
+Description=CubeSat I2C Slave (listens on I2C_2 @ 0x42 for OBC commands)
+After=pigpiod.service
+Requires=pigpiod.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/cubesat
+ExecStart=/opt/cubesat/venv/bin/python -m cubesat.i2c_slave
+Restart=always
+RestartSec=3
+MemoryMax=256M
+Nice=-5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cubesat-i2c
+
+[Install]
+WantedBy=multi-user.target

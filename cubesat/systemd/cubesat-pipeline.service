@@ -1,0 +1,21 @@
+[Unit]
+Description=CubeSat Payload Pipeline Daemon (microscopy processing)
+After=network.target pigpiod.service
+Requires=pigpiod.service
+
+[Service]
+Type=notify
+WorkingDirectory=/opt/cubesat
+ExecStart=/opt/cubesat/venv/bin/python -m cubesat.daemon
+Restart=always
+RestartSec=5
+WatchdogSec=600
+MemoryMax=2G
+CPUWeight=50
+Nice=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cubesat-pipeline
+
+[Install]
+WantedBy=multi-user.target
