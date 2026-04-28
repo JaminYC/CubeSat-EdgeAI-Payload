@@ -1,0 +1,1631 @@
+\documentclass[11pt,a4paper,twoside,openright]{book}
+\usepackage[spanish,activeacute,es-noshorthands]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath, amssymb, amsthm, mathtools}
+\usepackage{graphicx}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{matrix, positioning, arrows.meta, calc, decorations.pathreplacing}
+\usepackage{listings}
+\usepackage{geometry}
+\geometry{margin=2.5cm, headheight=14pt}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=NavyBlue,
+  citecolor=ForestGreen,
+  urlcolor=BrickRed,
+  pdftitle={Vision por Computadora --- de los pixeles a los modelos de fundacion},
+  pdfauthor={Curso CubeSat-EdgeAI-Payload}
+}
+\usepackage{caption}
+\captionsetup{font=small, labelfont=bf}
+
+\newtheorem{definicion}{Definicion}[chapter]
+\newtheorem{teorema}[definicion]{Teorema}
+\newtheorem{proposicion}[definicion]{Proposicion}
+\newtheorem*{nota}{Nota}
+\newtheorem*{intuicion}{Intuicion}
+
+\definecolor{codebg}{RGB}{248, 249, 250}
+\definecolor{codecomment}{RGB}{106, 153, 85}
+\definecolor{codekey}{RGB}{86, 156, 214}
+\definecolor{codestr}{RGB}{206, 145, 120}
+
+\lstdefinestyle{python}{
+  language=Python,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{codekey}\bfseries,
+  commentstyle=\color{codecomment}\itshape,
+  stringstyle=\color{codestr},
+  numberstyle=\tiny\color{gray},
+  numbers=left,
+  numbersep=8pt,
+  frame=single,
+  rulecolor=\color{gray!30},
+  framesep=4pt,
+  backgroundcolor=\color{codebg},
+  showstringspaces=false,
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=2,
+  captionpos=b,
+  literate={a}{{a}}1 {e}{{e}}1 {i}{{i}}1 {o}{{o}}1 {u}{{u}}1 {n}{{n}}1
+}
+\lstset{style=python}
+
+\newtcolorbox{pipeline}[1][]{
+  colback=blue!5, colframe=blue!50!black,
+  fonttitle=\bfseries, title=Conexion con el pipeline FPM-CubeSat,
+  breakable, #1
+}
+\newtcolorbox{ejercicio}[1][]{
+  colback=orange!5, colframe=orange!60!black,
+  fonttitle=\bfseries, title=Ejercicios,
+  breakable, #1
+}
+\newtcolorbox{intuibox}[1][]{
+  colback=green!5, colframe=green!40!black,
+  fonttitle=\bfseries, title=Intuicion,
+  breakable, #1
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[RE]{\nouppercase{\leftmark}}
+\fancyhead[LO]{\nouppercase{\rightmark}}
+
+\title{\Huge\bfseries Vision por Computadora\\[0.4em]
+\Large De los pixeles a los modelos de fundacion\\[1em]
+\large Curso aplicado al pipeline FPM-CubeSat}
+\author{Material acompañante de \texttt{CubeSat-EdgeAI-Payload}}
+\date{\today}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+
+\chapter*{Prefacio}
+\addcontentsline{toc}{chapter}{Prefacio}
+
+Este libro es una guia para llevarte de cero a los modelos de vanguardia en vision por computadora, usando tu propio pipeline de microscopia FPM como hilo conductor. Cada concepto que aprendas va a tener un anclaje concreto: una funcion en \texttt{pipeline/}, un parametro en \texttt{config.yaml}, un experimento que podes correr sobre tus imagenes.
+
+\section*{Como leer este libro}
+
+El libro tiene seis partes que avanzan en complejidad como las escalas de la astronomia: del atomo (un pixel) hasta el universo observable (modelos de fundacion).
+
+\begin{description}[leftmargin=2em, style=nextline]
+  \item[Parte I --- Fundamentos.] La imagen como dato. Operaciones que tocan pixel a pixel.
+  \item[Parte II --- Estructura geometrica.] Como la imagen tiene forma: bordes, ridges, regiones, contornos.
+  \item[Parte III --- El espacio de Fourier.] La otra mitad del mundo: frecuencias, optica, FPM.
+  \item[Parte IV --- Multi-imagen.] Cuando una sola foto no alcanza: registracion, super-resolucion.
+  \item[Parte V --- Aprendizaje profundo.] Redes convolucionales, U-Net, Cellpose, StarDist.
+  \item[Parte VI --- Vanguardia.] Self-supervised, foundation models, modelos generativos.
+\end{description}
+
+Cada capitulo tiene la misma estructura:
+
+\begin{enumerate}[label=\arabic*., leftmargin=2em]
+  \item \textbf{Por que importa} --- el problema concreto que resuelve.
+  \item \textbf{Intuicion} --- la metafora antes de la formula.
+  \item \textbf{Matematica} --- las definiciones formales y deducciones clave.
+  \item \textbf{Algoritmo} --- el pseudocodigo paso a paso.
+  \item \textbf{Implementacion} --- en NumPy puro y comparado con OpenCV/scikit-image.
+  \item \textbf{Conexion con tu pipeline} --- donde aparece este concepto en tu codigo.
+  \item \textbf{Ejercicios} --- experimentos concretos sobre tus imagenes.
+\end{enumerate}
+
+\section*{Prerequisitos}
+
+Asumimos:
+\begin{itemize}[leftmargin=2em]
+  \item Algebra lineal basica: vectores, matrices, multiplicacion, autovalores.
+  \item Calculo de una variable: derivada, integral. Multivariable es bienvenido pero no obligatorio.
+  \item Probabilidad introductoria: media, varianza, distribuciones gaussianas.
+  \item Python intermedio: NumPy, leer una funcion en \texttt{cv2}.
+\end{itemize}
+
+Si te faltan piezas, hay un apendice de \textbf{Matematica de bolsillo} al final con los resultados que vamos a usar.
+
+\section*{Convenciones}
+
+\begin{itemize}[leftmargin=2em]
+  \item Una \emph{imagen} se denota $I: \Omega \to \mathbb{R}^c$, con dominio $\Omega \subset \mathbb{Z}^2$ y $c$ canales.
+  \item El pixel en posicion $(x,y)$ se escribe $I(x,y)$ o $I[y,x]$ (estilo NumPy: fila primero).
+  \item Negrita para vectores y matrices ($\mathbf{x}$, $\mathbf{K}$); minuscula normal para escalares.
+  \item Bloques azules $=$ conexion con tu codigo. Bloques verdes $=$ intuicion fisica. Bloques naranjas $=$ ejercicios.
+\end{itemize}
+
+\tableofcontents
+
+\mainmatter
+
+\part{Fundamentos --- la imagen como dato}
+
+\chapter{La imagen digital}
+\label{ch:imagen}
+
+\section{Por que importa}
+
+Antes de detectar una celula, restaurar una foto borrosa o entrenar una red, necesitas saber \emph{con exactitud} que es lo que tu computadora ve. Cada decision posterior --- el rango de un umbral, la varianza de un denoiser, el tipo de loss en una red --- depende de esta primera capa.
+
+\section{Definicion formal}
+
+\begin{definicion}[Imagen digital]
+Una \emph{imagen digital} es una funcion $I: \Omega \to V$ donde el dominio $\Omega \subset \mathbb{Z}^2$ es una grilla rectangular finita $\{0, \dots, W{-}1\} \times \{0, \dots, H{-}1\}$ y el rango $V$ es un subconjunto de $\mathbb{R}^c$ con $c$ canales.
+\end{definicion}
+
+En la practica $V = \{0, 1, \dots, 2^{b}{-}1\}^c$ donde $b$ es la profundidad de bits del canal. Las opciones tipicas:
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{dtype NumPy} & \textbf{Rango} & \textbf{Uso tipico} \\
+\midrule
+\texttt{uint8}   & $[0, 255]$         & JPEG, displays, foto consumer \\
+\texttt{uint16}  & $[0, 65535]$        & camaras cientificas (microscopia, astronomia) \\
+\texttt{float32} & $[-\infty, \infty]$ & procesado interno, redes neuronales \\
+\texttt{float64} & doble precision     & calculos finos, no tipico en CV \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Resolucion espacial vs resolucion radiometrica}
+
+\textbf{Resolucion espacial}: cuantos pixeles cubren un mismo angulo solido (foco, sensor). Se mide en \emph{lineas por milimetro} (lp/mm) o en \emph{ground sampling distance} (GSD) si tenes calibracion.
+
+\textbf{Resolucion radiometrica}: cuantos niveles de gris distinguibles tenes por pixel ($2^b$). Una imagen \texttt{uint8} con 256 niveles puede ocultar detalles que una \texttt{uint16} con 65k niveles preserva.
+
+\begin{nota}
+Tu sensor OV5647 da \texttt{uint10} crudos (1024 niveles) que el driver expone como \texttt{uint16}. Si despues de cargar la imagen haces \texttt{img.astype(uint8)} sin remapear estas tirando casi 100 niveles utiles a la basura. Por eso en \texttt{preprocess.load\_image} ves \texttt{cv2.normalize(img, None, 0, 255, cv2.NORM\_MINMAX)}: estira el rango activo antes de bajar a 8 bits.
+\end{nota}
+
+\section{Espacios de color}
+
+Una imagen color tiene $c=3$ canales. Las representaciones que vas a encontrar:
+
+\begin{center}
+\begin{tabular}{@{}p{3cm}p{4cm}p{6.5cm}@{}}
+\toprule
+\textbf{Espacio} & \textbf{Canales} & \textbf{Cuando} \\
+\midrule
+RGB & rojo, verde, azul & estandar de displays. Matplotlib usa este orden \\
+BGR & azul, verde, rojo & el orden por defecto en OpenCV. Si te equivocas, los azules se ven rojos \\
+HSV & matiz, saturacion, valor & para segmentar por color (frutas, defectos visuales) \\
+Lab & luminancia + dos cromaticos & uniforme perceptualmente. Bueno para diferencias de color \\
+YUV / YCbCr & luma + croma & video, JPEG. Compresion eficiente del croma \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+La conversion entre RGB y grayscale tiene un coeficiente perceptual:
+\begin{equation}
+Y = 0{,}299 R + 0{,}587 G + 0{,}114 B
+\label{eq:rgb-gray}
+\end{equation}
+Estos pesos vienen del estandar de television BT.601 y respetan que el ojo humano es mas sensible al verde.
+
+\subsection{El error mas comun: BGR vs RGB}
+
+\begin{lstlisting}[caption={Trampa clasica de OpenCV.}]
+import cv2
+import matplotlib.pyplot as plt
+
+img = cv2.imread("celula.png")  # BGR
+plt.imshow(img)                  # plt asume RGB --- los rojos se ven azules
+plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))  # correcto
+\end{lstlisting}
+
+\section{Histograma}
+
+\begin{definicion}[Histograma]
+Para una imagen en escala de grises $I$ con $L$ niveles posibles, el \emph{histograma} es la funcion $h: \{0,\dots,L{-}1\} \to \mathbb{N}$ definida por
+\begin{equation}
+h(k) = |\{(x,y) \in \Omega : I(x,y) = k\}|.
+\end{equation}
+La \emph{distribucion de probabilidad empirica} se obtiene normalizando: $p(k) = h(k) / |\Omega|$.
+\end{definicion}
+
+El histograma resume \emph{cuanto} contraste tiene la imagen y \emph{donde} esta concentrada la energia. Una imagen subexpuesta tiene su masa apilada cerca de cero; una saturada, cerca de $L{-}1$. El area total siempre es $|\Omega| = WH$.
+
+\subsection{Implementacion en NumPy puro}
+
+\begin{lstlisting}[caption={Histograma desde cero.}]
+import numpy as np
+
+def hist(img: np.ndarray, L: int = 256) -> np.ndarray:
+    """Retorna h[k] = numero de pixeles con valor k."""
+    h = np.zeros(L, dtype=np.int64)
+    for k in range(L):
+        h[k] = np.sum(img == k)
+    return h
+
+# Vectorizado (mas rapido):
+def hist_fast(img: np.ndarray, L: int = 256) -> np.ndarray:
+    return np.bincount(img.ravel(), minlength=L)
+\end{lstlisting}
+
+\begin{intuibox}
+El histograma es un \emph{proyector}: pierde toda la informacion espacial. Dos imagenes muy diferentes pueden tener el mismo histograma si tienen los mismos pixeles, solo reordenados. Por eso operaciones que dependen \emph{solo} del histograma (Capitulo \ref{ch:punto}) son intrinsicamente locales o globales en valor, nunca espaciales.
+\end{intuibox}
+
+\section{Estadisticas globales}
+
+Resumenes utiles para diagnosticar una imagen:
+
+\begin{align}
+\text{media} \quad \mu &= \frac{1}{|\Omega|}\sum_{(x,y)} I(x,y) \\
+\text{varianza} \quad \sigma^2 &= \frac{1}{|\Omega|}\sum_{(x,y)} (I(x,y)-\mu)^2 \\
+\text{entropia} \quad H &= -\sum_{k} p(k)\log_2 p(k)
+\end{align}
+
+La entropia mide \emph{cuanta informacion} contiene el histograma: vale $0$ si la imagen es uniforme y $\log_2 L$ si todos los niveles son igualmente probables. Es la cota superior de cuantos bits por pixel necesitas para almacenarla sin perdidas.
+
+\begin{pipeline}
+En \texttt{pipeline/preprocess.py}, la funcion \texttt{remove\_vignette} usa la \emph{mediana} (no la media) de los pixeles validos para sustituir el viñeteo. La mediana es \emph{robusta a outliers}: una zona negra extrema no le afecta. Verificalo: aplicale \texttt{remove\_vignette} a una imagen tuya y graficale el histograma antes/despues.
+\end{pipeline}
+
+\begin{ejercicio}
+\begin{enumerate}[leftmargin=2em]
+  \item Cargar \texttt{Imagenes/Variados/MicroscopiaPruebaCLAHE.png} con \texttt{cv2.imread}. Imprimir su \texttt{shape}, \texttt{dtype}, valor min, max, media, mediana.
+  \item Calcular el histograma con tu funcion \texttt{hist} y con \texttt{np.bincount}. Medir tiempos. Explicar.
+  \item Convertir a HSV con \texttt{cv2.cvtColor}, mostrar los tres canales por separado. ¿En cual se distingue mejor la celula del fondo? Explicar fisicamente por que.
+  \item Calcular la entropia. Aplicar \texttt{cv2.equalizeHist} y volver a calcular: ¿que cambio?
+\end{enumerate}
+\end{ejercicio}
+
+\chapter{Operaciones punto a punto}
+\label{ch:punto}
+
+\section{Por que importa}
+
+Estas son las operaciones mas baratas del catalogo: cada pixel se transforma usando \emph{solo su propio valor}, sin mirar a sus vecinos. Pese a la simplicidad, te permiten hacer la mitad del trabajo: realzar contraste, segmentar por umbral, corregir gamma, normalizar para una red.
+
+\section{Forma general}
+
+\begin{definicion}[Operacion punto a punto]
+Es cualquier transformacion $I' = T(I)$ tal que existe una funcion $f: V \to V'$ con
+\begin{equation}
+I'(x,y) = f(I(x,y)) \quad \forall (x,y) \in \Omega.
+\end{equation}
+\end{definicion}
+
+La funcion $f$ se puede precalcular en una \emph{look-up table} (LUT) de $L$ entradas y aplicarse en $O(WH)$ con una sola indexacion vectorizada.
+
+\subsection{Casos particulares}
+
+\textbf{Brillo aditivo}: $f(v) = v + \beta$, con \emph{clipping} a $[0, L{-}1]$.
+
+\textbf{Contraste multiplicativo}: $f(v) = \alpha v$.
+
+\textbf{Brillo + contraste combinados}: $f(v) = \alpha v + \beta$.
+
+\textbf{Inversion}: $f(v) = (L{-}1) - v$. Util para invertir bright-field a algo parecido a fluorescencia (las paredes oscuras quedan brillantes).
+
+\textbf{Gamma}: $f(v) = (L{-}1)\left(\frac{v}{L{-}1}\right)^\gamma$. Si $\gamma < 1$ aclara las sombras; si $\gamma > 1$ oscurece. Modela la respuesta no lineal de los displays CRT y compensa la sensibilidad logaritmica del ojo.
+
+\section{Umbralizacion (thresholding)}
+
+\begin{equation}
+f_T(v) = \begin{cases} L{-}1 & \text{si } v \geq T \\ 0 & \text{si no} \end{cases}
+\end{equation}
+
+El gran problema: ¿como elegir $T$? Tres respuestas clasicas:
+
+\subsection{Otsu}
+
+Otsu busca el $T$ que minimiza la \emph{varianza intra-clase}, equivalente a maximizar la varianza entre clases:
+\begin{equation}
+T^* = \arg\max_T \; \omega_0(T) \omega_1(T) (\mu_0(T) - \mu_1(T))^2,
+\label{eq:otsu}
+\end{equation}
+donde $\omega_i$ es la masa de la clase $i$ y $\mu_i$ su media. Funciona bien cuando el histograma es \emph{bimodal}.
+
+\subsection{Triangle}
+
+Si el histograma tiene un solo pico (microscopia con poco contraste suele ser asi), Otsu falla. El metodo del triangulo conecta el pico con el extremo opuesto y elige el $T$ donde la perpendicular a esa linea es maxima.
+
+\subsection{Adaptativo}
+
+\begin{equation}
+T(x,y) = \mu_W(x,y) - C
+\end{equation}
+donde $\mu_W$ es la media local en una ventana $W$ alrededor de $(x,y)$ y $C$ un offset. Util cuando la iluminacion no es uniforme.
+
+\begin{lstlisting}[caption={Otsu en NumPy puro.}]
+def otsu(img: np.ndarray) -> int:
+    h = np.bincount(img.ravel(), minlength=256).astype(np.float64)
+    p = h / h.sum()
+    omega = np.cumsum(p)              # prob acumulada
+    mu = np.cumsum(p * np.arange(256))
+    mu_total = mu[-1]
+    # varianza entre clases para cada T candidato
+    sigma_b2 = (mu_total * omega - mu)**2 / (omega * (1 - omega) + 1e-12)
+    return int(np.argmax(sigma_b2))
+\end{lstlisting}
+
+\section{Ecualizacion de histograma}
+
+\begin{intuibox}
+Si una imagen tiene su masa concentrada en un rango estrecho (digamos $[80, 130]$), el contraste percibido es bajo. \emph{Ecualizar} significa redistribuir esa masa para que cada nivel de gris tenga aproximadamente la misma probabilidad: el histograma queda lo mas plano posible. Es como aplicar una funcion de transferencia que estira las zonas densas y comprime las vacias.
+\end{intuibox}
+
+La transformacion de ecualizacion es exactamente la \emph{funcion de distribucion acumulada} (CDF) reescalada:
+\begin{equation}
+T(k) = (L-1) \cdot F(k) = (L-1) \sum_{j=0}^{k} p(j),
+\label{eq:eq-hist}
+\end{equation}
+donde $F$ es la CDF empirica.
+
+\subsection{Por que funciona}
+
+\begin{teorema}
+Sea $X$ una variable aleatoria con CDF $F_X$ continua. Entonces $Y = F_X(X)$ es uniforme en $[0,1]$.
+\end{teorema}
+
+Es decir: aplicar la CDF como funcion de transferencia uniformiza la distribucion. La version digital es discreta, asi que la igualdad es aproximada.
+
+\subsection{CLAHE: ecualizacion adaptativa con limite de contraste}
+
+La ecualizacion global tiene dos defectos:
+
+\begin{enumerate}[leftmargin=2em]
+  \item Si una zona pequeña tiene un detalle de bajo contraste, la CDF global lo borra (los pixeles relevantes son pocos comparados con el resto).
+  \item Si una zona tiene poco rango de valores, la ecualizacion amplifica ruido al estirar.
+\end{enumerate}
+
+CLAHE (\emph{Contrast Limited Adaptive Histogram Equalization}) resuelve ambos:
+
+\begin{enumerate}[leftmargin=2em]
+  \item Divide la imagen en \emph{tiles} (ej. $8\times 8$).
+  \item Calcula el histograma local de cada tile.
+  \item \emph{Recorta} el histograma a un \texttt{clipLimit}: cada bin que excede el limite se redistribuye uniformemente entre todos. Eso evita amplificar ruido.
+  \item Ecualiza cada tile con su histograma recortado.
+  \item Interpola bilinealmente entre tiles para evitar bordes visibles.
+\end{enumerate}
+
+\begin{pipeline}
+\texttt{config.yaml} controla CLAHE en la seccion \texttt{preprocess}: \texttt{clahe\_clip\_limit: 3.0} y \texttt{clahe\_grid\_size: 8}. La funcion en \texttt{pipeline/preprocess.py:apply\_clahe} es un wrapper de tres lineas sobre \texttt{cv2.createCLAHE}. Tu tuner interactivo \texttt{tools/tune\_onion.py} te deja barrer el clip limit en vivo.
+\end{pipeline}
+
+\begin{ejercicio}
+\begin{enumerate}[leftmargin=2em]
+  \item Implementar Otsu desde cero (codigo arriba) y comparar con \texttt{cv2.threshold(\dots cv2.THRESH\_OTSU)}.
+  \item Implementar ecualizacion de histograma con (\ref{eq:eq-hist}) y comparar con \texttt{cv2.equalizeHist}.
+  \item Tomar una imagen con iluminacion no uniforme (ej. tu \texttt{Variados/MicroscopiaPruebaCLAHE.png}). Aplicar ecualizacion global, CLAHE con $\text{clip}=2$, CLAHE con $\text{clip}=10$, CLAHE con tile $4{\times}4$ vs $32{\times}32$. Reportar el efecto sobre la deteccion de paredes celulares con tu tuner.
+  \item Aplicar gamma $\gamma = 0{,}5$ y $\gamma = 2{,}0$. Verificar que la ecualizacion es invariante a transformaciones monotonicas crecientes (la CDF las absorbe).
+\end{enumerate}
+\end{ejercicio}
+
+\chapter{Convoluciones y filtros lineales}
+\label{ch:convolucion}
+
+\section{Por que importa}
+
+La convolucion es \emph{el} verbo de la vision por computadora. Casi todo --- suavizar, afilar, detectar bordes, las redes neuronales --- es una convolucion bajo el capot. Si entendes este capitulo, entendes el 60\% del area.
+
+\section{Definicion}
+
+\begin{definicion}[Convolucion 2D]
+Sean $I: \mathbb{Z}^2 \to \mathbb{R}$ una imagen y $K: \mathbb{Z}^2 \to \mathbb{R}$ un \emph{kernel} de soporte finito $\{-r,\dots,r\}^2$. La \emph{convolucion} de $I$ con $K$ es
+\begin{equation}
+(I * K)(x,y) = \sum_{i=-r}^{r} \sum_{j=-r}^{r} I(x-i, y-j) K(i,j).
+\label{eq:conv2d}
+\end{equation}
+\end{definicion}
+
+La diferencia con la \emph{correlacion} esta en el signo de los indices:
+\begin{equation}
+(I \star K)(x,y) = \sum_{i,j} I(x+i, y+j) K(i,j).
+\end{equation}
+La correlacion no \emph{voltea} el kernel; la convolucion si. Para kernels simetricos (como los Gaussianos) son lo mismo. \texttt{cv2.filter2D} implementa correlacion; los frameworks de deep learning tambien (a pesar del nombre).
+
+\subsection{Operacion deslizante}
+
+\begin{center}
+\begin{tikzpicture}[scale=0.45, every node/.style={font=\footnotesize}]
+  % Imagen
+  \foreach \x in {0,...,7} {
+    \foreach \y in {0,...,5} {
+      \draw[gray!50] (\x, \y) rectangle (\x+1, \y+1);
+    }
+  }
+  \node[anchor=south] at (4, 6.2) {Imagen $I$};
+  % Kernel sobre posicion (3,2)
+  \draw[red, thick] (2, 1) rectangle (5, 4);
+  \node[red, anchor=west] at (5.2, 2.5) {Kernel $3{\times}3$};
+  % Salida
+  \draw[->, thick, blue] (5, 2.5) -- (8.5, 2.5);
+  \node[fill=blue!20, draw=blue] at (9.5, 2.5) {$I'(3,2)$};
+\end{tikzpicture}
+\end{center}
+
+El kernel se desliza por toda la imagen; en cada posicion calcula un \emph{producto interno} con la region cubierta y deposita el resultado en la salida.
+
+\subsection{Padding y stride}
+
+¿Que pasa en los bordes? Tres opciones tipicas:
+
+\begin{itemize}[leftmargin=2em]
+  \item \texttt{valid}: salida mas chica que la entrada (no calcula donde el kernel se sale).
+  \item \texttt{same} con \texttt{zero}: rellena el exterior con ceros. Simple pero introduce ringing.
+  \item \texttt{same} con \texttt{reflect}: refleja la imagen sobre el borde. Casi siempre la mejor opcion.
+\end{itemize}
+
+El \emph{stride} $s$ es el paso entre posiciones consecutivas. $s=1$ produce salida del mismo tamaño (con padding); $s>1$ submuestrea. Las redes convolucionales usan stride para reducir resolucion sin pooling explicito.
+
+\section{Propiedades fundamentales}
+
+\subsection{Linealidad}
+
+\begin{equation}
+(\alpha I_1 + \beta I_2) * K = \alpha (I_1 * K) + \beta (I_2 * K).
+\end{equation}
+
+Permite descomponer una imagen ruidosa $I = S + N$ y notar que el filtrado actua sobre señal y ruido por separado.
+
+\subsection{Conmutatividad y asociatividad}
+
+\begin{align}
+I * K &= K * I \\
+(I * K_1) * K_2 &= I * (K_1 * K_2)
+\end{align}
+
+La asociatividad es magica: aplicar dos filtros consecutivos equivale a aplicar uno solo (su \emph{convolucion}). En particular, dos Gaussianos sucesivos $G_{\sigma_1} * G_{\sigma_2} = G_{\sqrt{\sigma_1^2+\sigma_2^2}}$.
+
+\subsection{Separabilidad}
+
+Un kernel $K$ es \emph{separable} si existe $K_x, K_y$ unidimensionales tales que $K(i,j) = K_x(i) K_y(j)$. Entonces:
+\begin{equation}
+I * K = (I * K_y) * K_x
+\end{equation}
+y se hace primero el filtrado vertical (1D), despues el horizontal (1D). Costo: $O(WH \cdot 2r)$ en lugar de $O(WH \cdot r^2)$. Para un kernel $11{\times}11$ es $11/121 \approx 9\%$ del costo original.
+
+El Gaussiano y los Sobel son separables. El Laplaciano \emph{no} lo es.
+
+\section{Catalogo de kernels}
+
+\subsection{Identidad}
+\begin{equation}
+K_{\text{id}} = \begin{pmatrix} 0 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 0 \end{pmatrix}
+\end{equation}
+Devuelve la imagen sin cambios. Util para depurar tu implementacion.
+
+\subsection{Promedio (box filter)}
+\begin{equation}
+K_{\text{box}} = \frac{1}{9}\begin{pmatrix} 1 & 1 & 1 \\ 1 & 1 & 1 \\ 1 & 1 & 1 \end{pmatrix}
+\end{equation}
+Suaviza promediando vecinos. Genera artefactos cuadrados.
+
+\subsection{Gaussiano}
+\begin{equation}
+G_\sigma(i,j) = \frac{1}{2\pi\sigma^2} \exp\!\left(-\frac{i^2+j^2}{2\sigma^2}\right).
+\label{eq:gaussian}
+\end{equation}
+
+Es \emph{el} filtro de suavizado de la disciplina. Propiedades:
+\begin{itemize}[leftmargin=2em]
+  \item Separable.
+  \item Optimo en el sentido de minimizar incertidumbre espacio-frecuencia (Heisenberg).
+  \item En escala logaritmica de $\sigma$ define un \emph{scale-space} que es invariante a traslaciones y rotaciones.
+  \item Tamaño de kernel sugerido: $k = 2\lceil 3\sigma\rceil + 1$ (atrapa el 99.7\% de la masa).
+\end{itemize}
+
+\subsection{Sobel}
+
+Aproximaciones discretas a las derivadas parciales:
+\begin{equation}
+S_x = \begin{pmatrix} -1 & 0 & 1 \\ -2 & 0 & 2 \\ -1 & 0 & 1 \end{pmatrix}, \qquad
+S_y = \begin{pmatrix} -1 & -2 & -1 \\ 0 & 0 & 0 \\ 1 & 2 & 1 \end{pmatrix}.
+\end{equation}
+
+El gradiente discreto se aproxima como
+\begin{equation}
+\nabla I(x,y) \approx \begin{pmatrix} (I * S_x)(x,y) \\ (I * S_y)(x,y) \end{pmatrix}.
+\end{equation}
+La magnitud $|\nabla I| = \sqrt{(I*S_x)^2 + (I*S_y)^2}$ es el primer paso de Canny (Cap. \ref{ch:canny}).
+
+\subsection{Laplaciano}
+\begin{equation}
+L = \begin{pmatrix} 0 & 1 & 0 \\ 1 & -4 & 1 \\ 0 & 1 & 0 \end{pmatrix} \quad \text{aproxima} \quad \nabla^2 I = \frac{\partial^2 I}{\partial x^2} + \frac{\partial^2 I}{\partial y^2}.
+\end{equation}
+
+El cero del Laplaciano corresponde a un \emph{punto de inflexion}: la base del detector de bordes Marr-Hildreth (LoG --- Laplacian of Gaussian) y de blob detectors (DoG --- Difference of Gaussians).
+
+\subsection{Sharpening (unsharp mask)}
+\begin{equation}
+I_{\text{sharp}} = I + \lambda (I - I * G_\sigma) = I * (\delta + \lambda(\delta - G_\sigma))
+\end{equation}
+Se hace borrosa una copia, se resta de la original (queda solo lo "agudo": detalles), se suma con un peso. Equivalente a convolucionar con un kernel "centro alto, anillo negativo".
+
+\section{Implementacion en NumPy}
+
+\begin{lstlisting}[caption={Convolucion 2D con doble for (la version educativa).}]
+import numpy as np
+
+def conv2d_naive(img: np.ndarray, k: np.ndarray) -> np.ndarray:
+    """Convolucion 2D, valid mode, sin padding. O(W H r^2)."""
+    H, W = img.shape
+    kr = k.shape[0] // 2
+    out = np.zeros((H - 2*kr, W - 2*kr), dtype=np.float64)
+    k_flip = k[::-1, ::-1]  # convolucion = correlacion(kernel volteado)
+    for y in range(kr, H - kr):
+        for x in range(kr, W - kr):
+            patch = img[y-kr:y+kr+1, x-kr:x+kr+1]
+            out[y-kr, x-kr] = np.sum(patch * k_flip)
+    return out
+\end{lstlisting}
+
+Esta version corre en O(W H r²) operaciones \emph{en Python}: para una imagen $1000{\times}1000$ con kernel $5{\times}5$ son 25 millones de iteraciones, cada una con overhead del interprete. Vas a ver \texttt{60--90 s}. La version OpenCV con \texttt{cv2.filter2D} demora $\sim 30$ ms.
+
+¿Por que la diferencia? Tres razones:
+\begin{enumerate}[leftmargin=2em]
+  \item OpenCV esta escrito en C++.
+  \item Usa SIMD (instrucciones SSE/AVX que procesan 8 floats por ciclo).
+  \item Si detecta separabilidad, la aplica.
+\end{enumerate}
+
+\subsection{Una implementacion vectorizada}
+
+Si convertis la convolucion a una multiplicacion de matrices (\emph{im2col}), NumPy te da los SIMD gratis:
+
+\begin{lstlisting}[caption={Convolucion via im2col (NumPy vectorizado).}]
+def im2col(img: np.ndarray, kh: int, kw: int) -> np.ndarray:
+    H, W = img.shape
+    out_h, out_w = H - kh + 1, W - kw + 1
+    cols = np.zeros((kh*kw, out_h*out_w), dtype=img.dtype)
+    idx = 0
+    for i in range(kh):
+        for j in range(kw):
+            cols[idx] = img[i:i+out_h, j:j+out_w].ravel()
+            idx += 1
+    return cols, out_h, out_w
+
+def conv2d_vec(img, k):
+    cols, H, W = im2col(img, *k.shape)
+    out = (k[::-1, ::-1].ravel() @ cols).reshape(H, W)
+    return out
+\end{lstlisting}
+
+Esto baja a 0.5--1 s --- todavia 30x mas lento que OpenCV pero mil veces mas rapido que el ciclo doble.
+
+\section{El teorema de la convolucion (anticipo)}
+
+\begin{teorema}[Teorema de la convolucion]
+Sean $I$, $K$ funciones suficientemente regulares y $\mathcal{F}$ la transformada de Fourier 2D. Entonces:
+\begin{equation}
+\mathcal{F}\{I * K\} = \mathcal{F}\{I\} \cdot \mathcal{F}\{K\}.
+\label{eq:conv-theorem}
+\end{equation}
+\end{teorema}
+
+Es decir: convolucionar en espacio $=$ multiplicar en frecuencia. Para kernels grandes ($r > 15$), pasar por FFT es mucho mas rapido. Vamos a desarrollar esto en la Parte III.
+
+\begin{pipeline}
+\texttt{cv2.GaussianBlur} en \texttt{pipeline/segmentation\_onion.py:segment\_opencv} convoluciona con un kernel Gaussiano separable. \texttt{cv2.Canny} hace internamente Sobel (los kernels de la seccion 3.4.4). Tu \texttt{tune\_onion.py} usa Frangi, que es un detector basado en \emph{segundas} derivadas (matriz Hessiana --- ver Cap. \ref{ch:ridges}).
+\end{pipeline}
+
+\begin{ejercicio}
+\begin{enumerate}[leftmargin=2em]
+  \item Implementar \texttt{conv2d\_naive} y \texttt{conv2d\_vec}. Aplicar Sobel x e y a una imagen tuya. Sumar las magnitudes y mostrar.
+  \item Comparar tiempos con \texttt{cv2.filter2D}. Hacer una tabla con kernels $3{\times}3$, $7{\times}7$, $15{\times}15$, $31{\times}31$.
+  \item Generar un Gaussiano discreto con (\ref{eq:gaussian}) para $\sigma = 1, 2, 5$. Convolucionar y mostrar. Visualizar el kernel como \texttt{plt.imshow}.
+  \item Verificar la propiedad de cascada: $G_1 * G_2 \overset{?}{=} G_{\sqrt{2}}$ (convolver dos Gaussianos $\sigma=1$ y comparar con un solo Gaussiano $\sigma=\sqrt{2}$).
+  \item Implementar \emph{unsharp mask}. Probar con $\lambda = 0{,}5, 1{,}0, 2{,}0, 5{,}0$. ¿A partir de cuanto se ve ruido amplificado?
+\end{enumerate}
+\end{ejercicio}
+
+\chapter{Filtros no lineales}
+\label{ch:nolineal}
+
+\section{Por que importa}
+
+Los filtros lineales tienen un compromiso brutal: si suavizas para sacar ruido, suavizas tambien los bordes. Los filtros no lineales rompen ese compromiso usando informacion local: solo promedian pixeles \emph{parecidos}.
+
+\section{Filtro mediana}
+
+\begin{equation}
+I'(x,y) = \mathrm{med}\{I(x',y') : (x',y') \in W(x,y)\}
+\end{equation}
+donde $W(x,y)$ es la ventana centrada en $(x,y)$.
+
+\subsection{Por que funciona}
+
+La mediana es \emph{robusta}: cambia poco si reemplazas hasta el 50\% de los datos por valores arbitrarios (\emph{breakdown point} = 0.5). Por eso es perfecto para ruido \emph{sal y pimienta}: pixeles aislados extremadamente claros u oscuros.
+
+\subsection{Costo}
+
+Una implementacion ingenua ordena los $r^2$ vecinos por cada pixel: $O(WH \cdot r^2 \log r)$. Con histogramas locales actualizados se baja a $O(WH \cdot r)$. OpenCV usa la version optimizada.
+
+\section{Filtro bilateral}
+
+El filtro bilateral pesa los vecinos por dos criterios: cercania espacial \emph{y} similitud en valor.
+\begin{equation}
+I'(x,y) = \frac{1}{Z(x,y)} \sum_{(x',y')} I(x',y') \cdot G_{\sigma_s}(\|p - p'\|) \cdot G_{\sigma_r}(|I(x,y)-I(x',y')|),
+\end{equation}
+con $Z$ el factor de normalizacion. Resultado: dentro de una region homogenea suaviza como un Gaussiano; cerca de un borde, los vecinos del otro lado tienen peso de \emph{intensidad} bajo y casi no participan. Por eso \emph{preserva bordes}.
+
+Parametros:
+\begin{itemize}[leftmargin=2em]
+  \item $\sigma_s$ (\texttt{sigmaSpace}): radio espacial. Tipicamente 5--15 pixeles.
+  \item $\sigma_r$ (\texttt{sigmaColor}): tolerancia en intensidad. Tipicamente 10--40 (en uint8).
+\end{itemize}
+
+\section{Non-local means (NLM)}
+
+\begin{intuibox}
+La idea: si una imagen tiene texturas repetidas, no necesitas mirar solo los \emph{vecinos espaciales} para promediar. Mira todos los \emph{parches similares} en cualquier parte de la imagen. Es exactamente lo que vos haces cuando intuis: "este pixel deberia ser X porque otros parches parecidos en la imagen tienen X". Funciona ridiculamente bien para microscopia, donde texturas se repiten.
+\end{intuibox}
+
+\begin{equation}
+I'(x,y) = \frac{1}{Z(x,y)} \sum_{(x',y') \in S} I(x',y') \exp\!\left(-\frac{\|P(x,y) - P(x',y')\|^2}{h^2}\right),
+\end{equation}
+donde $P(\cdot)$ es un \emph{parche} alrededor del pixel y $h$ controla la fuerza del filtro.
+
+Costo: pesado, $O(WH \cdot |S| \cdot p^2)$ con $|S|$ tamaño de busqueda y $p$ tamaño del parche. La version de OpenCV (\texttt{cv2.fastNlMeansDenoising}) usa varios trucos (integral images, busqueda restringida).
+
+\begin{pipeline}
+\texttt{pipeline/preprocess.py:denoise} llama a \texttt{cv2.fastNlMeansDenoising}. El parametro \texttt{denoise\_strength} en \texttt{config.yaml} es el $h$ de la formula. Valores tipicos para microscopia: 5--15. Mas alto = mas suavizado, riesgo de borrar paredes finas.
+\end{pipeline}
+
+\begin{ejercicio}
+\begin{enumerate}[leftmargin=2em]
+  \item Implementar mediana 3$\times$3 con \texttt{np.median} sobre una ventana deslizante. Comparar con \texttt{cv2.medianBlur}.
+  \item Tomar una imagen tuya y agregarle ruido sal-pimienta artificial: \texttt{img[np.random.rand(*img.shape) < 0.05] = 0; img[np.random.rand(*img.shape) < 0.05] = 255}. Comparar Gaussian blur vs mediana 3$\times$3.
+  \item Aplicar \texttt{cv2.bilateralFilter} con $(\sigma_s, \sigma_r) = (10, 10), (10, 50), (10, 200)$. Comparar el efecto sobre las paredes de cebolla.
+  \item Comparar tiempo y calidad: NLM vs bilateral vs Gaussian. Reportar tabla.
+\end{enumerate}
+\end{ejercicio}
+
+\chapter{Morfologia matematica}
+\label{ch:morfologia}
+
+\section{Por que importa}
+
+La morfologia es el algebra de las formas binarias y grayscale. Te permite limpiar mascaras (sacar piquitos, llenar agujeros), realzar features finos (las paredes de tu cebolla), y construir piezas para cualquier segmentacion. Es la herramienta mas \emph{barata} y mas \emph{robusta} del catalogo clasico.
+
+\section{Morfologia binaria}
+
+Sea $A \subset \mathbb{Z}^2$ el conjunto de pixeles "blancos" de una imagen binaria (objeto), y $B \subset \mathbb{Z}^2$ el \emph{elemento estructurante} (kernel binario, generalmente con forma de cuadrado, cruz o circulo).
+
+\begin{definicion}[Erosion]
+\begin{equation}
+A \ominus B = \{ z \in \mathbb{Z}^2 : B_z \subseteq A \}
+\end{equation}
+donde $B_z = \{b + z : b \in B\}$ es $B$ trasladado a $z$.
+\end{definicion}
+
+\textbf{Intuicion}: el centro del kernel "permanece" en $A$ solo si \emph{toda} la forma del kernel cabe dentro de $A$. La erosion \emph{encoge} el objeto y elimina detalles mas pequeños que $B$.
+
+\begin{definicion}[Dilatacion]
+\begin{equation}
+A \oplus B = \bigcup_{a \in A} B_a = \{ z : B_z \cap A \neq \emptyset \}
+\end{equation}
+\end{definicion}
+
+\textbf{Intuicion}: la dilatacion \emph{agranda} el objeto: cada pixel del objeto pinta una copia del kernel.
+
+\subsection{Apertura y cierre}
+
+\begin{align}
+A \circ B &= (A \ominus B) \oplus B \quad \text{(apertura)} \\
+A \bullet B &= (A \oplus B) \ominus B \quad \text{(cierre)}
+\end{align}
+
+\textbf{Apertura}: erosion seguida de dilatacion. Saca features mas chicos que $B$ (\emph{ruido aislado, salientes finos}) y suaviza el contorno.
+
+\textbf{Cierre}: dilatacion seguida de erosion. Cierra agujeros mas chicos que $B$ y conecta partes cercanas.
+
+\subsection{Propiedades}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Idempotencia}: $A \circ B \circ B = A \circ B$ y $A \bullet B \bullet B = A \bullet B$. Aplicar apertura/cierre dos veces es lo mismo que una.
+  \item \textbf{Dualidad}: $A \ominus B = (A^c \oplus \tilde{B})^c$ donde $\tilde{B}$ es el reflejo de $B$ por el origen. Erosion y dilatacion son duales bajo complemento.
+  \item \textbf{Crecimiento monotono}: $A \subseteq A'$ implica $A \ominus B \subseteq A' \ominus B$.
+\end{itemize}
+
+\section{Morfologia grayscale}
+
+Generalizamos a imagenes en escala de grises:
+\begin{align}
+(I \ominus B)(x,y) &= \min_{(i,j) \in B} I(x+i, y+j) \\
+(I \oplus B)(x,y) &= \max_{(i,j) \in B} I(x+i, y+j)
+\end{align}
+
+\textbf{Erosion grayscale} $=$ minimo local: oscurece detalles claros mas chicos que $B$.
+
+\textbf{Dilatacion grayscale} $=$ maximo local: aclara detalles oscuros mas chicos que $B$.
+
+\subsection{Top-hat y bottom-hat (black-hat)}
+
+\begin{align}
+\mathrm{Tophat}(I) &= I - (I \circ B) \quad \text{(realza features claros chicos)} \\
+\mathrm{Blackhat}(I) &= (I \bullet B) - I \quad \text{(realza features oscuros chicos)}
+\end{align}
+
+\textbf{Tophat}: dado que $I \circ B$ remueve features claros mas chicos que $B$, restarlo aisla esos features.
+
+\textbf{Blackhat}: simetricamente, aisla los features \emph{oscuros}.
+
+\begin{intuibox}
+Las paredes de tu cebolla son lineas oscuras finas sobre fondo claro. Un \texttt{blackhat} con un disco de radio mayor que el grosor de pared las aisla casi perfectamente. Por eso \texttt{tools/tune\_onion.py} las usa antes del Frangi.
+\end{intuibox}
+
+\section{Elementos estructurantes}
+
+\begin{center}
+\begin{tabular}{@{}llp{6cm}@{}}
+\toprule
+\textbf{Forma OpenCV} & \textbf{Codigo} & \textbf{Cuando usar} \\
+\midrule
+Rectangulo & \texttt{MORPH\_RECT} & Default. Rapido. \\
+Elipse / disco & \texttt{MORPH\_ELLIPSE} & Cuando los objetos son aproximadamente circulares (microesferas, nucleos). \\
+Cruz & \texttt{MORPH\_CROSS} & Cuando hay estructuras alineadas a ejes. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+El \emph{tamaño} importa: erodar con un kernel mas grande que tus features los borra completamente. Heuristica: para limpiar ruido aislado, $k \approx 3$. Para sacar zonas amplias, $k \approx$ tamaño tipico del feature.
+
+\section{Implementacion en NumPy}
+
+\begin{lstlisting}[caption={Erosion grayscale desde cero.}]
+def erode_gray(img: np.ndarray, B: np.ndarray) -> np.ndarray:
+    """B es un array binario indicando el soporte del kernel."""
+    H, W = img.shape
+    kh, kw = B.shape
+    rh, rw = kh // 2, kw // 2
+    out = np.zeros_like(img)
+    padded = np.pad(img, ((rh, rh), (rw, rw)), mode='edge')
+    for y in range(H):
+        for x in range(W):
+            patch = padded[y:y+kh, x:x+kw]
+            out[y, x] = np.min(patch[B > 0])
+    return out
+\end{lstlisting}
+
+\begin{pipeline}
+En \texttt{pipeline/segmentation\_onion.py:segment\_opencv} se aplica un \texttt{cv2.MORPH\_CLOSE} a los bordes Canny para reconectar paredes rotas. En \texttt{tools/tune\_onion.py:detect\_walls} se usa un \texttt{MORPH\_BLACKHAT} con disco eliptico para realzar paredes oscuras antes del Frangi. Si subis el \texttt{Tophat ksize} en el slider, estas cambiando el tamaño del kernel B.
+\end{pipeline}
+
+\begin{ejercicio}
+\begin{enumerate}[leftmargin=2em]
+  \item Implementar erode/dilate grayscale en NumPy. Comparar con \texttt{cv2.erode}/\texttt{cv2.dilate}.
+  \item Aplicar tophat y blackhat con disco $k=15, 31, 61$ a una imagen tuya. ¿A partir de que tamaño dejas de captar paredes?
+  \item Verificar idempotencia: \texttt{cv2.morphologyEx(img, cv2.MORPH\_OPEN, k)} aplicado dos veces $=$ aplicado una vez.
+  \item Construir un \texttt{skeleton} (esqueleto de un objeto binario) iterativamente: $S = S \cup \{A^k - (A^k \circ B)\}$ donde $A^k$ es la $k$-esima erosion.
+\end{enumerate}
+\end{ejercicio}
+
+\part{Estructura geometrica --- bordes, regiones, formas}
+
+\chapter{Deteccion de bordes y el algoritmo de Canny}
+\label{ch:canny}
+
+\section{Por que importa}
+
+Un \emph{borde} es un cambio rapido en intensidad: la frontera entre dos regiones. Detectarlos es el paso obligado antes de muchas tareas (segmentacion, deteccion de objetos, analisis de forma) y un test de fuego sobre la teoria de derivadas en imagenes.
+
+\section{Modelo de borde}
+
+Modelamos un borde 1D ideal como una funcion escalon:
+\begin{equation}
+e(x) = \begin{cases} 0 & x < 0 \\ A & x \geq 0 \end{cases}
+\end{equation}
+Su derivada es $A \delta(x)$ (un impulso en $x=0$). La derivada \emph{detecta} la posicion del borde y la \emph{magnitud} estima el contraste.
+
+En 2D, un borde es una curva sobre la cual la derivada direccional perpendicular es alta. La direccion en cada punto es la del \emph{gradiente}:
+\begin{equation}
+\nabla I = (\partial_x I, \partial_y I), \qquad |\nabla I| = \sqrt{(\partial_x I)^2 + (\partial_y I)^2}.
+\end{equation}
+
+\section{Los cinco pasos de Canny}
+
+\subsection{Paso 1: Suavizado Gaussiano}
+Aplicar $G_\sigma$ para reducir ruido. Sin esto, el gradiente reacciona a cada bit aleatorio. Tipicamente $\sigma = 1$--$2$ pixeles.
+
+\subsection{Paso 2: Magnitud y direccion del gradiente}
+Convolver con $S_x$ y $S_y$, calcular:
+\begin{equation}
+M(x,y) = \sqrt{(I*S_x)^2 + (I*S_y)^2}, \qquad \theta(x,y) = \arctan\!\frac{I*S_y}{I*S_x}.
+\end{equation}
+
+\subsection{Paso 3: Supresion de no-maximos (NMS)}
+$M$ es ancha (varios pixeles). Para borde de un pixel: en cada $(x,y)$, comparar $M(x,y)$ con sus dos vecinos en la \emph{direccion del gradiente} $\theta$. Si no es maximo, ponerlo en cero. Resultado: bordes finos.
+
+\subsection{Paso 4: Doble umbralizacion}
+Definir dos umbrales $T_{\text{lo}} < T_{\text{hi}}$:
+\begin{itemize}[leftmargin=2em]
+  \item Pixeles con $M > T_{\text{hi}}$ son \emph{strong}: ciertamente borde.
+  \item Pixeles con $T_{\text{lo}} < M < T_{\text{hi}}$ son \emph{weak}: candidatos.
+  \item Pixeles con $M < T_{\text{lo}}$ se descartan.
+\end{itemize}
+
+\subsection{Paso 5: Histeresis}
+Un \emph{weak} se conserva solo si esta conectado por una cadena 8-conexa a algun \emph{strong}. Implementacion: BFS/DFS desde cada strong propagando.
+
+Hyper-parametros tipicos: $T_{\text{hi}} \in [100, 200]$ y $T_{\text{lo}} = T_{\text{hi}} / 2$ o $T_{\text{hi}}/3$.
+
+\section{Optimaidad de Canny}
+
+Canny derivo el algoritmo optimizando tres criterios simultaneamente:
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Buena deteccion}: max probabilidad de marcar pixeles que son borde, min de marcar los que no.
+  \item \textbf{Buena localizacion}: los puntos detectados estan lo mas cerca posible del borde real.
+  \item \textbf{Respuesta unica}: un solo pixel marcado por borde real.
+\end{enumerate}
+
+El detector optimo, bajo el modelo de borde escalon $+$ ruido gaussiano blanco, es aproximadamente la primera derivada de un Gaussiano. Eso fundamenta los pasos 1+2.
+
+\begin{pipeline}
+\texttt{pipeline/segmentation\_onion.py:segment\_opencv} llama a \texttt{cv2.Canny(blurred, 30, 100)}. Los umbrales bajos (30, 100 sobre 255) atrapan paredes de bajo contraste pero introducen ruido. El blur previo es \texttt{GaussianBlur(\dots blur\_kernel\dots)}.
+\end{pipeline}
+
+\begin{ejercicio}
+\begin{enumerate}[leftmargin=2em]
+  \item Implementar los 5 pasos de Canny en NumPy. Comparar con \texttt{cv2.Canny}. ¿Donde difieren?
+  \item Sobre tu imagen de cebolla, barrer $(T_{\text{lo}}, T_{\text{hi}}) \in \{(20,80), (50,150), (100,200)\}$. ¿Cual atrapa mejor las paredes finas?
+  \item Cambiar el orden: hacer Canny \emph{antes} de CLAHE. Reportar diferencia.
+  \item Implementar Marr-Hildreth (LoG): convolver con Gaussiano y calcular zero-crossings del Laplaciano. Comparar con Canny.
+\end{enumerate}
+\end{ejercicio}
+
+\chapter{Ridges y vesselness (Frangi-Hessian)}
+\label{ch:ridges}
+
+\section{Borde vs ridge: la distincion clave}
+
+Una pared de cebolla \emph{no es un borde}: es una linea oscura fina rodeada de fondo claro. Un detector de bordes responde a las dos transiciones (fondo$\to$pared y pared$\to$fondo) como dos lineas separadas. Lo que necesitas es un detector de \emph{ridges}: estructuras tubulares 1D embebidas en 2D.
+
+\section{La matriz Hessiana}
+
+\begin{definicion}[Hessiana]
+Para una imagen suave $I$, la \emph{matriz Hessiana} en $(x,y)$ es
+\begin{equation}
+H(x,y) = \begin{pmatrix} \partial_{xx} I & \partial_{xy} I \\ \partial_{xy} I & \partial_{yy} I \end{pmatrix}.
+\end{equation}
+\end{definicion}
+
+Sus dos autovalores $|\lambda_1| \leq |\lambda_2|$ y autovectores asociados describen la curvatura local:
+
+\begin{itemize}[leftmargin=2em]
+  \item En una zona homogenea: $\lambda_1 \approx \lambda_2 \approx 0$.
+  \item En un \emph{blob} oscuro: ambos $\lambda$ son grandes y positivos.
+  \item En un \emph{ridge oscuro}: $\lambda_1 \approx 0$ (bajo a lo largo del ridge), $\lambda_2 \gg 0$ (alto perpendicular a el).
+  \item En un \emph{ridge claro}: similar pero con $\lambda$ negativos.
+\end{itemize}
+
+\section{Vesselness de Frangi}
+
+Frangi (1998) propuso combinar los dos autovalores en un score:
+\begin{equation}
+\mathcal{V}(s) = \begin{cases}
+0 & \text{si } \lambda_2 > 0 \text{ (para black ridges)} \\
+\exp\!\left(-\dfrac{R_B^2}{2\beta^2}\right) \left(1 - \exp\!\left(-\dfrac{S^2}{2c^2}\right)\right) & \text{si no}
+\end{cases}
+\end{equation}
+donde:
+\begin{itemize}[leftmargin=2em]
+  \item $R_B = \lambda_1 / \lambda_2$ es la \emph{razon de excentricidad}: 0 en un ridge perfecto, 1 en un blob.
+  \item $S = \sqrt{\lambda_1^2 + \lambda_2^2}$ es la \emph{magnitud de estructura}: 0 en zona plana.
+  \item $\beta$ controla la sensibilidad a la forma (default 0.5).
+  \item $c$ se ajusta a la mitad de la $S$ maxima en la imagen.
+\end{itemize}
+
+\subsection{Multi-escala}
+
+La hessiana se calcula sobre la imagen suavizada con $G_\sigma$. Como una pared puede tener distintos grosores, se evalua para varios $\sigma \in \{\sigma_1, \dots, \sigma_n\}$ y se toma el maximo:
+\begin{equation}
+\mathcal{V}^*(x,y) = \max_{\sigma} \mathcal{V}_\sigma(x,y).
+\end{equation}
+
+Eso da invariancia a escala dentro de un rango.
+
+\begin{pipeline}
+\texttt{tools/tune\_onion.py:detect\_walls} usa \texttt{skimage.filters.frangi(\dots, black\_ridges=True)}. El slider \texttt{Frangi smax} controla el sigma maximo del rango multi-escala. Si tus paredes son finas ($\sim 2$px), $\sigma_{\max}=4$ alcanza; si son gruesas ($\sim 8$px), subir a $\sigma_{\max}=12$.
+\end{pipeline}
+
+\begin{ejercicio}
+\begin{enumerate}[leftmargin=2em]
+  \item Calcular la Hessiana de una imagen $I$ usando convoluciones con kernels de segunda derivada: $\partial_{xx} = [1,-2,1]$ etc.
+  \item Calcular sus autovalores en cada pixel (usar \texttt{np.linalg.eigvalsh} o las formulas cerradas para matrices $2{\times}2$).
+  \item Implementar el score de Frangi y compararlo con \texttt{skimage.filters.frangi}.
+  \item Probar Sato (alternativa popular): $\mathcal{V}_{\text{Sato}} = -\lambda_1$ si $\lambda_1 < 0$ y $\lambda_2 < 0$, sino 0.
+\end{enumerate}
+\end{ejercicio}
+
+\chapter{Segmentacion clasica}
+\label{ch:seg-clasica}
+
+\section{Definicion del problema}
+
+\begin{definicion}[Segmentacion]
+Dada una imagen $I: \Omega \to V$, una \emph{segmentacion} es una particion $\Omega = \bigcup_{k} R_k$ tal que cada $R_k$ es conexa y los pixeles dentro de $R_k$ comparten alguna propiedad relevante (color, textura, semantica).
+\end{definicion}
+
+Hay dos sabores principales:
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Semantica}: cada pixel recibe una clase (\emph{celula}, \emph{fondo}). No distingue instancias.
+  \item \textbf{Por instancias}: cada pixel recibe ademas un \emph{identificador} (\emph{celula 1}, \emph{celula 2}). Es lo que necesitas para contar.
+\end{itemize}
+
+\section{Umbralizacion como segmentacion}
+
+El caso mas simple: dos clases (objeto vs fondo) determinadas por un umbral $T$. Vimos Otsu en el Cap. \ref{ch:punto}. Limitaciones:
+\begin{itemize}[leftmargin=2em]
+  \item No usa informacion espacial: dos pixeles aislados con el mismo nivel quedan en la misma clase.
+  \item No distingue instancias.
+  \item Falla con iluminacion no uniforme (de ahi el adaptativo).
+\end{itemize}
+
+\section{Region growing}
+
+Algoritmo:
+\begin{enumerate}[leftmargin=2em]
+  \item Sembrar un seed $s_0$.
+  \item Inicializar la region $R = \{s_0\}$.
+  \item Mientras haya vecinos $p$ de $R$ que cumplan un criterio (ej. $|I(p) - \mu_R| < \tau$): agregarlos.
+  \item Repetir.
+\end{enumerate}
+
+Sensibilidad a seeds y al criterio. La version moderna (Cap. \ref{ch:watershed}) usa watershed en lugar de region growing puro.
+
+\section{K-means y Mean Shift}
+
+\textbf{K-means} agrupa pixeles en $k$ clusters minimizando la varianza intra-cluster. Trata la imagen como un conjunto de vectores en $\mathbb{R}^c$ ignorando posicion espacial. Util como preprocesamiento.
+
+\textbf{Mean shift} es no parametrico (no necesita $k$): cada pixel "asciende" al modo mas cercano de la densidad estimada por kernel. Da segmentacion natural pero costoso.
+
+\section{GrabCut}
+
+Combina modelos de mezcla gaussiana (GMM) sobre fondo y objeto con un grafo de cortes minimos. Lo usas con un rectangulo aproximado: el algoritmo refina hacia el contorno preciso.
+
+\begin{pipeline}
+La via \texttt{segment\_opencv} de tu pipeline es \emph{semantica} (binaria: pared vs interior) seguida de \emph{etiquetado por contornos}. No usa region growing ni watershed --- por eso fusiona celulas tocandose. La mejora del Cap. \ref{ch:watershed} arregla justo eso.
+\end{pipeline}
+
+\chapter{Watershed: cuando los objetos se tocan}
+\label{ch:watershed}
+
+\section{La metafora}
+
+Pensa la imagen en escala de grises como un paisaje topografico: pixeles oscuros son \emph{valles}, claros son \emph{cumbres}. Imagina que llueve uniformemente y el agua \emph{inunda} los valles. Cuando dos cuencas estan a punto de fusionarse, construis una \emph{represa}. Las represas finales son los \emph{watershed lines}: separan cuencas naturales.
+
+\section{Aplicacion a celulas tocandose}
+
+Para una imagen donde quieres separar celulas tocandose:
+\begin{enumerate}[leftmargin=2em]
+  \item Detectar la mascara binaria del foreground (pixeles de celula).
+  \item Calcular la \emph{transformada de distancia} $D(x,y)$ = distancia al pixel de fondo mas cercano. Los \emph{maximos locales} de $D$ son los centros de las celulas.
+  \item Esos maximos son tus \emph{markers} (semillas).
+  \item Aplicar watershed sobre $-D$ con esos markers: cada marker se expande hasta encontrar otra cuenca o el fondo.
+\end{enumerate}
+
+\section{Por que markers}
+
+Sin markers, watershed sobre el gradiente sufre de \emph{sobre-segmentacion}: cualquier minimo local define una cuenca. La version \emph{controlada por marcadores} (Beucher, 1990) elimina ese problema: las cuencas solo se generan donde haya un marker.
+
+\section{Algoritmo detallado}
+
+\begin{enumerate}[leftmargin=2em]
+  \item Calcular $D = $ distancia al fondo (\texttt{cv2.distanceTransform}).
+  \item Encontrar maximos locales: $\mathrm{seed}(x,y) = 1 \iff D(x,y) > D(x',y')$ para todos los $(x',y')$ en una vecindad de radio $\tau$ (\texttt{skimage.feature.peak\_local\_max}).
+  \item Asignar a cada seed un id distinto $\to$ \emph{markers}.
+  \item Aplicar \texttt{skimage.segmentation.watershed(-D, markers, mask=foreground)}.
+\end{enumerate}
+
+\subsection{Eligiendo $\tau$ (\texttt{min\_distance})}
+
+\begin{itemize}[leftmargin=2em]
+  \item $\tau$ pequeño: muchos seeds $\to$ sobre-segmentacion.
+  \item $\tau$ grande: pocos seeds $\to$ varias celulas se fusionan.
+  \item Heuristica: $\tau \approx 0{,}3 \times $ radio promedio de celula.
+\end{itemize}
+
+\begin{pipeline}
+\texttt{tools/tune\_onion.py:segment} implementa exactamente este pipeline. El slider \texttt{Marker dist} es $\tau$. Si te juntan celulas grandes vecinas: subi $\tau$. Si te parte celulas individuales en pedacitos: bajalo.
+\end{pipeline}
+
+\begin{ejercicio}
+\begin{enumerate}[leftmargin=2em]
+  \item Generar una imagen sintetica con 4 circulos parcialmente solapados. Aplicar Otsu y luego watershed con seeds detectados via distance transform. ¿Se separan?
+  \item Variar $\tau$ y reportar cuantos circulos detecta vs el ground truth.
+  \item Implementar la \emph{distance transform} con doble pasada (forward + backward) en NumPy. Comparar con \texttt{cv2.distanceTransform}.
+\end{enumerate}
+\end{ejercicio}
+
+\chapter{Forma, momentos y descriptores}
+\label{ch:forma}
+
+\section{Por que importa}
+
+Una vez que tenes la mascara de cada objeto, queres \emph{describirlo} con un vector compacto: area, perimetro, redondez, orientacion. Estos descriptores son la entrada de cualquier clasificador clasico y la base para el control de calidad post-segmentacion.
+
+\section{Momentos de imagen}
+
+\begin{definicion}[Momentos crudos]
+Para una funcion $I(x,y) \geq 0$:
+\begin{equation}
+M_{pq} = \sum_{x,y} x^p y^q I(x,y).
+\end{equation}
+\end{definicion}
+
+Casos especiales:
+\begin{itemize}[leftmargin=2em]
+  \item $M_{00}$: \emph{masa total} ($=$ area si $I$ es binaria).
+  \item Centroide: $\bar{x} = M_{10}/M_{00}$, $\bar{y} = M_{01}/M_{00}$.
+\end{itemize}
+
+\textbf{Momentos centrales} (invariantes a traslacion):
+\begin{equation}
+\mu_{pq} = \sum_{x,y} (x-\bar{x})^p (y-\bar{y})^q I(x,y).
+\end{equation}
+
+\textbf{Momentos de Hu} (invariantes a traslacion, escala y rotacion): siete combinaciones polinomicas de los $\mu_{pq}$ normalizados. Util para reconocimiento de formas independiente de la pose.
+
+\section{Descriptores de contorno}
+
+Dado un contorno $C$ (lista ordenada de puntos) de un objeto:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Area}: $|R|$ del interior.
+  \item \textbf{Perimetro}: $\sum_i \|p_{i+1} - p_i\|$.
+  \item \textbf{Circularidad}: $4\pi A / P^2$. Vale 1 para circulo perfecto, $< 1$ para formas alargadas o irregulares.
+  \item \textbf{Aspect ratio}: razon entre los ejes mayor y menor del bounding box rotado o de la elipse ajustada.
+  \item \textbf{Solidez}: $A / A_{\text{convex hull}}$. Mide concavidades.
+  \item \textbf{Excentricidad}: $\sqrt{1 - (b/a)^2}$ donde $a, b$ son los semiejes de la elipse ajustada.
+\end{itemize}
+
+\subsection{Ajuste de elipse}
+
+Dado un conjunto de puntos del contorno, encontrar la elipse de minimo error cuadratico. Solucion cerrada via SVD de la matriz $D = [x^2, xy, y^2, x, y, 1]$.
+
+\section{Cadenas de Freeman}
+
+Una representacion compacta del contorno: en cada paso, codifica la direccion (1 de 8) al siguiente pixel. Cadena resultante es facil de comparar entre objetos rotados.
+
+\begin{pipeline}
+\texttt{pipeline/measurement.py:measure\_cells} calcula area, perimetro, circularidad, aspect ratio y solidez para cada contorno detectado. Se basa en \texttt{cv2.contourArea}, \texttt{cv2.arcLength}, \texttt{cv2.fitEllipse} y \texttt{cv2.convexHull}. Tu \texttt{compute\_summary} agrega estadisticas globales: media, desvio, min, max.
+\end{pipeline}
+
+\begin{ejercicio}
+\begin{enumerate}[leftmargin=2em]
+  \item Implementar el calculo de area de un poligono dado por sus vertices (formula del shoelace).
+  \item Calcular los momentos $M_{00}, M_{10}, M_{01}$ para una mascara binaria. Verificar que reproducen el centroide.
+  \item Sobre tus resultados de segmentacion: graficar histogramas de area, circularidad, AR. ¿Que percentiles detectan outliers obvios?
+  \item Implementar momentos de Hu para 5 formas: rectangulo, cuadrado, triangulo, circulo, estrella. Verificar invariancia a rotacion.
+\end{enumerate}
+\end{ejercicio}
+
+\part{El espacio de Fourier --- la otra mitad del mundo}
+
+\chapter{Transformada de Fourier 2D}
+\label{ch:fourier}
+
+\section{Por que importa}
+
+La FT es la otra cara de la moneda: cualquier operacion lineal e invariante a traslaciones (incluyendo \emph{toda} la convolucion) es \emph{simple} en el dominio de la frecuencia. La fisica de tu microscopio FPM \emph{vive} en este espacio: la apertura del objetivo es un filtro paso bajo en frecuencia. Sin Fourier, FPM es magia negra; con Fourier, es un teorema.
+
+\section{Definicion}
+
+\begin{definicion}[FT 2D continua]
+\begin{equation}
+\hat{I}(\xi, \eta) = \mathcal{F}\{I\}(\xi, \eta) = \iint_{\mathbb{R}^2} I(x,y) e^{-2\pi i (\xi x + \eta y)}\, dx\, dy.
+\end{equation}
+\end{definicion}
+
+\begin{definicion}[FT 2D discreta (DFT)]
+Para una imagen $W{\times}H$:
+\begin{equation}
+\hat{I}[u,v] = \sum_{x=0}^{W-1} \sum_{y=0}^{H-1} I[x,y] \exp\!\left(-2\pi i \left(\frac{ux}{W} + \frac{vy}{H}\right)\right).
+\end{equation}
+\end{definicion}
+
+La FFT calcula la DFT en $O(WH \log(WH))$.
+
+\subsection{Magnitud y fase}
+$\hat{I}$ es complejo: lo escribimos $\hat{I} = |\hat{I}| e^{i\phi}$.
+
+\begin{itemize}[leftmargin=2em]
+  \item $|\hat{I}|$: \emph{magnitud}. Indica cuanta energia hay en cada frecuencia.
+  \item $\phi$: \emph{fase}. Codifica la \emph{posicion} de las estructuras.
+\end{itemize}
+
+\textbf{Hecho fundamental}: la fase contiene la mayor parte de la informacion estructural. Si reemplazas la fase de una imagen por la de otra, ves la \emph{otra} imagen. Por eso aprender que la fase importa mas que la magnitud es una intuicion clave.
+
+\section{Propiedades fundamentales}
+
+\begin{align}
+\text{Linealidad}: &\quad \mathcal{F}\{\alpha I_1 + \beta I_2\} = \alpha \hat{I}_1 + \beta \hat{I}_2 \\
+\text{Traslacion}: &\quad I(x-x_0, y-y_0) \leftrightarrow \hat{I}(\xi,\eta) e^{-2\pi i (\xi x_0 + \eta y_0)} \\
+\text{Convolucion}: &\quad I * K \leftrightarrow \hat{I} \cdot \hat{K} \quad \text{(Teorema \ref{eq:conv-theorem})} \\
+\text{Parseval}: &\quad \sum_{x,y} |I[x,y]|^2 = \frac{1}{WH}\sum_{u,v} |\hat{I}[u,v]|^2
+\end{align}
+
+Parseval dice: la energia total se preserva entre dominios.
+
+\section{Filtrado en frecuencia}
+
+\subsection{Receta general}
+
+\begin{enumerate}[leftmargin=2em]
+  \item Calcular $\hat{I} = \mathrm{FFT}(I)$.
+  \item Centrar el espectro con \texttt{fftshift}.
+  \item Multiplicar por una mascara $M(\xi,\eta)$.
+  \item Inverse fftshift.
+  \item Calcular $I' = \mathrm{IFFT}(\hat{I} \cdot M)$.
+\end{enumerate}
+
+\subsection{Filtro paso bajo ideal (low-pass)}
+
+\begin{equation}
+M(\xi,\eta) = \begin{cases} 1 & \sqrt{\xi^2+\eta^2} \leq \rho_0 \\ 0 & \text{si no} \end{cases}
+\end{equation}
+Atrapa solo frecuencias bajas $\to$ imagen suavizada. \textbf{Problema}: el corte abrupto introduce \emph{ringing} (oscilaciones tipo Gibbs). Mejor usar un Butterworth o Gaussiano:
+\begin{equation}
+M_G(\xi,\eta) = \exp\!\left(-\frac{\xi^2+\eta^2}{2\sigma^2}\right).
+\end{equation}
+
+\subsection{Filtro paso alto}
+$M_{\text{hp}} = 1 - M_{\text{lp}}$. Resalta detalles finos.
+
+\subsection{Filtro paso banda}
+Anillo entre dos radios. Util para texturas a una escala especifica.
+
+\begin{lstlisting}[caption={Filtrado paso bajo via FFT.}]
+import numpy as np
+F = np.fft.fft2(img.astype(np.float32))
+F_shift = np.fft.fftshift(F)
+H, W = img.shape
+cy, cx = H // 2, W // 2
+yy, xx = np.indices((H, W))
+rho = np.sqrt((xx - cx)**2 + (yy - cy)**2)
+mask = np.exp(-rho**2 / (2 * 30**2))   # Gaussian LP, sigma=30 pix
+F_filtered = F_shift * mask
+img_lp = np.real(np.fft.ifft2(np.fft.ifftshift(F_filtered)))
+\end{lstlisting}
+
+\begin{pipeline}
+\texttt{pipeline/fpm\_reconstruction.py} aplica filtros circulares en el dominio de frecuencia para emular la apertura de un objetivo. Cada captura del scan multi-angulo corresponde a una banda diferente del espectro. La reconstruccion FPM \emph{ensambla} estas bandas en un espectro de mayor cobertura $\to$ super-resolucion.
+\end{pipeline}
+
+\begin{ejercicio}
+\begin{enumerate}[leftmargin=2em]
+  \item Calcular FFT y mostrar magnitud (en escala log) de tu imagen de cebolla. Identificar las frecuencias dominantes.
+  \item Aplicar paso bajo con $\sigma = 5, 20, 50$ y comparar con un Gaussian blur del mismo $\sigma$ en espacio. Verificar el teorema de la convolucion.
+  \item Reemplazar la fase de la imagen A con la de la imagen B. Reconstruir. ¿Cual aparece dominante?
+  \item Implementar un filtro \emph{notch} para eliminar una frecuencia especifica (util si tu imagen tiene un patron periodico no deseado).
+\end{enumerate}
+\end{ejercicio}
+
+\chapter{Optica de Fourier para microscopia}
+\label{ch:optica}
+
+\section{El microscopio como sistema lineal}
+
+Bajo aproximaciones de optica paraxial e iluminacion espacialmente coherente, el microscopio se modela como un sistema lineal e invariante. La salida es:
+\begin{equation}
+I_{\text{img}}(x,y) = (I_{\text{obj}} * \mathrm{PSF})(x,y),
+\end{equation}
+donde la \emph{point spread function} (PSF) describe la respuesta del sistema a una fuente puntual.
+
+En frecuencia:
+\begin{equation}
+\hat{I}_{\text{img}} = \hat{I}_{\text{obj}} \cdot \mathrm{OTF}, \qquad \mathrm{OTF} = \mathcal{F}\{\mathrm{PSF}\}.
+\end{equation}
+
+La \emph{magnitud} de la OTF se llama \textbf{MTF} (Modulation Transfer Function) y caracteriza el rango de frecuencias que el microscopio "deja pasar".
+
+\section{Apertura numerica y limite de difraccion}
+
+\begin{definicion}[Apertura numerica]
+\begin{equation}
+\mathrm{NA} = n \sin\theta_{\max},
+\end{equation}
+con $n$ el indice de refraccion del medio y $\theta_{\max}$ el angulo maximo de aceptacion del objetivo.
+\end{definicion}
+
+El \emph{limite de Abbe} establece la resolucion espacial:
+\begin{equation}
+d_{\min} = \frac{\lambda}{2\,\mathrm{NA}}.
+\end{equation}
+Para luz visible ($\lambda \approx 500$ nm) y NA $= 0{,}1$ (lensless tipico): $d_{\min} \approx 2{,}5$ µm. Por eso una sola captura no resuelve celulas pequeñas.
+
+\section{Iluminacion oblicua $=$ acceso a frecuencias altas}
+
+Cuando iluminas la muestra con luz que llega a un angulo $\theta$ desde la normal, en el dominio de frecuencia eso \emph{traslada} el espectro de la muestra:
+\begin{equation}
+\hat{I}_{\text{obj}}(\xi - \xi_0, \eta - \eta_0)
+\end{equation}
+con $\xi_0, \eta_0$ proporcionales a $\sin\theta$. Frecuencias que estaban afuera de la apertura (limite de Abbe) ahora caen \emph{dentro}. Capturas diferentes con diferentes angulos te dan diferentes \emph{bandas} del espectro real del objeto.
+
+Esa es la idea de FPM.
+
+\chapter{Fourier Ptychographic Microscopy (FPM)}
+\label{ch:fpm}
+
+\section{El problema}
+
+Un objetivo de bajo NA (lente o lensless) tiene gran campo de vision pero baja resolucion. Un objetivo de alto NA tiene alta resolucion pero campo de vision microscopico. ¿Podemos tener ambos?
+
+\section{La idea de FPM}
+
+Adquirir $N$ imagenes con \emph{iluminacion} desde diferentes angulos (en tu CubeSat: una matriz LED de OLED 5$\times$5 o 11$\times$11). Cada imagen captura una banda diferente del espectro del objeto, todas filtradas por el mismo objetivo de bajo NA.
+
+Despues, reconstruir el espectro completo combinando todas las bandas $\to$ imagen sintetizada con NA efectivo $\sim N\times$ mayor.
+
+\section{Algoritmo de reconstruccion}
+
+Iterativo, tipo Gerchberg-Saxton:
+
+\begin{enumerate}[leftmargin=2em]
+  \item Inicializar el espectro estimado $\hat{O}$ (zero-padded, alta resolucion).
+  \item Para cada captura $I_n$ con angulo $(\theta_n, \phi_n)$:
+    \begin{enumerate}[label=\alph*., leftmargin=2em]
+      \item Recortar la sub-banda de $\hat{O}$ correspondiente a la apertura desplazada por $(\xi_{0n}, \eta_{0n})$.
+      \item Hacer IFFT $\to$ imagen estimada de baja resolucion.
+      \item \emph{Actualizar fase}: reemplazar la magnitud de la imagen estimada por $\sqrt{I_n}$ (la magnitud medida).
+      \item FFT y reinsertar en la sub-banda de $\hat{O}$.
+    \end{enumerate}
+  \item Repetir hasta convergencia.
+\end{enumerate}
+
+Es exactamente \emph{phase retrieval}: usamos magnitud medida para recuperar fase no medida, usando la consistencia entre los $N$ submuestreos.
+
+\subsection{Cuantos angulos necesitas}
+
+La cobertura del espectro reconstruido es la union de los discos de apertura desplazados. Para cobrir un disco mayor de NA efectivo $N \cdot \mathrm{NA}$ necesitas un solapamiento de $\sim 60\%$ entre angulos consecutivos.
+
+\begin{pipeline}
+Tu \texttt{config.yaml} en la seccion \texttt{fpm} controla los parametros: \texttt{upscale\_factor} (cuanto crece la resolucion sintetizada), \texttt{max\_iters} (iteraciones del algoritmo), \texttt{na\_obj} (apertura del sistema, lensless 0.05--0.15), \texttt{distance\_mm} (distancia OLED-sensor). \texttt{pipeline/fpm\_reconstruction.py} implementa el bucle de phase retrieval. Tu \texttt{cubesat/capture.py} captura los $N$ angulos automaticamente en la Pi.
+\end{pipeline}
+
+\begin{ejercicio}
+\begin{enumerate}[leftmargin=2em]
+  \item Simular FPM en 1D: generar una señal compuesta por 3 frecuencias, capturarla con 5 ventanas de paso banda solapadas, reconstruir.
+  \item En tu codigo: cambiar \texttt{upscale\_factor} de 2 a 4. ¿Cuanto tarda? ¿Mejora la imagen?
+  \item Variar \texttt{na\_obj} en $\{0{,}05, 0{,}10, 0{,}15\}$. ¿Cuando converge mejor?
+  \item Implementar la reconstruccion con pena de regularizacion (L2 sobre el gradiente del modulo) para reducir ruido.
+\end{enumerate}
+\end{ejercicio}
+
+\part{Multi-imagen --- registracion y super-resolucion}
+
+\chapter{Registracion de imagenes}
+\label{ch:registracion}
+
+Antes de combinar varias capturas (como en FPM o multi-frame SR) hay que \emph{alinearlas}. Tipos de transformaciones tipicas:
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Transformacion} & \textbf{DOF} & \textbf{Modela} \\
+\midrule
+Traslacion             & 2  & shift puro entre frames \\
+Rigida                 & 3  & traslacion + rotacion \\
+Similar                & 4  & rigida + escala uniforme \\
+Afin                   & 6  & rigida + escala + cizalla (sensor inclinado) \\
+Homografia             & 8  & camara movida con plano comun (tablero) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Phase correlation}
+
+Para traslacion pura, la \emph{phase correlation} usa la propiedad de traslacion en Fourier:
+\begin{equation}
+\frac{\hat{I}_1^* \cdot \hat{I}_2}{|\hat{I}_1^* \cdot \hat{I}_2|} = e^{-2\pi i (\xi \Delta x + \eta \Delta y)},
+\end{equation}
+cuya IFFT es un impulso en $(\Delta x, \Delta y)$. Robusta y rapida.
+
+\subsection{ECC (Enhanced Correlation Coefficient)}
+
+Optimizacion iterativa que minimiza el error normalizado entre las dos imagenes parametrizando una transformacion (afin u homografia). Usa Lucas-Kanade. \texttt{cv2.findTransformECC}.
+
+\subsection{Feature-based: SIFT, ORB, AKAZE}
+
+Detectar puntos caracteristicos en ambas imagenes, hacer matching descriptor a descriptor, estimar la transformacion via RANSAC. Funciona con cambios de escala y rotacion grandes.
+
+\begin{pipeline}
+En FPM, las capturas a diferentes angulos pueden estar levemente desalineadas. Tu \texttt{config.yaml} tiene \texttt{align: true} en la seccion \texttt{fpm}, que activa registracion via ECC antes de la reconstruccion.
+\end{pipeline}
+
+\chapter{Super-resolucion}
+
+\textbf{Single-image SR}: imposible sin un prior. Las redes (Real-ESRGAN, SwinIR) aprenden ese prior de millones de pares LR-HR.
+
+\textbf{Multi-frame SR}: $N$ imagenes con shifts \emph{sub-pixel} contienen informacion de frecuencia que cualquier imagen sola no tiene. Algoritmo basico:
+
+\begin{enumerate}[leftmargin=2em]
+  \item Estimar shifts sub-pixel (phase correlation).
+  \item Inicializar imagen HR.
+  \item Iterativamente: simular las $N$ LR a partir del estimado HR, comparar con las medidas, retropropagar el error.
+\end{enumerate}
+
+FPM es un caso particular donde los "shifts" estan en \emph{frecuencia}, no en espacio.
+
+\part{Aprendizaje profundo en vision}
+
+\chapter{Del perceptron a la CNN}
+\label{ch:cnn}
+
+\section{El perceptron}
+
+Un perceptron toma un vector de entrada $\mathbf{x}$, un peso $\mathbf{w}$, un bias $b$, y una no linealidad $\sigma$:
+\begin{equation}
+y = \sigma(\mathbf{w}^\top \mathbf{x} + b).
+\end{equation}
+
+Apilar varias capas $\to$ MLP. Aproxima cualquier funcion continua (Cybenko, 1989) pero \emph{no} aprovecha la estructura espacial de una imagen: trata cada pixel como una variable independiente.
+
+\section{La capa convolucional}
+
+Reemplazamos la multiplicacion matricial por una convolucion:
+\begin{equation}
+y[i,j,c] = \sum_{c'} \sum_{m,n} K[m,n,c',c] \cdot x[i+m, j+n, c'] + b[c].
+\end{equation}
+
+Beneficios:
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Compartir pesos}: el mismo kernel se aplica en toda la imagen. Equivariante a traslacion.
+  \item \textbf{Locality}: cada salida depende de un parche local (\emph{receptive field}).
+  \item \textbf{Parametros} $O(k^2 c c')$ en lugar de $O(WH c c')$ de un fully-connected.
+\end{itemize}
+
+\section{Pooling y receptive field}
+
+\textbf{Max pooling} reduce resolucion tomando el maximo de cada sub-region $2{\times}2$. Aumenta el receptive field de las capas siguientes y da invariancia local.
+
+El \emph{receptive field} de una neurona en la capa $L$ es la region de la imagen de entrada que influye en su valor. Crece con la profundidad (cada capa con kernel $k$ y stride $s$ multiplica el RF anterior).
+
+\section{Backpropagation}
+
+El entrenamiento minimiza una loss $\mathcal{L}$ ajustando los pesos por gradient descent:
+\begin{equation}
+\mathbf{w} \leftarrow \mathbf{w} - \eta \nabla_\mathbf{w} \mathcal{L}.
+\end{equation}
+Backpropagation calcula $\nabla_\mathbf{w} \mathcal{L}$ aplicando la regla de la cadena en orden reverso por las capas. Frameworks como PyTorch/TF lo automatizan.
+
+\chapter{U-Net y segmentacion semantica}
+
+\section{La arquitectura U-Net}
+
+Ronneberger et al. (2015) propusieron U-Net: una red en forma de "U" con \emph{encoder} (downsampling) y \emph{decoder} (upsampling), conectados por \emph{skip connections} a cada nivel.
+
+\begin{itemize}[leftmargin=2em]
+  \item El \emph{encoder} reduce resolucion espacial pero aumenta canales: aprende features de nivel alto.
+  \item El \emph{decoder} reconstruye resolucion espacial: convierte features en una mascara densa.
+  \item Las \emph{skip connections} concatenan features finos del encoder con los del decoder en la misma escala $\to$ preservan localizacion exacta.
+\end{itemize}
+
+Es \emph{el} modelo de referencia en microscopia y se popularizo justamente porque entrena con pocos datos (data augmentation aggressive sobre las pocas mascaras anotadas).
+
+\section{Loss functions para segmentacion}
+
+\textbf{Cross-entropy pixel-wise}: estandar para clasificacion por pixel.
+
+\textbf{Dice loss}:
+\begin{equation}
+\mathcal{L}_{\text{dice}} = 1 - \frac{2 \sum p_i g_i}{\sum p_i + \sum g_i}.
+\end{equation}
+Robusta cuando hay desbalance entre clases (mas fondo que objeto).
+
+\textbf{Focal loss}: pondera los pixeles dificiles. Util si una pequeña fraccion de pixeles concentra el error.
+
+\chapter{Modelos especificos para microscopia}
+
+\section{Cellpose}
+
+Pachitariu \& Stringer (2021). Una U-Net entrenada con datasets diversos de microscopia que predice \emph{flujos} 2D apuntando al centro de cada celula. Despues, integra esos flujos con un metodo tipo \emph{watershed}: cada pixel sigue su flujo hasta caer en un basin, que define una instancia.
+
+\textbf{Cuando usar}: imagenes de fluorescencia con celulas de cualquier morfologia. Para bright-field como tu cebolla: posible pero da resultados mediocres con el modelo \texttt{cyto3} default. Necesita fine-tune.
+
+\section{StarDist}
+
+Schmidt \& Weigert (2018). Predice por pixel un conjunto de \emph{distancias radiales} a la frontera del objeto en $K$ direcciones. Asume cada objeto es \emph{star-convex}: el centroide ve toda la frontera sin obstaculos. Cierto para celulas de fluorescencia y \emph{aproximadamente} cierto para celulas epidermicas.
+
+\textbf{Modelos preentrenados}:
+\begin{itemize}[leftmargin=2em]
+  \item \texttt{2D\_versatile\_fluo}: fluorescencia. Mal fit para bright-field.
+  \item \texttt{2D\_versatile\_he}: histologia H\&E. \emph{Mejor opcion para cebolla} en bright-field.
+  \item \texttt{2D\_paper\_dsb2018}: dataset DSB de Kaggle, mas variado.
+\end{itemize}
+
+\section{Real-ESRGAN}
+
+GAN para super-resolucion. Genera detalles fotorealistas de alta frecuencia que no estan en la imagen LR. \textbf{Cuidado}: puede inventar detalles. Para microscopia cuantitativa esto es problematico --- las "celulas" agregadas por la red podrian ser alucinaciones.
+
+\chapter{Validacion y metricas}
+\label{ch:metrics}
+
+\section{Para clasificacion}
+
+\textbf{Accuracy}: fraccion correctamente clasificada. Engañosa con clases desbalanceadas.
+
+\textbf{Precision}: $\mathrm{TP}/(\mathrm{TP}+\mathrm{FP})$. Cuantos de los positivos predichos son correctos.
+
+\textbf{Recall}: $\mathrm{TP}/(\mathrm{TP}+\mathrm{FN})$. Cuantos de los positivos reales detectaste.
+
+\textbf{F1}: media armonica de precision y recall.
+
+\section{Para segmentacion semantica}
+
+\textbf{IoU} (Intersection over Union, Jaccard):
+\begin{equation}
+\mathrm{IoU} = \frac{|A \cap B|}{|A \cup B|}.
+\end{equation}
+Cero si no hay solapamiento, uno si las mascaras coinciden exactamente.
+
+\textbf{Dice}:
+\begin{equation}
+\mathrm{Dice} = \frac{2|A \cap B|}{|A| + |B|} = \frac{2 \mathrm{IoU}}{1 + \mathrm{IoU}}.
+\end{equation}
+
+\section{Para segmentacion por instancias}
+
+\textbf{Average Precision (AP)} a un IoU threshold $t$: cada celula predicha se "matchea" con una real si IoU $> t$. Se calcula precision/recall y se promedia.
+
+El estandar moderno reporta $\mathrm{AP@}[0{,}5{:}0{,}05{:}0{,}95]$: el promedio sobre 10 thresholds.
+
+\section{Por que no tener metricas es no tener pipeline}
+
+Si no medis con un numero objetivo, no podes:
+\begin{itemize}[leftmargin=2em]
+  \item Comparar dos versiones del codigo.
+  \item Saber si una optimizacion ayudo.
+  \item Detectar regresiones cuando agregas features.
+  \item Justificar decisiones (¿uso CLAHE? ¿uso Cellpose?).
+\end{itemize}
+
+\textbf{Tu pipeline necesita}: un set pequeño (5--10) de imagenes con \emph{mascaras anotadas a mano}, un script que corra el pipeline sobre ellas y reporte IoU, Dice, AP. Con eso, cualquier mejora se vuelve cuantificable.
+
+\part{Vanguardia}
+
+\chapter{Self-supervised learning}
+
+\section{La idea}
+
+Entrenar redes sin etiquetas usando \emph{tareas pretexto}: predecir partes de la entrada a partir de otras partes. Ejemplo: dado un parche enmascarado, predecir su contenido.
+
+\subsection{Noise2Void (N2V)}
+
+Krull et al. (2019). Entrenar una red para predecir cada pixel usando todos los \emph{otros} (\emph{blind spot}). Si el ruido es independiente entre pixeles, la red no puede aprenderlo y converge a la media de la señal sin ruido.
+
+Lo usas para denoising sin ground truth limpio. \texttt{pipeline/ai\_enhance.py:run\_n2v} es una implementacion minima.
+
+\subsection{Contrastive learning (SimCLR, MoCo, DINO)}
+
+Generar dos vistas de la misma imagen (data augmentation), entrenar la red para que sus representaciones sean cercanas, y lejanas a las de otras imagenes.
+
+\chapter{Foundation models}
+
+\section{SAM --- Segment Anything}
+
+Meta AI (2023). Una red gigante (ViT) entrenada con 11M imagenes y 1B mascaras. Recibe la imagen y un prompt (punto, caja, mascara aproximada) y devuelve mascaras de calidad. \emph{Zero-shot}: no necesita fine-tune para dominios nuevos.
+
+Para tu cebolla: prometedor, pero los prompts manuales no escalan. Hay variantes (SAM-2 video, MedSAM) para uso medico.
+
+\section{DINO / DINOv2}
+
+Self-supervised que entrena con augmentations + teacher-student distillation. Genera features que capturan estructura sin etiquetas. Excelentes representaciones para downstream tasks.
+
+\section{Modelos de difusion (Stable Diffusion, etc.)}
+
+Generan imagenes a partir de ruido invirtiendo iterativamente un proceso de difusion. Usados para super-resolucion (SR3, ResShift), restauracion (DDRM, DiffPIR), y generacion condicional. Para microscopia, todavia con poca adopcion porque pueden alucinar.
+
+\chapter{NeRF y 3D Gaussian Splatting}
+
+\section{NeRF (Neural Radiance Fields)}
+
+Mildenhall et al. (2020). Una MLP que recibe $(x, y, z, \theta, \phi)$ y devuelve radiancia $(R, G, B)$ + densidad. Para renderizar un pixel se integra a lo largo del rayo. Permite reconstruccion 3D fotorealista a partir de N fotos.
+
+Aplicaciones en microscopia: tomografia computacional reciente.
+
+\section{Gaussian Splatting}
+
+Kerbl et al. (2023). Reemplaza la representacion implicita de NeRF por una nube de gaussianas 3D. Mucho mas rapido (60+ fps en GPU). Estado del arte actual para reconstruccion volumetrica.
+
+\backmatter
+
+\chapter{Apendice A --- Matematica de bolsillo}
+
+\section{Algebra lineal}
+
+\textbf{Producto interno}: $\mathbf{a} \cdot \mathbf{b} = \sum_i a_i b_i = \|\mathbf{a}\| \|\mathbf{b}\| \cos\theta$.
+
+\textbf{Norma}: $\|\mathbf{a}\| = \sqrt{\mathbf{a} \cdot \mathbf{a}}$.
+
+\textbf{Autovalores y autovectores}: $\mathbf{A}\mathbf{v} = \lambda \mathbf{v}$. La descomposicion espectral $\mathbf{A} = \mathbf{V}\boldsymbol{\Lambda}\mathbf{V}^{-1}$.
+
+\textbf{SVD}: $\mathbf{A} = \mathbf{U}\boldsymbol{\Sigma}\mathbf{V}^\top$. Funciona para matrices no cuadradas. Base de PCA, pseudo-inversa, baja-rango.
+
+\section{Calculo}
+
+\textbf{Gradiente}: $\nabla f = (\partial_x f, \partial_y f, \dots)$. Apunta en la direccion de mayor crecimiento.
+
+\textbf{Hessiana}: matriz de segundas derivadas. Sus autovalores describen curvatura.
+
+\textbf{Regla de la cadena}: $\frac{d}{dx} f(g(x)) = f'(g(x)) g'(x)$. Base de backprop.
+
+\section{Probabilidad}
+
+\textbf{Distribucion gaussiana 1D}: $\mathcal{N}(\mu, \sigma^2)$ con densidad $\frac{1}{\sigma\sqrt{2\pi}} \exp(-(x-\mu)^2/2\sigma^2)$.
+
+\textbf{Teorema de Bayes}: $P(A|B) = P(B|A)P(A)/P(B)$.
+
+\textbf{Esperanza, varianza, covarianza}: estadisticos de primer y segundo orden.
+
+\chapter{Apendice B --- Hoja de ruta de aprendizaje}
+
+\section{Plan de 6 meses (10 horas/semana)}
+
+\textbf{Mes 1 --- Fundamentos.} Capitulos \ref{ch:imagen}--\ref{ch:morfologia}. Implementar todo en NumPy, sin OpenCV. Resultado: entendes que es un pixel, una convolucion, una operacion morfologica.
+
+\textbf{Mes 2 --- Bordes y segmentacion clasica.} Capitulos \ref{ch:canny}--\ref{ch:forma}. Implementar Canny, Frangi, watershed. Resultado: tu segmentador OpenCV competitivo, sin IA.
+
+\textbf{Mes 3 --- Fourier.} Capitulos \ref{ch:fourier}--\ref{ch:fpm}. Entender FFT 2D, filtrado en frecuencia, optica de Fourier, FPM. Resultado: podes leer un paper de FPM y modificar tu reconstruccion.
+
+\textbf{Mes 4 --- Multi-imagen y registracion.} Implementar phase correlation, ECC, super-resolucion multi-frame.
+
+\textbf{Mes 5 --- Deep learning.} Entrenar un perceptron, CNN, U-Net mini. Aplicar a celulas. Cuantificar IoU.
+
+\textbf{Mes 6 --- Vanguardia.} Leer papers actuales (Cellpose, StarDist, SAM). Reproducir resultados. Aportar al pipeline.
+
+\section{Recursos imprescindibles}
+
+\begin{description}[leftmargin=2em, style=nextline]
+  \item[Libros]
+  Gonzalez \& Woods, \emph{Digital Image Processing} (4ed). Szeliski, \emph{Computer Vision: Algorithms and Applications} (gratis online). Goodfellow, Bengio \& Courville, \emph{Deep Learning} (gratis online).
+
+  \item[Cursos en video]
+  Shree Nayar, \emph{First Principles of Computer Vision} (Columbia, YouTube, 60 lecturas gratis). Stanford CS231n (Karpathy, Li). MIT 6.819 \emph{Advances in Computer Vision} (Torralba).
+
+  \item[Papers fundacionales]
+  Lowe, \emph{SIFT} (1999). Canny, \emph{A Computational Approach to Edge Detection} (1986). Frangi et al., \emph{Multiscale vessel enhancement filtering} (1998). Ronneberger, \emph{U-Net} (2015). Krizhevsky, \emph{AlexNet} (2012). Vaswani, \emph{Attention is All You Need} (2017).
+
+  \item[Para microscopia y FPM]
+  Zheng et al., \emph{Wide-field, high-resolution Fourier ptychographic microscopy} (Nature Photonics, 2013). Pachitariu \& Stringer, \emph{Cellpose 2.0} (Nature Methods, 2022). Schmidt et al., \emph{StarDist} (MICCAI, 2018).
+\end{description}
+
+\section{Prediccion}
+
+Si seguis este plan con disciplina, en 6 meses vas a estar leyendo papers de CVPR/ICCV sin sentir que te falta vocabulario, y vas a poder modificar cualquier modulo de tu pipeline (clasico o IA) entendiendo \emph{por que} funciona.
+
+\chapter*{Bibliografia}
+\addcontentsline{toc}{chapter}{Bibliografia}
+
+{\footnotesize
+\noindent
+\begin{enumerate}[leftmargin=2em]
+\item Gonzalez RC, Woods RE. \emph{Digital Image Processing}. 4ed. Pearson, 2018.
+\item Szeliski R. \emph{Computer Vision: Algorithms and Applications}. 2ed. Springer, 2022. \url{https://szeliski.org/Book/}
+\item Goodfellow I, Bengio Y, Courville A. \emph{Deep Learning}. MIT Press, 2016. \url{https://www.deeplearningbook.org/}
+\item Bhandari A, Kadambi A, Raskar R. \emph{Computational Imaging}. MIT Press, 2022.
+\item Canny J. A Computational Approach to Edge Detection. \emph{IEEE TPAMI} 8(6), 1986.
+\item Frangi AF, Niessen WJ, Vincken KL, Viergever MA. Multiscale vessel enhancement filtering. \emph{MICCAI}, 1998.
+\item Beucher S, Meyer F. The morphological approach to segmentation: the watershed transformation. \emph{Mathematical Morphology in Image Processing}, 1993.
+\item Otsu N. A Threshold Selection Method from Gray-Level Histograms. \emph{IEEE TSMC} 9(1), 1979.
+\item Buades A, Coll B, Morel JM. A non-local algorithm for image denoising. \emph{CVPR}, 2005.
+\item Krull A, Buchholz TO, Jug F. Noise2Void --- Learning Denoising from Single Noisy Images. \emph{CVPR}, 2019.
+\item Zheng G, Horstmeyer R, Yang C. Wide-field, high-resolution Fourier ptychographic microscopy. \emph{Nature Photonics} 7, 2013.
+\item Ronneberger O, Fischer P, Brox T. U-Net: Convolutional Networks for Biomedical Image Segmentation. \emph{MICCAI}, 2015.
+\item Stringer C, Wang T, Michaelos M, Pachitariu M. Cellpose: a generalist algorithm for cellular segmentation. \emph{Nature Methods} 18, 2021.
+\item Schmidt U, Weigert M, Broaddus C, Myers G. Cell Detection with Star-Convex Polygons. \emph{MICCAI}, 2018.
+\item Kirillov A, et al. Segment Anything. \emph{ICCV}, 2023.
+\item Mildenhall B, et al. NeRF: Representing Scenes as Neural Radiance Fields for View Synthesis. \emph{ECCV}, 2020.
+\item Kerbl B, Kopanas G, Leimkühler T, Drettakis G. 3D Gaussian Splatting for Real-Time Radiance Field Rendering. \emph{SIGGRAPH}, 2023.
+\end{enumerate}
+}
+
+\end{document}
