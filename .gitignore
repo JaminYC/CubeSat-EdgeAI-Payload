@@ -68,3 +68,17 @@ Thumbs.db
 *.ncnn
 *.bin
 *.param
+
+# LaTeX intermedios
+*.aux
+*.log
+*.toc
+*.out
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+
+# Office locks / temporales
+~$*
+*.tmp.docx
+*.tmp.xlsx
