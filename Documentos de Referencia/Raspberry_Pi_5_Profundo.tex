@@ -1,0 +1,1083 @@
+\documentclass[11pt,a4paper,oneside]{report}
+\usepackage[spanish,activeacute,es-noshorthands]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{geometry}
+\geometry{margin=2.4cm, headheight=14pt}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable, listings}
+\usepackage{caption}
+\captionsetup{font=small, labelfont=bf}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=NavyBlue,
+  citecolor=ForestGreen,
+  urlcolor=BrickRed,
+  pdftitle={Raspberry Pi 5 --- Funcionamiento profundo},
+  pdfauthor={CubeSat-EdgeAI-Payload}
+}
+
+\definecolor{intisat}{RGB}{26, 54, 93}
+\definecolor{intisataccent}{RGB}{197, 143, 0}
+\definecolor{ok}{RGB}{47, 133, 90}
+\definecolor{warn}{RGB}{197, 60, 60}
+\definecolor{codebg}{RGB}{248, 249, 250}
+
+\lstdefinestyle{shell}{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{codebg},
+  frame=single, rulecolor=\color{gray!30},
+  framesep=4pt, breaklines=true,
+  showstringspaces=false,
+  literate={a}{{a}}1 {e}{{e}}1 {i}{{i}}1 {o}{{o}}1 {u}{{u}}1 {n}{{n}}1
+}
+\lstset{style=shell}
+
+\titleformat{\chapter}[hang]
+  {\normalfont\Huge\bfseries\color{intisat}}
+  {\thechapter.}{0.6em}{}
+\titlespacing*{\chapter}{0pt}{-20pt}{20pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\nouppercase{\leftmark}}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\newtcolorbox{nota}[1][]{
+  colback=blue!4, colframe=intisat,
+  fonttitle=\bfseries, title=Para tu payload,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{cuidado}[1][]{
+  colback=red!4, colframe=warn,
+  fonttitle=\bfseries, title=Cuidado,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{tip}[1][]{
+  colback=green!5, colframe=ok,
+  fonttitle=\bfseries, title=Tip practico,
+  breakable, sharp corners=south, #1
+}
+
+\begin{document}
+
+% ─── Portada ────────────────────────────────────────────────────────
+\begin{titlepage}
+\centering
+\vspace*{1cm}
+{\color{intisat}\rule{\textwidth}{2pt}}
+\vspace{0.6cm}
+
+{\Huge\bfseries\color{intisat} Raspberry Pi 5}\\[0.3em]
+{\LARGE\bfseries Funcionamiento profundo}
+
+\vspace{0.7cm}
+{\Large\itshape Hardware, software y subsistemas\\
+para el payload CubeSat-EdgeAI}
+
+\vspace{1cm}
+{\color{intisataccent}\rule{0.6\textwidth}{1pt}}
+
+\vspace{2cm}
+
+\begin{tabular}{rl}
+\textbf{Plataforma:} & Raspberry Pi 5 (4 GB) --- desarrollo \\
+\textbf{Modelo de vuelo:} & Compute Module 5 (proximamente) \\
+\textbf{Proyecto:} & CubeSat-EdgeAI-Payload \\
+\textbf{Repositorio:} & \texttt{github.com/JaminYC/CubeSat-EdgeAI-Payload} \\
+\textbf{Fecha:} & \today \\
+\textbf{Documento:} & v1.0
+\end{tabular}
+
+\vfill
+
+\begin{minipage}{0.85\textwidth}
+\textbf{Resumen.}\quad
+Documento de referencia integral del Raspberry Pi 5 enfocado en su uso
+como payload de procesamiento autonomo a bordo de un CubeSat. Cubre el
+SoC BCM2712, la arquitectura ARMv8, el sistema de memoria LPDDR4X, los
+buses GPIO (I2C, SPI, UART), el subsistema de camara CSI-2, la PMIC
+RP1, el proceso de boot, el sistema operativo Raspberry Pi OS, la
+gestion termica, y la migracion al Compute Module 5 para el modelo de
+vuelo. Cada capitulo incluye notas especificas para integracion al
+INTISAT, comandos practicos de Linux y advertencias de hardware.
+\end{minipage}
+
+\vspace{1.2cm}
+{\color{intisat}\rule{\textwidth}{2pt}}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+% =====================================================================
+\chapter{Vision general}
+
+El Raspberry Pi 5 es una computadora single-board de credit-card size que
+combina un SoC moderno (BCM2712), 4--16 GB de RAM, conectividad
+multiproposito y un IO controller dedicado (RP1). Para tu payload actua
+como \emph{computadora principal del experimento}: corre Linux, controla
+los sensores opticos por buses estandar, ejecuta el pipeline de IA y
+dialoga con el OBC del satelite por I2C.
+
+\section{Arquitectura de bloques}
+
+\begin{center}
+\begin{tabular}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{SoC BCM2712} & 4 nucleos ARM Cortex-A76 @ 2.4 GHz, GPU VideoCore VII, ISP, decoder H.265 \\
+\hline
+\textbf{RP1 IO controller} & chip dedicado (Raspberry Pi diseñado) que expone GPIO, I2C, SPI, UART, USB, Ethernet \\
+\hline
+\textbf{LPDDR4X RAM} & 4/8/16 GB, bus 64 bit, 4267 MT/s \\
+\hline
+\textbf{PCIe Gen 2 x1} & FPC connector externo, hasta 5 Gbit/s --- para NVMe SSD \\
+\hline
+\textbf{2x USB 3.0 + 2x USB 2.0} & via RP1 |
+\\
+\hline
+\textbf{2x camera CSI-2 + 2x display DSI} & pueden funcionar en simultaneo \\
+\hline
+\textbf{40-pin GPIO header} & compatible con Pi anterior pero con drivers nuevos en RP1 \\
+\hline
+\end{tabular}
+\end{center}
+
+\section{Diferencia clave vs Pi 4}
+
+El cambio mas importante: \textbf{el GPIO ya no esta directamente en el SoC}.
+Pasa por el RP1, que es un chip independiente con su propio firmware. Esto
+trae implicaciones:
+
+\begin{itemize}[leftmargin=2em]
+  \item Latencia GPIO mas alta ($\sim 1\;\mu$s vs ns en Pi 4).
+  \item \texttt{RPi.GPIO} y \texttt{wiringpi} no funcionan; hay que usar \texttt{lgpio} o \texttt{gpiozero}.
+  \item \texttt{pigpio} todavia funciona (necesario para tu I2C esclavo).
+  \item Frecuencias maximas: I2C hasta 1 MHz, SPI hasta 50 MHz.
+\end{itemize}
+
+\begin{nota}
+El \texttt{cubesat/i2c\_slave.py} usa \texttt{pigpio.bsc\_i2c()} que funciona
+en Pi 5 con el demonio pigpiod corriendo. No usa el bus I2C clasico (que
+solo soporta master), sino el BSC (Broadcom Serial Controller) que si
+soporta modo slave.
+\end{nota}
+
+% =====================================================================
+\chapter{El SoC BCM2712}
+
+\section{CPU --- ARM Cortex-A76}
+
+Cuatro nucleos identicos, cada uno con:
+
+\begin{itemize}[leftmargin=2em]
+  \item Pipeline out-of-order de 12 etapas, 4 instrucciones decodificadas por ciclo.
+  \item Cache L1 de instrucciones $64$ KB + L1 de datos $64$ KB.
+  \item Cache L2 privada por nucleo de $512$ KB.
+  \item Cache L3 compartida de $2$ MB.
+  \item Instrucciones SIMD: NEON (Advanced SIMD) y SVE (Scalable Vector Extension).
+  \item Frecuencia base $2.4$ GHz, dynamic frequency scaling de $1.5$ a $2.4$ GHz.
+\end{itemize}
+
+\textbf{Performance practico} (single-core, comparativa con Pi 4):
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Benchmark} & \textbf{Pi 4} & \textbf{Pi 5} \\
+\midrule
+Sysbench CPU prime  & 1.5x ref  & 4.2x ref  \\
+Geekbench 6 single  & 220       & 770       \\
+Geekbench 6 multi   & 600       & 1700      \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Aproximadamente $3\times$ mas rapido que Pi 4 en cargas single-thread.
+
+\section{GPU --- VideoCore VII}
+
+\begin{itemize}[leftmargin=2em]
+  \item 800 MHz, soporta OpenGL ES 3.1 y Vulkan 1.2.
+  \item Decoder H.265 hardware (4kp60), decoder H.264 (1080p60), encoder H.264 (1080p30).
+  \item NO soporta CUDA (no es NVIDIA).
+\end{itemize}
+
+\textbf{Para tu payload}: la GPU NO se usa para IA (no hay framework optimizado
+ARM Mali/VideoCore para PyTorch). El pipeline IA corre en CPU.
+
+\section{ISP (Image Signal Processor)}
+
+Procesa la salida cruda de la camara CSI-2 antes de pasarla a memoria:
+
+\begin{itemize}[leftmargin=2em]
+  \item Bayer demosaicing.
+  \item Auto white balance (AWB).
+  \item Auto exposure (AE).
+  \item Lens shading correction.
+  \item Noise reduction (NR).
+\end{itemize}
+
+\begin{cuidado}
+El ISP \emph{aplica correcciones automaticas} que pueden interferir con
+microscopia cuantitativa. En \texttt{cubesat/capture.py} se desactivan
+con \texttt{Picamera2.set\_controls(\{"AwbEnable": False, "AeEnable": False\})}.
+\end{cuidado}
+
+\section{Memoria LPDDR4X}
+
+\begin{itemize}[leftmargin=2em]
+  \item 4267 MT/s (efectivo $\sim 17$ GB/s en burst).
+  \item Bus 64 bit (4 canales x16 internos).
+  \item Latencia $\sim 80$ ns (timing CL40).
+  \item Versiones: $4, 8, 16$ GB. La de tu payload es $4$ GB.
+\end{itemize}
+
+% =====================================================================
+\chapter{El controlador RP1 (clave para entender el Pi 5)}
+
+\section{Que es}
+
+El RP1 es un chip diseñado por Raspberry Pi Ltd (no Broadcom) que actua como
+\emph{southbridge}: maneja todos los IO perifericos. Esta interconectado al
+SoC por PCIe Gen 2 x4.
+
+\section{Que controla}
+
+\begin{itemize}[leftmargin=2em]
+  \item 40-pin GPIO header (todos los pines).
+  \item 2 buses I2C (I2C1 y dedicated).
+  \item 5 buses SPI.
+  \item 6 UARTs.
+  \item Ethernet Gigabit.
+  \item 2x USB 3.0 + 2x USB 2.0.
+  \item Audio analog out, PWM, etc.
+\end{itemize}
+
+\section{Por que importa para vos}
+
+a) \textbf{Latencia}: el viaje SoC $\to$ PCIe $\to$ RP1 $\to$ pin agrega $\sim 1\;\mu$s.
+   No es problema para microscopia, pero seria limitante para señales en
+   tiempo real $> 100$ kHz.
+
+b) \textbf{Drivers nuevos}: si una libreria asume que el GPIO esta en el SoC
+   (como \texttt{RPi.GPIO}), no funciona. Usar \texttt{lgpio}, \texttt{gpiozero}
+   o \texttt{pigpio}.
+
+c) \textbf{I2C slave}: solo el BSC original del SoC soporta modo slave; el
+   RP1 expone solo modo master. El \texttt{cubesat/i2c\_slave.py} usa el BSC
+   directamente con \texttt{pigpio.bsc\_i2c()}.
+
+% =====================================================================
+\chapter{Sistema de potencia}
+
+\section{Rails de tension}
+
+El Pi 5 entra con $5$ V (USB-C o pin 2/4 del header) y la PMIC interna genera:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Rail} & \textbf{Tension} & \textbf{Para que} \\
+\midrule
+$V_{\text{IN}}$        & 5.0 V & entrada externa \\
+$V_{\text{CORE}}$      & 0.85--0.9 V & nucleos CPU (variable, DVFS) \\
+$V_{\text{GPU}}$       & 0.9 V       & GPU \\
+$V_{\text{DDR}}$       & 1.1 V       & RAM LPDDR4X \\
+$V_{\text{IO\_18}}$    & 1.8 V       & buses internos del SoC \\
+$V_{\text{IO\_33}}$    & 3.3 V       & GPIO + perifericos externos \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Consumo (medido)}
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Estado} & \textbf{Corriente @ 5V (A)} & \textbf{Potencia (W)} \\
+\midrule
+Boot peak               & 1.6 A & 8.0 \\
+Idle (HDMI desconectado) & 0.6 A & 3.0 \\
+CPU 100\% (1 core)      & 0.9 A & 4.5 \\
+CPU 100\% (4 cores)     & 1.4 A & 7.0 \\
+CPU + GPU + WiFi + USB  & 1.6 A & 8.0 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Mediciones tipicas; la POE+ HAT oficial provee hasta $5$ A.
+
+\section{Brown-out detection}
+
+Si $V_{\text{IN}}$ cae bajo $4.6$ V el Pi entra en \emph{undervoltage}, se
+ve un icono de rayo en pantalla y la CPU baja a $1.5$ GHz. En log de kernel:
+
+\begin{lstlisting}[language=bash]
+[123.456] Under-voltage detected! (0x00050005)
+\end{lstlisting}
+
+Verificar con \texttt{vcgencmd get\_throttled}: el bit 0 indica undervoltage.
+
+\begin{cuidado}
+En la integracion al INTISAT, el rail $5$V\_PAYLOAD debe sostener $1.6$ A
+de pico sin caer abajo de $4.7$ V. El fusible PTC de $5$ A elegido tiene
+margen, pero verificar regulacion del LDO bajo carga.
+\end{cuidado}
+
+% =====================================================================
+\chapter{El header de 40 pines (GPIO)}
+
+\section{Pinout completo}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{|c|l|l|c||c|l|l|c|}
+\hline
+\textbf{Pin} & \textbf{Funcion} & \textbf{BCM} & \textbf{Tension} & \textbf{Pin} & \textbf{Funcion} & \textbf{BCM} & \textbf{Tension} \\
+\hline
+1  & 3.3V        & ---    & 3.3V & 2  & 5V          & ---    & 5V \\
+3  & SDA1 / I2C  & GPIO2  & 3.3V & 4  & 5V          & ---    & 5V \\
+5  & SCL1 / I2C  & GPIO3  & 3.3V & 6  & GND         & ---    & 0V \\
+7  & GPIO4       & GPIO4  & 3.3V & 8  & TXD0 / UART & GPIO14 & 3.3V \\
+9  & GND         & ---    & 0V   & 10 & RXD0 / UART & GPIO15 & 3.3V \\
+11 & GPIO17      & GPIO17 & 3.3V & 12 & GPIO18      & GPIO18 & 3.3V \\
+13 & GPIO27      & GPIO27 & 3.3V & 14 & GND         & ---    & 0V \\
+15 & GPIO22      & GPIO22 & 3.3V & 16 & GPIO23      & GPIO23 & 3.3V \\
+17 & 3.3V        & ---    & 3.3V & 18 & GPIO24      & GPIO24 & 3.3V \\
+19 & MOSI / SPI  & GPIO10 & 3.3V & 20 & GND         & ---    & 0V \\
+21 & MISO / SPI  & GPIO9  & 3.3V & 22 & GPIO25      & GPIO25 & 3.3V \\
+23 & SCLK / SPI  & GPIO11 & 3.3V & 24 & CE0 / SPI   & GPIO8  & 3.3V \\
+25 & GND         & ---    & 0V   & 26 & CE1 / SPI   & GPIO7  & 3.3V \\
+27 & ID\_SDA     & GPIO0  & 3.3V & 28 & ID\_SCL     & GPIO1  & 3.3V \\
+29 & GPIO5       & GPIO5  & 3.3V & 30 & GND         & ---    & 0V \\
+31 & GPIO6       & GPIO6  & 3.3V & 32 & GPIO12      & GPIO12 & 3.3V \\
+33 & GPIO13      & GPIO13 & 3.3V & 34 & GND         & ---    & 0V \\
+35 & GPIO19      & GPIO19 & 3.3V & 36 & GPIO16      & GPIO16 & 3.3V \\
+37 & GPIO26      & GPIO26 & 3.3V & 38 & GPIO20      & GPIO20 & 3.3V \\
+39 & GND         & ---    & 0V   & 40 & GPIO21      & GPIO21 & 3.3V \\
+\hline
+\end{tabular}
+\end{center}
+
+\section{Pines usados por tu payload}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Pin} & \textbf{Funcion} & \textbf{Conectado a} \\
+\midrule
+2 / 4   & 5V IN              & EPS via fusible + LDO \\
+6, 14, 20, 30, 39 & GND      & GND comun \\
+3 (GPIO2) & SDA I2C\_2        & TXS0108E $\to$ OBC INTISAT \\
+5 (GPIO3) & SCL I2C\_2        & TXS0108E $\to$ OBC INTISAT \\
+12 (GPIO18) & OLED DC         & SSD1351 \\
+18 (GPIO24) & OLED RST        & SSD1351 \\
+19 (GPIO10) & MOSI SPI0       & SSD1351 \\
+23 (GPIO11) & SCLK SPI0       & SSD1351 \\
+24 (GPIO8)  & CE0 SPI0        & SSD1351 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Funciones alternativas (alt modes)}
+
+Cada GPIO puede configurarse en hasta 6 funciones distintas. Por ejemplo
+GPIO12 puede ser GPIO digital, PWM, SPI3 MOSI, UART4 TX, etc. Se selecciona
+con \texttt{raspi-gpio set <pin> a<n>} o desde \texttt{config.txt}.
+
+\begin{lstlisting}[language=bash]
+# Ver configuracion actual
+raspi-gpio get 12
+# Cambiar a PWM
+raspi-gpio set 12 a0
+\end{lstlisting}
+
+% =====================================================================
+\chapter{Buses de comunicacion}
+
+\section{I2C}
+
+Bus de 2 hilos (SDA, SCL) con multimaster. Velocidades estandar $100$ kHz,
+$400$ kHz, $1$ MHz, $3.4$ MHz (high-speed mode no soportado).
+
+\subsection{Direcciones}
+
+I2C usa direcciones de 7 bit. El payload ocupa \textbf{0x42}. Direcciones
+reservadas:
+
+\begin{itemize}[leftmargin=2em]
+  \item \texttt{0x00}: general call.
+  \item \texttt{0x08-0x0F}: high-speed master.
+  \item \texttt{0x78-0x7F}: 10-bit addressing.
+\end{itemize}
+
+\subsection{Modo slave (BSC)}
+
+El SoC tiene un periferico llamado BSC (Broadcom Serial Controller) que
+puede actuar como slave. Solo accesible via \texttt{pigpio.bsc\_i2c()},
+no por la libreria estandar.
+
+\begin{lstlisting}[language=python]
+import pigpio
+pi = pigpio.pi()
+pi.bsc_i2c(0x42)   # responde como slave en 0x42
+
+while True:
+    s, b, d = pi.bsc_i2c(0x42)   # lee bytes recibidos
+    if b > 0:
+        process(d[:b])
+\end{lstlisting}
+
+\subsection{Test de comandos basicos}
+
+\begin{lstlisting}[language=bash]
+# Detectar dispositivos en el bus
+sudo i2cdetect -y 1
+
+# Leer 1 byte de address 0x42, registro 0
+i2cget -y 1 0x42 0x00
+
+# Escribir 0x05 al registro 0x10 del slave 0x42
+i2cset -y 1 0x42 0x10 0x05
+\end{lstlisting}
+
+\section{SPI}
+
+Bus sincrono full-duplex. El Pi 5 tiene 5 buses SPI (SPI0-SPI5) via RP1,
+mas SPI6 directo del SoC.
+
+\begin{itemize}[leftmargin=2em]
+  \item Velocidades: $0.5$ MHz a $50$ MHz.
+  \item Modos: 0, 1, 2, 3 (combinaciones de CPOL y CPHA).
+  \item En tu payload: SPI0 con OLED SSD1351 a 1 MHz.
+\end{itemize}
+
+Habilitar via \texttt{raspi-config} o en \texttt{/boot/firmware/config.txt}:
+\begin{lstlisting}[language=bash]
+dtparam=spi=on
+\end{lstlisting}
+
+\section{UART}
+
+Hasta 6 UARTs disponibles (UART0-UART5). El UART0 esta conectado por defecto
+a la consola serial (115200, 8N1). Util para debug:
+
+\begin{lstlisting}[language=bash]
+# Conectarse desde otra Pi por UART (pin 8 TX, pin 10 RX)
+sudo screen /dev/ttyAMA0 115200
+\end{lstlisting}
+
+\section{CSI-2 (camara)}
+
+MIPI Camera Serial Interface 2. El Pi 5 tiene 2 conectores FPC de 22 pines
+(diferente del Pi 4 que era de 15 pines, requiere cable adaptador).
+
+\begin{itemize}[leftmargin=2em]
+  \item 4 lanes de datos diferenciales.
+  \item Hasta 1.5 Gbps por lane.
+  \item Soporta hasta $4032 \times 3040$ @ 30 fps (12 MP).
+\end{itemize}
+
+\textbf{Para OV5647}: 2 lanes, $2592 \times 1944$ @ 15 fps en 5 MP. Usa
+\texttt{Picamera2} library:
+
+\begin{lstlisting}[language=python]
+from picamera2 import Picamera2
+cam = Picamera2()
+config = cam.create_still_configuration(main={"size": (2592, 1944)})
+cam.configure(config)
+cam.start()
+img = cam.capture_array()
+\end{lstlisting}
+
+\section{PCIe}
+
+PCIe Gen 2 x1 expuesto en el conector FPC lateral. Velocidad $5$ Gbps. Los
+HATs oficiales permiten conectar SSD NVMe.
+
+\begin{nota}
+Para el modelo de vuelo CM5, considerar agregar SSD NVMe en lugar de SD
+para almacenar resultados. La SD se corrompe facilmente con vibracion y
+radiacion. NVMe + eMMC (ya integrada en el CM5) es mucho mas robusta.
+\end{nota}
+
+% =====================================================================
+\chapter{Almacenamiento}
+
+\section{Tarjeta micro-SD}
+
+Slot estandar SDIO 3.0, soporta hasta UHS-I (104 MB/s). Es el medio principal
+en Pi 5 retail.
+
+\textbf{Formato recomendado}:
+\begin{itemize}[leftmargin=2em]
+  \item Tabla de particiones MBR (no GPT).
+  \item Particion 1: FAT32 \texttt{boot} ($\geq 256$ MB).
+  \item Particion 2: ext4 \texttt{rootfs} (resto).
+\end{itemize}
+
+\begin{cuidado}
+Las SD baratas se degradan rapido con escrituras. Para el payload de vuelo
+NO USAR SD. Migrar a CM5 con eMMC integrada.
+\end{cuidado}
+
+\section{NVMe (via PCIe HAT)}
+
+Velocidades reales $\sim 800$ MB/s read, $700$ MB/s write con un Samsung 980.
+Booteo desde NVMe disponible en EEPROM $\geq 2024-09$.
+
+\section{eMMC (solo CM5)}
+
+El Compute Module 5 trae eMMC integrada de $0$ (Lite), $4$, $16$, $32$, $64$ GB.
+Mas robusta que SD frente a vibracion y temperatura. Velocidad $\sim 200$ MB/s.
+
+% =====================================================================
+\chapter{Proceso de boot}
+
+\section{Etapas del boot}
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Bootloader EEPROM} (interno al SoC): inicializa el SoC,
+        habilita LPDDR4X, busca medio de boot segun \texttt{BOOT\_ORDER}.
+  \item \textbf{start.elf} (en partition de boot): carga el firmware del GPU.
+  \item \textbf{config.txt}: archivo de configuracion (resoluciones, overclocks,
+        device tree overlays).
+  \item \textbf{cmdline.txt}: argumentos del kernel.
+  \item \textbf{Kernel Linux} (\texttt{kernel\_2712.img}): carga el sistema.
+  \item \textbf{initramfs}: filesystem temporal con drivers.
+  \item \textbf{systemd}: lanza servicios de userspace.
+  \item \textbf{Login}: sistema listo.
+\end{enumerate}
+
+\section{config.txt importante para tu payload}
+
+\begin{lstlisting}[language=bash]
+# Habilitar buses
+dtparam=i2c_arm=on
+dtparam=spi=on
+dtparam=audio=off                    # OLED SSD1351 reusa pines audio
+
+# Camara CSI-2
+camera_auto_detect=1
+dtoverlay=ov5647
+
+# Watchdog hardware (cuelgue $\to$ reboot automatico)
+dtparam=watchdog=on
+
+# I2C slave en GPIO2/3
+dtoverlay=i2c-gpio,bus=10,i2c_gpio_sda=2,i2c_gpio_scl=3
+\end{lstlisting}
+
+\section{Boot order}
+
+Configurable en EEPROM. Por defecto:
+\begin{lstlisting}[language=bash]
+BOOT_ORDER=0xf41   # SD, NVMe, USB, repeat
+\end{lstlisting}
+
+Editar con \texttt{sudo rpi-eeprom-config -e}.
+
+\section{Recovery / fastboot}
+
+Si el sistema no bootea, mantener pulsado el boton del Pi 5 al darle power
+para entrar a un mini OS de recovery. Solo en Pi 5, no Pi 4.
+
+% =====================================================================
+\chapter{Sistema operativo}
+
+\section{Raspberry Pi OS}
+
+Distribucion oficial basada en Debian. Version actual al momento de redactar:
+\textbf{Bookworm} (Debian 12). Imagenes:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Lite}: sin escritorio, ideal para servidor / payload (lo que usamos).
+  \item \textbf{Desktop}: con LXDE, ~5 GB.
+  \item \textbf{Full}: con LibreOffice, Chromium, etc., ~10 GB.
+\end{itemize}
+
+Bajar de \url{https://www.raspberrypi.com/software/operating-systems/}.
+
+\section{Kernel}
+
+Linux $\sim 6.6$ con patches RPi. Verificar:
+
+\begin{lstlisting}[language=bash]
+uname -a
+# Linux raspberrypi 6.6.20+rpt-rpi-2712 #1 SMP PREEMPT Debian
+\end{lstlisting}
+
+\textbf{PREEMPT} indica preemptive scheduling (mejor latencia).
+
+\section{Systemd}
+
+Sistema de init y manager de servicios. Comandos basicos:
+
+\begin{lstlisting}[language=bash]
+# Listar servicios activos
+systemctl list-units --type=service --state=running
+
+# Habilitar / deshabilitar
+sudo systemctl enable pigpiod
+sudo systemctl start pigpiod
+
+# Ver estado
+systemctl status cubesat-pipeline
+
+# Logs
+journalctl -u cubesat-pipeline -f --since "1 hour ago"
+\end{lstlisting}
+
+\section{Servicios del payload}
+
+\begin{itemize}[leftmargin=2em]
+  \item \texttt{pigpiod.service}: demonio pigpio (necesario para I2C slave).
+  \item \texttt{cubesat-pipeline.service}: el daemon principal con WatchdogSec.
+  \item \texttt{cubesat-i2c-slave.service}: dispatcher I2C en 0x42.
+  \item \texttt{cubesat-telemetry.service}: snapshots de telemetria cada 30 s.
+\end{itemize}
+
+% =====================================================================
+\chapter{Programacion de GPIO en Pi 5}
+
+\section{Librerias disponibles}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Libreria} & \textbf{Pi 4} & \textbf{Pi 5} \\
+\midrule
+\texttt{RPi.GPIO}     & si  & \textbf{NO} (deprecada) \\
+\texttt{wiringpi}     & si  & \textbf{NO} (no portada) \\
+\texttt{lgpio}        & si  & \textbf{si} (recomendada) \\
+\texttt{gpiozero}     & si  & \textbf{si} (alto nivel) \\
+\texttt{pigpio}       & si  & \textbf{si} (con demonio) \\
+\texttt{libgpiod}     & si  & \textbf{si} (la oficial Linux) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Ejemplo: blink de LED en GPIO17}
+
+\begin{lstlisting}[language=python]
+import gpiozero
+import time
+led = gpiozero.LED(17)
+while True:
+    led.on()
+    time.sleep(0.5)
+    led.off()
+    time.sleep(0.5)
+\end{lstlisting}
+
+\section{Ejemplo: leer sensor con I2C}
+
+\begin{lstlisting}[language=python]
+import smbus2
+bus = smbus2.SMBus(1)         # I2C-1
+addr = 0x68                   # MPU-6050 IMU
+data = bus.read_byte_data(addr, 0x75)   # WHO_AM_I
+print(hex(data))              # debe imprimir 0x68
+\end{lstlisting}
+
+% =====================================================================
+\chapter{Camara y video}
+
+\section{libcamera + Picamera2}
+
+\texttt{libcamera} es el stack moderno de camaras de Linux, reemplaza al viejo
+\texttt{raspistill}. \texttt{Picamera2} es el wrapper Python.
+
+\section{Configuracion para microscopia cuantitativa}
+
+\begin{lstlisting}[language=python]
+from picamera2 import Picamera2
+import numpy as np
+
+cam = Picamera2()
+config = cam.create_still_configuration(
+    main={"size": (2592, 1944), "format": "RGB888"},
+    raw={"size": (2592, 1944)},
+)
+cam.configure(config)
+
+# Desactivar correcciones automaticas
+cam.set_controls({
+    "AwbEnable": False,
+    "AeEnable": False,
+    "ExposureTime": 50000,    # 50 ms
+    "AnalogueGain": 1.0,
+    "ColourGains": (1.0, 1.0),
+})
+cam.start()
+
+# Capturar
+img = cam.capture_array("main")     # numpy array (H, W, 3)
+raw = cam.capture_array("raw")      # Bayer 10-bit
+\end{lstlisting}
+
+\section{Sensor OV5647 specs}
+
+\begin{itemize}[leftmargin=2em]
+  \item Resolucion activa: $2592 \times 1944$ ($5$ MP).
+  \item Pixel pitch: $1.4\;\mu$m.
+  \item Profundidad: $10$ bits crudos (RAW10).
+  \item Frame rate: $30$ fps @ $1080$p, $15$ fps @ $5$ MP.
+  \item Lente original: removida para uso lensless.
+\end{itemize}
+
+% =====================================================================
+\chapter{Gestion termica}
+
+\section{Sensores}
+
+El SoC BCM2712 tiene un sensor de temperatura interno accesible por:
+
+\begin{lstlisting}[language=bash]
+vcgencmd measure_temp
+# temp=45.2'C
+
+cat /sys/class/thermal/thermal_zone0/temp
+# 45200 (mili-grados Celsius)
+\end{lstlisting}
+
+\section{Throttling}
+
+Cuando $T > 80$°C el SoC reduce frecuencia automaticamente:
+
+\begin{itemize}[leftmargin=2em]
+  \item $T > 80$°C: throttle suave ($-200$ MHz).
+  \item $T > 85$°C: throttle agresivo (1.5 GHz).
+  \item $T > 90$°C: posible apagado por proteccion.
+\end{itemize}
+
+Verificar con:
+\begin{lstlisting}[language=bash]
+vcgencmd get_throttled
+# throttled=0x0    (sin throttling)
+# throttled=0x40000  (en throttling actual)
+\end{lstlisting}
+
+\section{Disipacion en CubeSat}
+
+\begin{cuidado}
+El CubeSat NO tiene aire para conveccion. La disipacion del Pi 5 (hasta $7$
+W en CPU 100\%) genera $\Delta T$ alto. Soluciones:
+\begin{itemize}[leftmargin=1em]
+  \item Disipador termico de aluminio en contacto directo con el SoC.
+  \item Pad termico o pasta hacia la estructura del satelite (que actua como
+        radiador).
+  \item Limitar el duty cycle del modo PROCESSING.
+  \item Considerar undervoltaje y limite de frecuencia: \\
+        \texttt{arm\_freq=1500} en \texttt{config.txt} reduce a $1.5$ GHz.
+\end{itemize}
+\end{cuidado}
+
+% =====================================================================
+\chapter{Networking (en lab, no en orbita)}
+
+\section{Ethernet Gigabit}
+
+PHY integrada en RP1, conector RJ-45. Soporta PoE+ (con HAT oficial).
+
+\section{WiFi y Bluetooth}
+
+Cypress CYW43455 dual-band (2.4 + 5 GHz) WiFi 802.11ac + Bluetooth 5.0 BLE.
+En CubeSat no se usa (pero util para debug en lab):
+
+\begin{lstlisting}[language=bash]
+# Configurar WiFi sin GUI
+sudo nmtui
+\end{lstlisting}
+
+\section{En el modelo de vuelo}
+
+CM5 \textbf{NO incluye} WiFi/BT por defecto (hay version con). Para
+CubeSat se desactivan via \texttt{config.txt}:
+
+\begin{lstlisting}[language=bash]
+dtoverlay=disable-wifi
+dtoverlay=disable-bt
+\end{lstlisting}
+
+% =====================================================================
+\chapter{Migracion al Compute Module 5}
+
+\section{Diferencias clave}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Aspecto} & \textbf{Pi 5} & \textbf{CM5} \\
+\midrule
+Tamaño              & $85 \times 56$ mm     & $55 \times 40$ mm \\
+Conector            & headers (40-pin etc.) & mezzanine 200-pin \\
+Carrier             & propia placa          & se diseña aparte \\
+USB                 & 4 puertos             & no expuestos \\
+Ethernet            & RJ-45                 & solo PHY (necesita conector externo) \\
+HDMI                & si                    & exposed via mezzanine \\
+eMMC                & no                    & \textbf{si (4--64 GB)} \\
+Consumo             & 3--8 W                & 2.5--7 W ($\sim 10\%$ menos) \\
+SD                  & si                    & solo en version Lite \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Carrier board para CubeSat}
+
+El carrier debe incluir:
+
+\begin{enumerate}[leftmargin=2em]
+  \item Conector mezzanine de 200 pines (Hirose DF40 stack height $1.5$ mm).
+  \item Footprint mecanico PC-104.
+  \item Level shifter TXS0108E para I2C externo.
+  \item Fusible PTC + LDO para el rail $5$ V de la EPS.
+  \item INA219 para monitor de potencia.
+  \item Conector CSI-2 (15 o 22 pines) para OV5647.
+  \item Conector SPI + GPIO para OLED SSD1351.
+  \item LED de estado de boot.
+  \item Pads de prueba para los buses.
+\end{enumerate}
+
+\section{Software}
+
+El CM5 corre el mismo Raspberry Pi OS que el Pi 5. La transicion es
+transparente para el codigo: solo cambia el carrier y la imagen de boot
+(habilitar eMMC en lugar de SD).
+
+\begin{nota}
+La migracion al CM5 NO requiere cambios en \texttt{cubesat/} ni en
+\texttt{pipeline/}. El unico cambio sera en \texttt{cubesat/install.sh}
+para flashear la eMMC en lugar de la SD.
+\end{nota}
+
+% =====================================================================
+\chapter{Robustez para vuelo}
+
+\section{Watchdog hardware}
+
+El BCM2712 tiene un watchdog interno que reinicia el SoC si no recibe kick.
+Habilitarlo:
+
+\begin{lstlisting}[language=bash]
+# config.txt
+dtparam=watchdog=on
+
+# /etc/systemd/system/cubesat-pipeline.service
+WatchdogSec=600
+\end{lstlisting}
+
+Si el daemon se cuelga $\geq 600$ s sin llamar \texttt{sd\_notify(WATCHDOG=1)},
+systemd lo reinicia. Si systemd se cuelga, el watchdog hardware reinicia el SoC.
+
+\section{Memoria SD vs eMMC en orbita}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Aspecto} & \textbf{SD} & \textbf{eMMC (CM5)} \\
+\midrule
+Vibracion          & sale del slot (riesgo) & soldada \\
+Radiacion          & sin proteccion        & ECC interna \\
+Vida util          & 1000-3000 ciclos     & 10000-20000 ciclos \\
+Velocidad          & 100 MB/s              & 200 MB/s \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Bit rot y radiacion}
+
+En LEO se reciben $\sim 5-10$ rad/dia. El BCM2712 no es rad-hard pero:
+
+\begin{itemize}[leftmargin=2em]
+  \item TID toleramos $\sim 10$ krad antes de degradacion notable $=$ unos
+        3 años de mision.
+  \item SEU (Single Event Upset) en RAM: bit-flip aislado, mitigable con ECC
+        software o reboots periodicos.
+  \item SEFI (Single Event Functional Interrupt): cuelgue del SoC $\to$
+        watchdog hardware reinicia.
+\end{itemize}
+
+\section{Uptime y reboots planificados}
+
+Reboot semanal preventivo:
+
+\begin{lstlisting}[language=bash]
+# /etc/cron.d/weekly-reboot
+0 3 * * 0 root /sbin/shutdown -r now
+\end{lstlisting}
+
+% =====================================================================
+\chapter{Comandos utiles de diagnostico}
+
+\section{Hardware}
+
+\begin{lstlisting}[language=bash]
+# Modelo y revision
+cat /proc/device-tree/model
+# Raspberry Pi 5 Model B Rev 1.0
+
+# Frecuencia actual de cada core
+for i in 0 1 2 3; do
+    cat /sys/devices/system/cpu/cpu$i/cpufreq/scaling_cur_freq
+done
+
+# Memoria
+free -m
+
+# Temperatura
+vcgencmd measure_temp
+
+# Tensiones
+for v in core sdram_c sdram_i sdram_p; do
+    echo -n "$v: "
+    vcgencmd measure_volts $v
+done
+
+# Tirar el dump completo
+vcgencmd version
+vcgencmd get_throttled
+\end{lstlisting}
+
+\section{Buses}
+
+\begin{lstlisting}[language=bash]
+# I2C scan
+sudo i2cdetect -y 1
+
+# SPI test
+sudo spi-pipe -d /dev/spidev0.0 -s 1000000
+
+# UART loopback
+echo "test" | sudo socat - /dev/ttyAMA0,b115200,raw
+\end{lstlisting}
+
+\section{Camara}
+
+\begin{lstlisting}[language=bash]
+# Listar camaras detectadas
+libcamera-hello --list-cameras
+
+# Captura rapida
+libcamera-still -o test.jpg --immediate
+
+# Sin auto-exposure
+libcamera-still -o test.jpg --immediate --shutter 50000 --gain 1.0
+\end{lstlisting}
+
+\section{Servicios}
+
+\begin{lstlisting}[language=bash]
+# Estado de todos los cubesat-*
+systemctl status cubesat-* --no-pager
+
+# Log en vivo
+journalctl -f -u cubesat-pipeline
+
+# Reiniciar todo
+sudo systemctl restart cubesat-pipeline cubesat-i2c-slave cubesat-telemetry
+
+# Ver dependencias
+systemctl list-dependencies cubesat-pipeline
+\end{lstlisting}
+
+% =====================================================================
+\chapter{Diagnosticos comunes y soluciones}
+
+\section{El sistema no botea}
+
+\begin{itemize}[leftmargin=2em]
+  \item LED rojo encendido continuo: error de power. Verificar fuente $\geq 5$ A.
+  \item LED verde parpadea N veces: codigo de error documentado en
+        \url{https://github.com/raspberrypi/firmware/issues}.
+  \item Sin LEDs: probable fallo de boot ROM. Conectar UART (pin 8/10) para ver mensajes.
+\end{itemize}
+
+\section{I2C no detecta dispositivos}
+
+\begin{enumerate}[leftmargin=2em]
+  \item \texttt{lsmod | grep i2c} -- ¿estan los modulos cargados?
+  \item \texttt{ls /dev/i2c-*} -- ¿hay nodos?
+  \item \texttt{sudo i2cdetect -y 1} -- escanea el bus.
+  \item Verificar pull-ups (4.7 k$\Omega$ a 3.3 V; suelen estar en la placa de sensor).
+  \item Confirmar tension $V_{IO}$ correcta del slave (3.3 V para Pi GPIO).
+\end{enumerate}
+
+\section{Camara no detectada}
+
+\begin{lstlisting}[language=bash]
+# Re-habilitar
+sudo raspi-config
+# Interface Options $\to$ Camera $\to$ Enable
+
+# Verificar overlay
+grep -E "camera|ov5647" /boot/firmware/config.txt
+
+# Detectar
+libcamera-hello --list-cameras
+\end{lstlisting}
+
+\section{Temperatura alta}
+
+\begin{itemize}[leftmargin=2em]
+  \item Verificar que el disipador este montado y tenga pasta termica.
+  \item En \texttt{config.txt}: \texttt{arm\_freq=1500} para limitar a 1.5 GHz.
+  \item Reducir \texttt{over\_voltage=-2} (undervolt seguro).
+  \item Verificar duty cycle del pipeline IA (no correr permanentemente).
+\end{itemize}
+
+% =====================================================================
+\chapter{Checklist final pre-vuelo}
+
+\begin{itemize}[leftmargin=2em]
+  \item[$\square$] Migrado a Compute Module 5 con eMMC.
+  \item[$\square$] Carrier board diseñado y validado en banco.
+  \item[$\square$] Watchdog hardware habilitado (\texttt{dtparam=watchdog=on}).
+  \item[$\square$] Watchdog software habilitado (\texttt{WatchdogSec=600}).
+  \item[$\square$] Auto-reboot semanal configurado en cron.
+  \item[$\square$] WiFi/BT deshabilitados.
+  \item[$\square$] HDMI deshabilitado.
+  \item[$\square$] Audio deshabilitado.
+  \item[$\square$] Frecuencia limitada a $1.5$ GHz.
+  \item[$\square$] Disipador con pasta termica + pad a estructura.
+  \item[$\square$] OTA testado en banco (git fetch + checkout + rollback).
+  \item[$\square$] Burn-in 168 h sin reboot.
+  \item[$\square$] Test termico --10 a +50 °C.
+  \item[$\square$] Test vibracion 3 g RMS.
+  \item[$\square$] Documentacion de mision completa en repo.
+\end{itemize}
+
+% =====================================================================
+\chapter*{Referencias oficiales}
+\addcontentsline{toc}{chapter}{Referencias oficiales}
+
+\begin{itemize}[leftmargin=2em]
+  \item Raspberry Pi 5 product page: \url{https://www.raspberrypi.com/products/raspberry-pi-5/}
+  \item Pi 5 documentation: \url{https://www.raspberrypi.com/documentation/computers/raspberry-pi-5.html}
+  \item BCM2712 datasheet: \url{https://datasheets.raspberrypi.com/bcm2712/bcm2712-peripherals.pdf}
+  \item RP1 datasheet: \url{https://datasheets.raspberrypi.com/rp1/rp1-peripherals.pdf}
+  \item CM5 datasheet: \url{https://datasheets.raspberrypi.com/cm5/cm5-datasheet.pdf}
+  \item CM5 IO Board: \url{https://datasheets.raspberrypi.com/cm5/cm5-ioboard-datasheet.pdf}
+  \item Picamera2 manual: \url{https://datasheets.raspberrypi.com/camera/picamera2-manual.pdf}
+  \item libcamera apps: \url{https://www.raspberrypi.com/documentation/computers/camera_software.html}
+  \item OV5647 datasheet: \url{https://www.ovt.com/sensors/OV5647}
+  \item SSD1351 datasheet: \url{https://www.solomon-systech.com/product/ssd1351/}
+  \item Forum oficial: \url{https://forums.raspberrypi.com}
+  \item GitHub Pi firmware: \url{https://github.com/raspberrypi/firmware}
+\end{itemize}
+
+\end{document}
