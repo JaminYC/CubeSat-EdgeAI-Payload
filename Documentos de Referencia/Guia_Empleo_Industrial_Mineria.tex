@@ -1,0 +1,939 @@
+\documentclass[11pt,a4paper,oneside]{report}
+\usepackage[spanish,activeacute,es-noshorthands]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{geometry}
+\geometry{margin=2.4cm, headheight=14pt}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\usepackage{caption}
+\captionsetup{font=small, labelfont=bf}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=NavyBlue,
+  citecolor=ForestGreen,
+  urlcolor=BrickRed,
+  pdftitle={Guia de empleo en automatizacion industrial y mineria - Peru},
+  pdfauthor={CubeSat-EdgeAI-Payload}
+}
+
+\definecolor{intisat}{RGB}{26, 54, 93}
+\definecolor{intisataccent}{RGB}{197, 143, 0}
+\definecolor{ok}{RGB}{47, 133, 90}
+\definecolor{warn}{RGB}{197, 60, 60}
+
+\titleformat{\chapter}[hang]
+  {\normalfont\Huge\bfseries\color{intisat}}
+  {\thechapter.}{0.6em}{}
+\titlespacing*{\chapter}{0pt}{-20pt}{20pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\nouppercase{\leftmark}}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\newtcolorbox{tip}[1][]{
+  colback=green!5, colframe=ok,
+  fonttitle=\bfseries, title=Tip practico,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{advertencia}[1][]{
+  colback=red!4, colframe=warn,
+  fonttitle=\bfseries, title=Advertencia,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{datos}[1][]{
+  colback=blue!4, colframe=intisat,
+  fonttitle=\bfseries, title=Datos del mercado,
+  breakable, sharp corners=south, #1
+}
+
+\begin{document}
+
+% ─── Portada ────────────────────────────────────────────────────────
+\begin{titlepage}
+\centering
+\vspace*{1cm}
+{\color{intisat}\rule{\textwidth}{2pt}}
+\vspace{0.6cm}
+
+{\Huge\bfseries\color{intisat} Guia de empleo}\\[0.3em]
+{\LARGE\bfseries Automatizacion industrial y mineria}\\[0.3em]
+{\Large Peru — 2026}
+
+\vspace{0.7cm}
+{\Large\itshape Sistemas industriales, sueldos, empresas\\
+y plan de accion para transicionar desde\\
+un proyecto aeroespacial academico al sector productivo}
+
+\vspace{1cm}
+{\color{intisataccent}\rule{0.6\textwidth}{1pt}}
+
+\vspace{2cm}
+
+\begin{tabular}{rl}
+\textbf{Audiencia:} & Estudiantes / egresados de ingenieria \\
+\textbf{Sectores:} & Mineria, alimentos, manufactura \\
+\textbf{Roles:} & Automatizacion, control, data science industrial \\
+\textbf{Origen:} & Proyecto CubeSat-EdgeAI-Payload (UNI / INTISAT) \\
+\textbf{Fecha:} & \today \\
+\textbf{Documento:} & v1.0
+\end{tabular}
+
+\vfill
+
+\begin{minipage}{0.85\textwidth}
+\textbf{Resumen.}\quad
+Documento orientativo sobre el sector de automatizacion industrial en
+Peru, con foco en mineria, alimentos y manufactura. Incluye descripcion
+de sistemas (PLC, SCADA, DCS), buses de comunicacion, marcas dominantes,
+sueldos reales por nivel de experiencia, empresas tipicas, plataformas
+de busqueda de empleo, certificaciones recomendadas, y un plan de
+transicion concreto para egresados de proyectos aeroespaciales /
+academicos hacia el sector industrial productivo. Las cifras son
+referenciales y deben verificarse contra las plataformas indicadas.
+\end{minipage}
+
+\vspace{1.2cm}
+{\color{intisat}\rule{\textwidth}{2pt}}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+% =====================================================================
+\chapter{Vision general del sector}
+
+Peru tiene una base industrial significativa en tres sectores:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Mineria}: la columna vertebral. Operaciones de gran escala
+        (Antamina, Yanacocha, Cerro Verde, Las Bambas, Toromocho, Quellaveco)
+        usan automatizacion identica a Australia, Canada o Chile. Inversion
+        anual en sistemas de control: cientos de millones de USD.
+  \item \textbf{Alimentos y bebidas}: empresas grandes (Alicorp, Gloria,
+        Backus/AB InBev, Nestle Peru, Laive) tienen lineas automatizadas
+        con PLCs, MES, trazabilidad batch-to-end.
+  \item \textbf{Manufactura}: mas chico que mineria/alimentos pero existe
+        (Aceros Arequipa, Continental Tires, Lindley, Ferreyros).
+\end{itemize}
+
+\begin{datos}
+La inversion total en sistemas de control industrial en Peru se estima
+en USD 500--800 millones por año. La mayor parte es renovacion / expansion
+de plantas existentes en mineria y alimentos.
+\end{datos}
+
+\section{Donde NO estamos atrasados}
+
+A diferencia del sector aeroespacial (donde Peru tiene poca capacidad
+local), en industrial:
+
+\begin{itemize}[leftmargin=2em]
+  \item Las grandes mineras usan exactamente el mismo hardware
+        (Siemens, Allen-Bradley, ABB) que sus operaciones globales.
+  \item Hay representantes oficiales y stock local de marcas premium.
+  \item Existen tecnicos peruanos con certificaciones internacionales.
+  \item Los integradores locales pueden hacer proyectos llave en mano.
+\end{itemize}
+
+\section{Donde si hay limitaciones}
+
+\begin{itemize}[leftmargin=2em]
+  \item Pocas empresas peruanas \emph{fabrican} hardware de control;
+        casi todo se importa.
+  \item La capacidad de R\&D propia es limitada.
+  \item Brain drain hacia Chile / Australia / Canada en niveles senior.
+  \item Salaries en automatizacion son altos en mineria pero bajos en
+        otros sectores.
+\end{itemize}
+
+% =====================================================================
+\chapter{Sistemas industriales: PLC, DCS, SCADA, MES}
+
+\section{PLC --- Programmable Logic Controller}
+
+Computadora especializada en automatizacion. A diferencia de un PC, esta
+diseñada para:
+
+\begin{itemize}[leftmargin=2em]
+  \item Operar 24/7/365 durante 20+ años sin reboot.
+  \item Soportar -40 a +70 °C en sala industrial polvorienta.
+  \item Resistir ruido electrico de motores y soldadoras.
+  \item Garantizar tiempo de respuesta deterministico.
+  \item Programarse con lenguajes pensados para procesos.
+\end{itemize}
+
+\subsection{Marcas dominantes mundialmente}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Marca} & \textbf{Producto estrella} & \textbf{Donde domina} \\
+\midrule
+Siemens               & SIMATIC S7-1200 / 1500   & mineria europea/peruana, refinerias \\
+Rockwell Allen-Bradley & ControlLogix / CompactLogix & USA, comida, automotive \\
+Schneider Electric    & Modicon M340 / M580      & Francia, energia \\
+Mitsubishi            & MELSEC iQ-R              & Japon, automotive \\
+Omron                 & Sysmac NX/NJ             & electronica, packaging \\
+ABB                   & AC500                    & mineria, energia \\
+Beckhoff              & TwinCAT (PC-based)       & maquinaria europea high-end \\
+Honeywell             & Experion PKS (DCS)       & refinerias, oil \& gas \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+En Peru predominan \textbf{Siemens} (mineria) y \textbf{Allen-Bradley}
+(alimentos como Backus, Alicorp).
+
+\section{DCS --- Distributed Control System}
+
+Variante del PLC para procesos continuos grandes (refinerias, plantas
+quimicas, plantas concentradoras de mineral). La diferencia clave:
+
+\begin{itemize}[leftmargin=2em]
+  \item PLC: discreto, eventos rapidos, una maquina o linea.
+  \item DCS: continuo, miles de loops PID, planta entera coordinada.
+\end{itemize}
+
+Marcas DCS: Honeywell Experion PKS, Yokogawa CENTUM VP, ABB 800xA,
+Emerson DeltaV.
+
+\section{SCADA --- Supervisory Control And Data Acquisition}
+
+El \emph{software} que el operador ve en la pantalla. Conecta a los PLCs/DCS
+y muestra el proceso en tiempo real con sinopticos, alarmas, tendencias,
+historicos.
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Plataforma SCADA} & \textbf{Quien la fabrica} \\
+\midrule
+AVEVA InTouch (ex-Wonderware) & AVEVA / Schneider \\
+Ignition                       & Inductive Automation \\
+WinCC                         & Siemens \\
+iFix                          & GE Digital \\
+Citect SCADA                  & Schneider Electric \\
+ClearSCADA                    & AVEVA \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+En mineria peruana es muy comun ver \textbf{Wonderware InTouch} y
+\textbf{Ignition}. \textbf{WinCC} en plantas Siemens-centric.
+
+\section{MES --- Manufacturing Execution System}
+
+Capa por encima del SCADA. Conecta el piso de planta con la oficina
+(ERP). Maneja:
+
+\begin{itemize}[leftmargin=2em]
+  \item Trazabilidad batch-to-end (que materia prima fue a que producto).
+  \item OEE (Overall Equipment Effectiveness) y KPI de planta.
+  \item Calidad y validacion (FDA / DIGESA en alimentos).
+  \item Programacion de produccion en tiempo real.
+\end{itemize}
+
+Marcas: AVEVA MES, Siemens Opcenter, Rockwell PharmaSuite, GE Proficy.
+
+\section{Arquitectura ISA-95 (la piramide de automatizacion)}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Nivel} & \textbf{Que es} & \textbf{Tipico} \\
+\midrule
+Nivel 5 & ERP                   & SAP, Oracle. Compras, RR.HH., finanzas \\
+Nivel 4 & MES / Planificacion    & AVEVA MES, OEE, calidad \\
+Nivel 3 & SCADA / Operacion      & Ignition, Wonderware, WinCC \\
+Nivel 2 & Control                & PLC, DCS \\
+Nivel 1 & Instrumentacion        & Sensores, actuadores, drivers \\
+Nivel 0 & Proceso                & Materia prima, horno, mina \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =====================================================================
+\chapter{Buses y protocolos industriales}
+
+A diferencia de I2C/SPI/UART (que son intra-PCB, distancias cortas), los
+buses industriales son \emph{deterministic, isolation transformer, longitud
+larga, ruido electrico tolerante}.
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+\textbf{Protocolo} & \textbf{Distancia} & \textbf{Velocidad} & \textbf{Uso} \\
+\midrule
+4-20 mA (analogico) & 1 km     & ---       & sensores presion, temp, nivel \\
+HART                & 1 km     & 1.2 kbps  & 4-20 mA + datos digitales \\
+Modbus RTU (RS-485) & 1 km     & 115 kbps  & el "I2C industrial" \\
+Modbus TCP          & 100 m    & 100 Mbps  & version IP de Modbus \\
+Profibus DP         & 100 m    & 12 Mbps   & red Siemens clasica \\
+Profinet            & 100 m    & 1 Gbps    & Siemens IP-based moderno \\
+EtherCAT            & 100 m    & 100 Mbps  & motion control microsegundo \\
+DeviceNet / CIP     & 500 m    & 500 kbps  & Allen-Bradley legacy \\
+OPC UA              & red IP   & ---       & moderno, vendor-neutral \\
+ISA-100 / WirelessHART & inalambrico & --- & sensores remotos \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{El gran cambio reciente} es \textbf{OPC UA}: protocolo abierto,
+vendor-neutral, que permite interoperabilidad sin lock-in propietario.
+
+\section{Lenguajes de programacion (norma IEC 61131-3)}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Lenguaje} & \textbf{Uso} \\
+\midrule
+Ladder Diagram (LD)        & logica binaria, releve emulado. El mas usado. \\
+Function Block Diagram (FBD) & flujo de datos, control PID \\
+Structured Text (ST)        & algoritmos complejos (parecido a Pascal) \\
+Sequential Function Chart (SFC) & maquinas de estado \\
+Instruction List (IL)       & assembler-like, casi extinto \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =====================================================================
+\chapter{Sectores en detalle: mineria}
+
+La mineria peruana es donde \textbf{mas se invierte} en automatizacion. Las
+grandes operaciones tienen sistemas de primer nivel mundial.
+
+\section{Empresas operadoras}
+
+\begin{center}
+\begin{tabular}{p{4.5cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Empresa} & \textbf{Operacion} & \textbf{Ubicacion} \\
+\midrule
+Antamina (BHP/Glencore/Teck/Mitsubishi)  & cobre/zinc & Ancash (4 200 m) \\
+Yanacocha (Newmont)                      & oro        & Cajamarca \\
+Cerro Verde (Freeport-McMoRan)           & cobre      & Arequipa \\
+Las Bambas (MMG)                         & cobre      & Apurimac (4 000 m) \\
+Toromocho (Chinalco)                     & cobre      & Junin (4 500 m) \\
+Quellaveco (Anglo American)              & cobre      & Moquegua \\
+Cuajone (Southern Copper)                & cobre      & Moquegua \\
+Volcan                                   & polimetalico & Cerro de Pasco \\
+Buenaventura                             & polimetalico & varias \\
+Hochschild Mining                        & oro/plata    & varias \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Sistemas tipicos por proceso}
+
+\begin{center}
+\begin{tabular}{p{3.5cm}p{4.5cm}p{4.5cm}}
+\toprule
+\textbf{Proceso} & \textbf{Tecnologia} & \textbf{Marca tipica} \\
+\midrule
+Trituracion primaria & PLC + variadores & Siemens S7-400 + Sinamics \\
+Molinos SAG/bolas    & DCS o PLC redundante & Honeywell Experion / ABB 800xA \\
+Flotacion            & analizador en linea + PLC & Outotec Courier + Siemens \\
+Espesadores          & sensores nucleares + PLC & Endress+Hauser + Allen-Bradley \\
+Camiones autonomos   & sistema completo & Komatsu FrontRunner / Cat MineStar \\
+Despacho             & software optimizacion & Modular Mining DISPATCH \\
+SCADA central        & sinopticos + alarmas & Wonderware / Ignition \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{datos}
+\textbf{Inversion tipica}: una planta concentradora de 100 000 toneladas/dia
+gasta entre USD 30 y 80 millones \textbf{solo en sistema de control}, sin
+contar instrumentacion. El presupuesto de automatizacion es 5--10\% del
+total de la planta.
+\end{datos}
+
+% =====================================================================
+\chapter{Sectores en detalle: alimentos y bebidas}
+
+\section{Empresas grandes}
+
+\begin{center}
+\begin{tabular}{p{3.5cm}p{4cm}p{4cm}}
+\toprule
+\textbf{Empresa} & \textbf{Sector} & \textbf{Automatizacion tipica} \\
+\midrule
+Alicorp                       & aceites, fideos, detergentes & Allen-Bradley + RSLogix \\
+Gloria                        & lacteos & Siemens + WinCC \\
+Backus (AB InBev)             & cerveza & Siemens TIA Portal + WinCC \\
+Laive                         & lacteos & mix \\
+Nestle Peru                   & lacteos, cafe & global standard ABB / Siemens \\
+San Fernando                  & avicola & Siemens + WinCC \\
+Lindley (Coca-Cola Peru)      & bebidas & Siemens \\
+Aje                          & bebidas & Allen-Bradley \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Caracteristicas tecnicas}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Esterilizacion / pasteurizacion} controlada por PLC con
+        curvas de temperatura validadas (FDA / DIGESA).
+  \item \textbf{Llenado y empaque} con servomotores Siemens / Beckhoff
+        sincronizados a milisegundo.
+  \item \textbf{Trazabilidad batch-to-end} con MES (Wonderware MES, Siemens
+        Opcenter) que conecta con ERP SAP.
+  \item \textbf{Vision por computadora} para inspeccion de envases (Cognex,
+        Keyence). Aqui es donde tu skill IA tiene aplicacion directa.
+\end{itemize}
+
+% =====================================================================
+\chapter{Sectores en detalle: manufactura}
+
+Mas chico que mineria/alimentos pero existe:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Empresa} & \textbf{Sector} & \textbf{Sistema} \\
+\midrule
+Aceros Arequipa       & siderurgia        & Siemens + ABB drives \\
+Ferreyros (CAT)       & maquinaria pesada & Allen-Bradley \\
+Continental Tires     & neumaticos        & Mitsubishi \\
+Cogorno               & textiles          & mix economico \\
+Topitop               & textiles          & mix \\
+Sider Peru            & acero             & Siemens \\
+Yura (Cementos Yura)  & cemento           & ABB \\
+UNACEM                & cemento           & ABB / Siemens \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =====================================================================
+\chapter{Sueldos por nivel de experiencia}
+
+\begin{advertencia}
+Cifras referenciales basadas en publicaciones del sector y reportes de
+LinkedIn / Bumeran / Computrabajo. Verificar siempre contra ofertas
+actuales en las plataformas.
+\end{advertencia}
+
+Peru paga \textbf{14 sueldos al año} (12 mensuales + 2 gratificaciones de
+julio y diciembre). Las cifras siguientes son sueldos brutos mensuales.
+
+\begin{center}
+\begin{tabular}{lp{2cm}p{2.6cm}p{2.6cm}p{3cm}}
+\toprule
+\textbf{Nivel} & \textbf{Exp. (años)} & \textbf{S/ mensual} & \textbf{USD mensual} & \textbf{USD anual (14)} \\
+\midrule
+Practicante / Trainee   & 0    & 1 500 - 2 500   & 400 - 680     & 5 600 - 9 500 \\
+Junior                  & 1-3  & 4 000 - 7 000   & 1 100 - 1 900 & 15 000 - 26 000 \\
+Semi-senior             & 3-7  & 7 000 - 12 000  & 1 900 - 3 300 & 26 000 - 46 000 \\
+Senior                  & 7-15 & 12 000 - 22 000 & 3 300 - 6 000 & 46 000 - 84 000 \\
+Lead / Especialista     & 15+  & 20 000 - 40 000 & 5 500 - 10 800 & 77 000 - 150 000 \\
+Gerente Automatizacion  & 20+  & 35 000 - 70 000 & 9 500 - 18 900 & 132 000 - 265 000 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Estas cifras \textbf{NO incluyen bonos}. La industria minera paga ademas:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Bono anual por desempeño}: 1--3 sueldos extra.
+  \item \textbf{Utilidades} (ley peruana): hasta 18 sueldos en años buenos.
+  \item \textbf{Bono de mina} (si trabajas en site): 30--50\% adicional al base.
+\end{itemize}
+
+\textbf{Senior en site con buena empresa}: facilmente USD 150 000/año todo
+incluido.
+
+\section{Factores que cambian el numero}
+
+\subsection{Site (mina) vs Lima (oficina)}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Modalidad} & \textbf{Diferencia} \\
+\midrule
+Site (mina) turno 14$\times$7 o 21$\times$7 & base + 30--50\% \\
+Lima oficina                                & base \\
+Hibrido (Lima + visitas a site)             & base + 10--20\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Empresa (tier)}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Tier} & \textbf{Empresas} & \textbf{Senior tipico (S/)} \\
+\midrule
+Tier 1 (multinacional) & Antamina, Cerro Verde, Yanacocha, Las Bambas, Quellaveco & 20 000 - 25 000 \\
+Tier 2 (mid-size)      & Volcan, Buenaventura, Hochschild, Southern Copper       & 14 000 - 18 000 \\
+Tier 3 (junior)        & Sociedad Minera, Aruntani                                & 10 000 - 13 000 \\
+EPC / contratistas     & Bechtel, Fluor, Hatch, Ausenco                          & 15 000 - 22 000 \\
+Integrador local       & Comesa, Tetra Tech, GTD                                  &  9 000 - 15 000 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Especialidades premium (+20--40\% sobre base)}
+
+\begin{itemize}[leftmargin=2em]
+  \item Ciberseguridad industrial OT (escasez de talento).
+  \item MES / Sistemas (Wonderware, Ignition).
+  \item DCS especialista (Honeywell Experion, Yokogawa CENTUM).
+  \item PLC programmer Senior con Allen-Bradley.
+  \item Despacho minero (Modular Mining DISPATCH, Hexagon, Caterpillar).
+  \item \textbf{Vision por computadora industrial} (donde tu skill aplica).
+  \item Robotica de proceso.
+\end{itemize}
+
+\subsection{Idioma}
+
+\begin{itemize}[leftmargin=2em]
+  \item Ingles fluido: $+20\%$ en sueldo (multinacionales lo exigen).
+  \item Portugues / mandarin: bonus extra pero raro.
+\end{itemize}
+
+\section{Comparativa con otras especialidades}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Especialidad} & \textbf{Senior tipico (S/ mensual)} \\
+\midrule
+Automatizacion mineria               & 12 000 - 22 000 \\
+Procesos / Metalurgia mineria        & 15 000 - 25 000 \\
+Geomecanica mineria                  & 12 000 - 20 000 \\
+Petroleo / refineria                 & 14 000 - 28 000 \\
+Software Backend Senior              & 10 000 - 25 000 \\
+Software FAANG remoto USA            & 25 000 - 80 000 \\
+Aeroespacial Peru (CONIDA, UNI)      &  5 000 - 12 000 \\
+Investigador universitario senior    &  8 000 - 15 000 \\
+Ingenieria civil construccion        &  8 000 - 15 000 \\
+Electronica consumer                 &  5 000 - 10 000 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{datos}
+\textbf{Hecho clave}: en Peru, mineria paga mejor que aeroespacial por un
+factor de 2--3x. El talento se va a mineria. Si vienes de un proyecto
+aeroespacial academico, transicionar al sector industrial es \textbf{economicamente
+ventajoso} y tecnicamente accesible.
+\end{datos}
+
+% =====================================================================
+\chapter{Camino tipico de carrera}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Año} & \textbf{Hito} \\
+\midrule
+0   & Practicante en EPC o integrador, 2 500 S/ \\
+2   & Junior en EPC, 6 500 S/ \\
+4   & Junior en mina (site), 9 000 S/ + bonos \\
+7   & Semi-senior en mina, 14 000 S/ + bonos + utilidades \\
+12  & Senior especialista (DCS / cyber / MES), 22 000 S/ + bonos \\
+18  & Lead / consultor independiente, 30 000+ S/ o \$1500/dia \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Comparativa internacional}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Pais} & \textbf{Senior automatizacion mineria (USD/año)} \\
+\midrule
+Peru      & 46 000 - 84 000 \\
+Chile     & 70 000 - 120 000 \\
+Australia (FIFO) & 130 000 - 250 000 \\
+Canada    & 110 000 - 180 000 \\
+USA (oil \& gas) & 100 000 - 200 000 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Australia} es el destino estrella para mineros peruanos: dobla o
+triplica el sueldo, modalidad FIFO (Fly-In Fly-Out, 14 dias en mina + 14 en
+casa).
+
+% =====================================================================
+\chapter{Empresas relevantes para tu perfil}
+
+\begin{advertencia}
+Las empresas listadas tienen actividades de innovacion / data science /
+vision computacional segun publicaciones publicas, pero los programas
+especificos cambian seguido. \textbf{Verificar siempre} contra LinkedIn
+y las paginas oficiales antes de aplicar.
+\end{advertencia}
+
+\section{Mineras operadoras con foco en automatizacion / AI}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{8cm}}
+\toprule
+\textbf{Empresa} & \textbf{Por que mira tu perfil} \\
+\midrule
+Antamina        & area de innovacion / data, sistemas de despacho avanzados \\
+Cerro Verde     & operacion grande con renovacion tecnologica continua \\
+Anglo American Quellaveco & "operacion 100\% digital" segun publicaciones; alto perfil de data \\
+Las Bambas      & sistemas de despacho autonomos en evaluacion \\
+Yanacocha       & area de transformacion digital activa \\
+Buenaventura    & varias operaciones, oportunidades junior \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Empresas tecnologicas de mineria}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{8cm}}
+\toprule
+\textbf{Empresa} & \textbf{Que hace} \\
+\midrule
+Komatsu          & FrontRunner (camiones autonomos), AHS, vision \\
+Modular Mining   & DISPATCH (despacho con AI), absorbida por Komatsu \\
+Caterpillar      & MineStar Command, autonomous trucks \\
+Hexagon Mining   & sensores + analytics (ex-Leica) \\
+Outotec / Metso  & instrumentacion para flotacion, control \\
+Endress+Hauser   & instrumentos calibrados, sensores premium \\
+Honeywell Peru   & Experion DCS, integracion \\
+Siemens Peru     & TIA Portal, MindSphere IoT \\
+ABB Peru         & DCS 800xA, drives \\
+Schneider Electric Peru & EcoStruxure, Modicon \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{EPCs e integradores (puerta de entrada para junior)}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{8cm}}
+\toprule
+\textbf{Empresa} & \textbf{Que hace} \\
+\midrule
+Bechtel        & EPC global, mineria \\
+Fluor          & EPC global \\
+Hatch          & EPC con foco mining \\
+Ausenco        & EPC mid-tier \\
+GR Engineering & EPC mid-tier \\
+GTD Peru       & integrador chileno con sucursal \\
+TGestiona      & integrador (subsidiaria Telefonica) \\
+Comesa         & integrador local Lima \\
+Intergrupo / Ingelectra & integradores locales \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =====================================================================
+\chapter{Plataformas de empleo}
+
+\section{Plataformas con ofertas reales}
+
+\begin{center}
+\begin{tabular}{p{3cm}p{4cm}p{6cm}}
+\toprule
+\textbf{Plataforma} & \textbf{URL} & \textbf{Ventaja} \\
+\midrule
+LinkedIn Jobs       & \texttt{linkedin.com/jobs}    & la mas potente; filtra por empresa, zona, skill \\
+Bumeran Peru        & \texttt{bumeran.com.pe}       & portal local lider \\
+Computrabajo Peru   & \texttt{computrabajo.com.pe}  & gratis, alto volumen \\
+Aptitus             & \texttt{aptitus.com}          & ofertas profesionales \\
+Laborum             & \texttt{laborum.pe}           & mid-level / professional \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Como buscar especificamente}
+
+\subsection{Queries para LinkedIn Jobs}
+
+\begin{itemize}[leftmargin=2em]
+  \item \texttt{"data scientist"} + \texttt{"Peru"} + \texttt{"mining"}
+  \item \texttt{"computer vision"} + \texttt{"Peru"} + \texttt{"mining"}
+  \item \texttt{"automation engineer"} + \texttt{"Peru"}
+  \item \texttt{"control systems"} + \texttt{"Antamina"}
+  \item \texttt{"data scientist"} + \texttt{"Quellaveco"}
+  \item \texttt{"machine learning"} + \texttt{"Cerro Verde"}
+  \item \texttt{"automatizacion"} + \texttt{"minera"} + \texttt{"Peru"}
+  \item \texttt{"vision artificial"} + \texttt{"industrial"} + \texttt{"Peru"}
+\end{itemize}
+
+\subsection{Queries para Bumeran / Computrabajo}
+
+\begin{itemize}[leftmargin=2em]
+  \item ingeniero automatizacion mineria
+  \item data scientist mina
+  \item control e instrumentacion
+  \item SCADA programador
+  \item ingeniero PLC
+  \item vision artificial industrial
+  \item analista de datos minero
+\end{itemize}
+
+\section{Estrategias avanzadas de busqueda}
+
+\begin{tip}
+\textbf{1. Reclutadores directo:} en LinkedIn buscar
+\texttt{"talent acquisition Antamina"} o \texttt{"recruiter Cerro Verde"}.
+Conectar con un mensaje breve presentandote.
+
+\textbf{2. Programas trainee:} cada mina tiene programa anual (Antamina
+"Practicas", Cerro Verde "Programa Talento Joven", Anglo American "Graduate
+Programme"). Seguir LinkedIn de las empresas para no perderse las convocatorias.
+
+\textbf{3. Eventos del sector:}
+\begin{itemize}[leftmargin=1em]
+  \item PERUMIN (Arequipa, bianual) --- la convencion mas grande.
+  \item EXTEMIN (asociado a PERUMIN) --- feria de tecnologia.
+  \item Mining \& Energy LATAM (Lima, anual).
+  \item Capacitaciones IIMP (Instituto de Ingenieros de Minas Peru).
+\end{itemize}
+
+\textbf{4. Gerentes de innovacion en LinkedIn:} muchas minas tienen
+"Innovation Manager" o "Digital Transformation Lead". Seguirlos. Postean
+ofertas de su equipo antes que salgan a portales.
+\end{tip}
+
+% =====================================================================
+\chapter{Certificaciones que aceleran}
+
+\begin{center}
+\begin{tabular}{p{4.5cm}p{4cm}p{2.5cm}p{2cm}}
+\toprule
+\textbf{Certificacion} & \textbf{Donde se cursa} & \textbf{Costo aprox.} & \textbf{Tiempo} \\
+\midrule
+Siemens TIA Portal Basic & TecsupVirtual / Siemens Peru & USD 300--500 & 1--2 meses \\
+Rockwell RSLogix 5000 Basic & reps Rockwell Peru & USD 400--600 & 1 mes \\
+ISA-99 Cybersecurity industrial & online ISA & USD 1000+ & 2--3 meses \\
+AVEVA InTouch / Wonderware & AVEVA Peru & USD 500--800 & 1--2 meses \\
+AWS Machine Learning   & online (gratis) & USD 0 & 2 meses \\
+Coursera Data Engineering & Coursera Plus & USD 50/mes & 4--6 meses \\
+Operario PLC nivel 1 (Tecsup) & Tecsup Lima & USD 500 & 1 mes \\
+Diplomado Automatizacion (UNI) & UNI / TECSUP & USD 1500--2500 & 6 meses \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Recomendacion priorizada} para alguien que viene del proyecto INTISAT:
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Siemens TIA Portal Basic}: te da el lenguaje del sector.
+  \item \textbf{AWS Machine Learning}: capitaliza tu skill en IA.
+  \item \textbf{ISA-99 Cybersecurity}: especialidad premium con escasez.
+  \item \textbf{Coursera Data Engineering}: te abre roles de data engineer.
+\end{enumerate}
+
+% =====================================================================
+\chapter{Como vender tu skill set actual}
+
+Tu trabajo en el proyecto CubeSat-EdgeAI tiene \textbf{valor directo en mineria}:
+
+\begin{center}
+\begin{tabular}{p{6cm}p{6cm}}
+\toprule
+\textbf{Tu skill (CubeSat)} & \textbf{Como lo vendes en mineria} \\
+\midrule
+Pipeline IA con StarDist, OpenCV, PyTorch & "vision por computadora industrial — deteccion de defectos, granulometria, reconocimiento de mineral" \\
+Linux embebido + systemd                  & "edge computing en sitios remotos" \\
+I2C / SPI / protocolo custom              & "integracion entre sensores y SCADA" \\
+Power budget + telemetria                 & "monitoreo IoT industrial" \\
+OTA con rollback                           & "deployment seguro en plantas remotas" \\
+Autonomia + watchdog                       & "sistemas tolerantes a fallas" \\
+Documentacion en LaTeX + GitHub           & "ingenieria sistematica, capaz de redactar reportes profesionales" \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Con esto te posicionas como:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Junior en mineria} hoy: 4 500--7 000 S/ + bonos.
+  \item \textbf{Semi-senior} en 2 años: 7 000--12 000 S/.
+  \item \textbf{Senior especialista} en 7 años: 14 000--22 000 S/.
+\end{itemize}
+
+% =====================================================================
+\chapter{Plan de accion concreto}
+
+\section{Esta semana}
+
+\begin{enumerate}[leftmargin=2em]
+  \item Actualizar perfil LinkedIn destacando:
+        \begin{itemize}[leftmargin=1em]
+          \item Pipeline IA con OpenCV / StarDist / PyTorch
+          \item Linux embebido + systemd
+          \item Programacion en Python
+          \item Proyecto INTISAT con link al GitHub
+        \end{itemize}
+  \item Configurar alertas en LinkedIn Jobs con las queries del capitulo 9.
+  \item Configurar cuenta en Bumeran y Computrabajo con las mismas keywords.
+  \item Conectar con 5 personas del rubro (ingenieros de Antamina, Cerro Verde,
+        Anglo American, integradores) con mensaje breve presentandote.
+\end{enumerate}
+
+\section{Mes 1}
+
+\begin{enumerate}[leftmargin=2em]
+  \item Postular a 5--10 ofertas por semana (junior / trainee / practicas).
+  \item Inscribirse en \textbf{Siemens TIA Portal Basic} online.
+  \item Completar curso \textbf{AWS Machine Learning Foundations} (gratis).
+  \item Empezar a leer documentacion de \textbf{Wonderware InTouch} o \textbf{Ignition}.
+\end{enumerate}
+
+\section{Mes 2-3}
+
+\begin{enumerate}[leftmargin=2em]
+  \item Conseguir \textbf{primera entrevista}.
+  \item Si hay convocatoria: participar en \textbf{PERUMIN} o algun evento del sector.
+  \item Completar TIA Portal Basic.
+  \item Empezar a programar un \textbf{LOGO! Siemens} ($\sim$\$200) o \textbf{CODESYS Runtime} (gratis) en una RPi
+        para tener proyecto demostrable.
+\end{enumerate}
+
+\section{Mes 4-6}
+
+\begin{enumerate}[leftmargin=2em]
+  \item Idealmente: estar contratado en algun rol junior.
+  \item Si no: pivotear --- aplicar a EPCs / integradores (mas accesibles).
+  \item Continuar con certificacion AVEVA / Wonderware.
+  \item Networking sostenido con la comunidad.
+\end{enumerate}
+
+\section{Año 2}
+
+\begin{enumerate}[leftmargin=2em]
+  \item Consolidar primer empleo, acumular experiencia en sitio si posible.
+  \item Considerar ISA-99 Cybersecurity como especialidad premium.
+  \item Evaluar postulacion a Australia/Canada como meta de mediano plazo.
+\end{enumerate}
+
+% =====================================================================
+\chapter{Universidades y formacion en Peru}
+
+\begin{center}
+\begin{tabular}{p{6cm}p{7cm}}
+\toprule
+\textbf{Institucion} & \textbf{Foco} \\
+\midrule
+UNI (Universidad Nacional de Ingenieria)        & mineria, INTISAT, automatizacion \\
+PUCP (Pontificia Universidad Catolica Peru)     & mecatronica, ingenieria informatica \\
+UNAS (Universidad Agraria La Molina)             & agroindustria \\
+UNSA (San Agustin Arequipa)                      & cerca de Cerro Verde \\
+Tecsup (instituto tecnico)                       & cursos cortos especializados \\
+TECSUP Diplomados                                & automatizacion, IoT, data \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Tecsup} en particular es muy valorado en industria: programa
+"Tecnico en Automatizacion Industrial" + diplomados especializados.
+La industria paga estos cursos a sus empleados.
+
+% =====================================================================
+\chapter{Comparativa LATAM y migracion}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Pais} & \textbf{Madurez sector} & \textbf{Atractivo} \\
+\midrule
+Argentina & Alta. Lider regional. Satellogic, Innova Space. & alto si te interesa NewSpace \\
+Brasil    & Alta. Industria propia. INPE, Visiona.          & alto, idioma diferente \\
+Mexico    & Media. En crecimiento. Dereum Labs.              & medio \\
+Chile     & Media. Inversion privada. StarHorse.             & alto, lengua \\
+Colombia  & Baja. Solo academico.                            & bajo \\
+Peru      & Baja. Solo academico (excepto mineria).          & ref \\
+Bolivia / Ecuador & Muy baja.                                  & bajo \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Para mineria especificamente}: Chile y Peru son los polos. Despues
+Australia / Canada (donde el sueldo se duplica o triplica).
+
+% =====================================================================
+\chapter{Conclusion y reflexion}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Peru NO esta atrasado en industrial}: la mineria moderna usa
+        lo mismo que cualquier pais del mundo.
+  \item \textbf{Peru SI esta atrasado en aeroespacial}: pero el INTISAT
+        es justamente lo que cierra esa brecha.
+  \item \textbf{Tu skill set en CubeSat / IA aplica directo en mineria}:
+        es un mercado mucho mas grande y mejor pago.
+  \item \textbf{Aeroespacial paga peor que mineria} en Peru. Si te interesa
+        aeroespacial, hacelo por vocacion. Si necesitas plata, mineria.
+  \item \textbf{El proyecto INTISAT te abre dos puertas}: aeroespacial
+        (poco mercado en Peru) o vision computacional industrial (mercado
+        enorme en mineria).
+  \item \textbf{Lo que paga es conectar OT (operational technology) con IT
+        (information technology) + AI}. Tu perfil es exactamente eso.
+  \item \textbf{El camino tipico desde aqui}: 6 meses para conseguir el
+        primer rol junior, 7 años para senior. 15 años para roles
+        directivos o consultoria.
+\end{itemize}
+
+\begin{tip}
+\textbf{Resumen en una linea}: Peru tiene infraestructura industrial
+real con sueldos competitivos, especialmente en mineria. Tu proyecto
+aeroespacial academico es un \textbf{trampolin tecnico solido} hacia
+el sector industrial productivo. El plan de transicion concreto cabe
+en 6 meses.
+\end{tip}
+
+% =====================================================================
+\chapter*{Recursos para profundizar}
+\addcontentsline{toc}{chapter}{Recursos para profundizar}
+
+\textbf{Plataformas de empleo (verificar URLs vigentes)}:
+\begin{itemize}[leftmargin=2em]
+  \item LinkedIn Jobs --- el que mas se usa en sector profesional
+  \item Bumeran Peru --- portal local
+  \item Computrabajo Peru --- gratis, alto volumen
+  \item Aptitus --- profesional / mando medio
+\end{itemize}
+
+\textbf{Asociaciones del sector}:
+\begin{itemize}[leftmargin=2em]
+  \item IIMP (Instituto de Ingenieros de Minas del Peru)
+  \item ISA Peru Section (International Society of Automation)
+  \item ICONTEC Peru (normas tecnicas)
+\end{itemize}
+
+\textbf{Eventos anuales / bianuales}:
+\begin{itemize}[leftmargin=2em]
+  \item PERUMIN (Arequipa, bianual)
+  \item EXTEMIN (con PERUMIN)
+  \item Mining \& Energy LATAM (Lima)
+  \item Capacitaciones IIMP (varias por año)
+  \item Expo MIN (Lima)
+\end{itemize}
+
+\textbf{Lectura recomendada}:
+\begin{itemize}[leftmargin=2em]
+  \item Norma ISA-95 (modelo piramide automatizacion)
+  \item Norma ISA-99 / IEC 62443 (cyberseguridad industrial)
+  \item Norma IEC 61131-3 (lenguajes PLC)
+  \item Norma MIL-STD-810 (tests ambientales)
+\end{itemize}
+
+\end{document}
