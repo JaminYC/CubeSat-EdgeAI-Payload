@@ -1,0 +1,438 @@
+\documentclass[11pt,a4paper,oneside]{report}
+\usepackage[spanish,activeacute,es-noshorthands]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{geometry}
+\geometry{margin=2.3cm, headheight=14pt}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\usepackage{caption}
+\captionsetup{font=small, labelfont=bf}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=NavyBlue,
+  citecolor=ForestGreen,
+  urlcolor=BrickRed,
+  pdftitle={Bibliografia --- IA en operaciones espaciales},
+  pdfauthor={CubeSat-EdgeAI-Payload}
+}
+
+\definecolor{intisat}{RGB}{26, 54, 93}
+\definecolor{intisataccent}{RGB}{197, 143, 0}
+
+\titleformat{\chapter}[hang]
+  {\normalfont\Huge\bfseries\color{intisat}}
+  {\thechapter.}{0.6em}{}
+\titlespacing*{\chapter}{0pt}{-20pt}{20pt}
+
+\titleformat{\section}[hang]
+  {\normalfont\Large\bfseries\color{intisat}}
+  {\thesection}{0.6em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\nouppercase{\leftmark}}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\newtcolorbox{nicho}[1][]{
+  colback=yellow!7, colframe=intisataccent,
+  fonttitle=\bfseries, title=Nicho del proyecto CubeSat-EdgeAI-Payload,
+  breakable, sharp corners=south, #1
+}
+
+\begin{document}
+
+% ─── Portada ────────────────────────────────────────────────────────
+\begin{titlepage}
+\centering
+\vspace*{1cm}
+{\color{intisat}\rule{\textwidth}{2pt}}
+\vspace{0.6cm}
+
+{\Huge\bfseries\color{intisat} Inteligencia Artificial\\[0.2em]
+en operaciones espaciales}
+
+\vspace{0.4cm}
+{\Large\bfseries Bibliografia comentada y panorama actual}
+
+\vspace{0.7cm}
+{\Large\itshape Misiones, hardware, papers, empresas y datasets\\
+para procesamiento autonomo a bordo de satelites y rovers}
+
+\vspace{1cm}
+{\color{intisataccent}\rule{0.6\textwidth}{1pt}}
+
+\vspace{2cm}
+
+\begin{tabular}{rl}
+\textbf{Proyecto:} & CubeSat-EdgeAI-Payload \\
+\textbf{Plataforma:} & INTISAT --- payload de microscopia FPM \\
+\textbf{Repositorio:} & \texttt{github.com/JaminYC/CubeSat-EdgeAI-Payload} \\
+\textbf{Fecha:} & \today \\
+\textbf{Documento:} & v1.0 --- compilacion inicial
+\end{tabular}
+
+\vfill
+
+\begin{minipage}{0.85\textwidth}
+\textbf{Resumen.}\quad
+Compilacion de misiones reales, hardware certificado, empresas activas,
+papers academicos, frameworks open-source, datasets publicos y conferencias
+relevantes para el desarrollo de inteligencia artificial a bordo de
+satelites. Cubre desde Earth Observation (PhiSat) hasta exploracion
+planetaria (rovers de Mars), pasando por plataformas reconfigurables
+(OPS-SAT) y robotica espacial (Astrobee, CIMON). Cada referencia incluye
+la mision, el año, la aplicacion concreta y el hardware utilizado, con
+el objetivo de servir como mapa de orientacion para proyectos de IA
+embarcada en CubeSats academicos y comerciales.
+\end{minipage}
+
+\vspace{1.2cm}
+{\color{intisat}\rule{\textwidth}{2pt}}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+% =====================================================================
+\chapter{Observacion de la Tierra (EO)}
+
+El area mas activa de IA on-board: filtros de nubes, deteccion de cambios,
+clasificacion de cultivos, monitoreo de incendios. La mayoria de las
+misiones que actualmente vuelan IA en orbita pertenecen a esta categoria.
+
+\begin{longtable}{p{3.2cm}p{1cm}p{4.5cm}p{3.2cm}p{2.5cm}}
+\toprule
+\textbf{Mision} & \textbf{Año} & \textbf{Que IA hace} & \textbf{Hardware} & \textbf{Link} \\
+\midrule
+\endhead
+PhiSat-1 (ESA)         & 2020      & filtra nubes con CNN antes de bajar imagenes & Intel Movidius Myriad 2 & \href{https://www.esa.int/Applications/Observing_the_Earth/Ph-sat}{esa.int/Ph-sat} \\
+PhiSat-2 (ESA)         & 2024      & 6 apps simultaneas (cambio detectado, water quality) & Intel Myriad X & \href{https://www.esa.int/Applications/Observing_the_Earth/Phsat-2}{esa.int/Phsat-2} \\
+HYPSO-1, HYPSO-2 (NTNU Noruega) & 2022, 2024 & ML hyperspectral para floraciones de algas & RPi CM4 & \href{https://www.ntnu.edu/ie/smallsat}{ntnu.edu} \\
+Intuition-1 (KP Labs)  & 2023      & IA hyperspectral on-board & Antelope FPGA & \href{https://kplabs.space/intuition-1/}{kplabs.space} \\
+CogniSAT-6 (Aiko + Open Cosmos) & 2024 & primer satelite EO comercial AI integrada & Movidius + custom & \href{https://aikospace.com/cognisat-6/}{aikospace.com} \\
+Pleiades Neo (Airbus)  & 2021+     & clasificacion + super-resolucion & propietario & \href{https://www.intelligence-airbusds.com/pleiades-neo}{Airbus DS} \\
+WorldView Legion (Maxar) & 2024    & deteccion de objetos a bordo & propietario & \href{https://www.maxar.com}{maxar.com} \\
+\bottomrule
+\end{longtable}
+
+% =====================================================================
+\chapter{Plataformas reconfigurables (AI playground en orbita)}
+
+Satelites pensados para que cualquiera suba experimentos de IA --- el
+equivalente a un \emph{lab de pruebas} en orbita.
+
+\begin{longtable}{p{3.5cm}p{2.2cm}p{6cm}p{3.5cm}}
+\toprule
+\textbf{Mision} & \textbf{Periodo} & \textbf{Para que sirve} & \textbf{Link} \\
+\midrule
+\endhead
+OPS-SAT (ESA)              & 2019--2024 & satelite plataforma para experimentos AI & \href{https://www.esa.int/Enabling_Support/Operations/OPS-SAT}{esa.int/OPS-SAT} \\
+OPS-SAT VOLT (ESA)         & 2024+      & sucesor de OPS-SAT  & \href{https://www.esa.int/Enabling_Support/Operations/OPS-SAT_VOLT}{esa.int/VOLT} \\
+D-Orbit ION SCV            & 2020+      & "satelite hostel" con AI a bordo & \href{https://www.dorbit.space/ion-scv}{dorbit.space} \\
+NASA STARLING              & 2023       & swarm autonomo de 4 CubeSats con AI distribuida & \href{https://www.nasa.gov/smallsat-institute/sst-soa/starling}{nasa.gov} \\
+\bottomrule
+\end{longtable}
+
+% =====================================================================
+\chapter{Operaciones autonomas del satelite}
+
+\begin{longtable}{p{3.2cm}p{4cm}p{6cm}p{2.5cm}}
+\toprule
+\textbf{Aplicacion} & \textbf{Mision / proyecto} & \textbf{Que hace} & \textbf{Link} \\
+\midrule
+\endhead
+Anomaly detection  & OPS-SAT, NASA cFS-AI         & detecta fallos del bus antes que el OBC tradicional & \href{https://www.esa.int/Enabling_Support/Operations/OPS-SAT}{ESA} \\
+Mission planning   & Aiko Mission Control AI      & distribuye tareas en constelacion automaticamente & \href{https://aikospace.com}{aikospace.com} \\
+Self-healing FDIR  & NASA Resilient Spacecraft    & reconfiguracion autonoma ante fallos & \href{https://www.nasa.gov}{nasa.gov} \\
+Cognitive radio    & NASA SCaN Testbed (ISS)      & aprende interferencia y ajusta frecuencias & \href{https://www.nasa.gov/scan}{nasa.gov/scan} \\
+\bottomrule
+\end{longtable}
+
+% =====================================================================
+\chapter{Mars y exploracion planetaria}
+
+\begin{longtable}{p{3.5cm}p{4cm}p{8cm}}
+\toprule
+\textbf{Mision} & \textbf{IA on-board} & \textbf{Detalle} \\
+\midrule
+\endhead
+Curiosity (NASA, 2012-) & AEGIS desde 2016 & la rover elige autonomamente que rocas estudiar con ChemCam \\
+Perseverance (NASA, 2021-) & AutoNav & conduccion autonoma con vision a 5 m/s. Triplica el ritmo vs teleop \\
+Ingenuity helicopter (2021-2024) & navegacion vision-only & SLAM completo a bordo con IMU + camara \\
+PIXL (Perseverance) & adaptive raster scanning con ML & optimiza secuencia de medidas espectrales \\
+\bottomrule
+\end{longtable}
+
+\textbf{Links}:
+\begin{itemize}[leftmargin=2em]
+  \item AEGIS paper: \url{https://www.science.org/doi/10.1126/scirobotics.aan4582}
+  \item AutoNav: \url{https://mars.nasa.gov/mars2020/mission/technology/}
+  \item Ingenuity: \url{https://www.jpl.nasa.gov/news/ingenuity-tech-demo}
+\end{itemize}
+
+% =====================================================================
+\chapter{ISS — robots con IA}
+
+\begin{longtable}{p{3cm}p{3cm}p{6cm}p{3cm}}
+\toprule
+\textbf{Robot} & \textbf{Quien} & \textbf{Que hace} & \textbf{Link} \\
+\midrule
+\endhead
+Astrobee (NASA)        & desde 2019 & 3 robots free-flying con vision + planeamiento autonomo & \href{https://www.nasa.gov/astrobee}{nasa.gov/astrobee} \\
+CIMON-2 (DLR Alemania) & desde 2019 & asistente AI de voz para astronautas, basado en Watson & \href{https://www.airbus.com/en/cimon}{airbus.com} \\
+Robonaut 2 (NASA)      & 2011--2018 & manipulacion humanoide con vision profunda & \href{https://robonaut.jsc.nasa.gov}{nasa.gov} \\
+Astro Pi (ESA + RPi Foundation) & desde 2015 & dos Pi 4 en la ISS para experimentos estudiantiles + IA & \href{https://astro-pi.org}{astro-pi.org} \\
+\bottomrule
+\end{longtable}
+
+% =====================================================================
+\chapter{Rendezvous, docking, landing autonomo}
+
+\begin{longtable}{p{4cm}p{2.5cm}p{8cm}}
+\toprule
+\textbf{Mision} & \textbf{Año} & \textbf{Aplicacion} \\
+\midrule
+\endhead
+Dragon (SpaceX)              & 2012-      & docking automatico con vision + LIDAR \\
+Soyuz KURS-NA                & desde 2019 & estimacion de relativa con ML \\
+OSIRIS-REx (NASA)            & 2020       & TAGSAM: maniobra autonoma para tocar el asteroide Bennu \\
+HERA (ESA)                   & 2024-2026  & navegacion autonoma alrededor de Didymos \\
+Mars Sample Return (NASA)    & 2030+      & rendezvous + docking en orbita marciana, todo autonomo \\
+\bottomrule
+\end{longtable}
+
+% =====================================================================
+\chapter{Astronomia y ciencia espacial}
+
+\begin{longtable}{p{4cm}p{10cm}}
+\toprule
+\textbf{Telescopio} & \textbf{Que IA usa} \\
+\midrule
+\endhead
+JWST (NASA)                          & pipeline ML para clasificacion estelar y artefacto removal \\
+Euclid (ESA)                         & clasificacion de morfologias galacticas con ML \\
+Kepler / TESS                        & deteccion de exoplanetas con CNN (post-procesado) \\
+Roman Space Telescope (NASA, 2027)   & traccion de microlensing con IA tiempo real \\
+\bottomrule
+\end{longtable}
+
+% =====================================================================
+\chapter{Hardware AI usado en orbita}
+
+\begin{longtable}{p{4.5cm}p{4cm}p{6cm}}
+\toprule
+\textbf{Chip} & \textbf{Donde se usa} & \textbf{Notas} \\
+\midrule
+\endhead
+Intel Movidius Myriad 2 / X    & PhiSat, CogniSAT       & el caballito de batalla. $\sim 1$ W. 1 TOPS \\
+Google Edge TPU (Coral)        & experimentos en LEO    & testeado para radiacion por NASA y JAXA \\
+NVIDIA Jetson Nano/Orin        & algunos commercial sats & mas potente pero 5-10 W \\
+AMD Zynq Ultrascale+ MPSoC     & Mars rovers, JWST      & radiation-hardened version \\
+Brainchip Akida (neuromorphic) & testeo en orbita 2024  & spike-based, ultra bajo consumo \\
+KP Labs Antelope/Leopard       & Intuition-1            & FPGA + AI accelerators custom \\
+Ubotica CogniSAT-XE2           & varios                 & computer vision dedicado \\
+RPi 4 / CM4                    & HYPSO-1, Astro Pi      & COTS, no rad-hard, vida 1-3 años \\
+\bottomrule
+\end{longtable}
+
+% =====================================================================
+\chapter{Empresas y actores principales}
+
+\begin{longtable}{p{4cm}p{6cm}p{4cm}}
+\toprule
+\textbf{Empresa} & \textbf{Que hace} & \textbf{Link} \\
+\midrule
+\endhead
+ESA $\Phi$-lab            & division de IA de ESA & \href{https://philab.esa.int}{philab.esa.int} \\
+NASA Frontier Development Lab & sprints anuales de IA aplicada al espacio & \href{https://frontierdevelopmentlab.org}{frontierdevelopmentlab.org} \\
+Ubotica (Irlanda)         & hardware AI para PhiSat & \href{https://ubotica.com}{ubotica.com} \\
+KP Labs (Polonia)         & Antelope edge AI processor & \href{https://kplabs.space}{kplabs.space} \\
+Aiko Space (Italia)       & software AI mision control & \href{https://aikospace.com}{aikospace.com} \\
+Cognitive Space (USA)     & constelaciones autonomas & \href{https://cognitivespace.com}{cognitivespace.com} \\
+Open Cosmos (UK)          & satelite plataforma + AI & \href{https://www.open-cosmos.com}{open-cosmos.com} \\
+Spaceability AI (UK)      & dashboards AI para operadores & \href{https://spaceability.com}{spaceability.com} \\
+LeoLabs (USA)             & SDA con ML & \href{https://leolabs.space}{leolabs.space} \\
+Slingshot Aerospace (USA) & digital twin de satelites con AI & \href{https://slingshot.space}{slingshot.space} \\
+D-Orbit (Italia)          & ION platform & \href{https://www.dorbit.space}{dorbit.space} \\
+Loft Orbital (USA)        & mision como servicio & \href{https://loftorbital.com}{loftorbital.com} \\
+Spire Global (USA)        & constelacion 100+ CubeSats & \href{https://spire.com}{spire.com} \\
+Planet Labs (USA)         & Doves, 200+ CubeSats EO & \href{https://www.planet.com}{planet.com} \\
+\bottomrule
+\end{longtable}
+
+% =====================================================================
+\chapter{Frameworks y herramientas open-source}
+
+\begin{longtable}{p{4cm}p{6cm}p{4cm}}
+\toprule
+\textbf{Tool} & \textbf{Para que} & \textbf{Link} \\
+\midrule
+\endhead
+NASA cFS                  & sistema operativo de vuelo + extensiones AI & \href{https://github.com/nasa/cFS}{github/nasa/cFS} \\
+NASA F'                   & framework usado en MarCO, Ingenuity & \href{https://github.com/nasa/fprime}{github/nasa/fprime} \\
+ESA Onboard AI demos      & repositorio publico & \href{https://gitlab.esa.int/PhiLab}{gitlab.esa.int} \\
+OpenVINO                  & wrapper para deploy en Movidius & \href{https://github.com/openvinotoolkit/openvino}{openvinotoolkit} \\
+TensorFlow Lite Micro     & inferencia en MCU constrained & \href{https://github.com/tensorflow/tflite-micro}{tflite-micro} \\
+OreSat (PSAS)             & CubeSat 100\% open: hardware, firmware, ground station & \href{https://github.com/oresat}{github/oresat} \\
+UPSat (LSF Greece)        & otro CubeSat 100\% open con docs operativas & \href{https://gitlab.com/librespacefoundation/upsat}{gitlab.com} \\
+SatNOGS DBs               & datasets de telemetria & \href{https://db.satnogs.org}{db.satnogs.org} \\
+\bottomrule
+\end{longtable}
+
+% =====================================================================
+\chapter{Papers de referencia (reviews)}
+
+\begin{longtable}{p{8cm}p{1.5cm}p{6cm}}
+\toprule
+\textbf{Titulo} & \textbf{Año} & \textbf{Por que vale} \\
+\midrule
+\endhead
+\emph{AI in Space: Opportunities and Challenges} (Furano et al., ESA) & 2020 & reporte oficial de ESA con todo el panorama \\
+\emph{A Survey of On-Board AI for Space Applications} (Salvo et al., IEEE) & 2023 & review tecnico exhaustivo \\
+\emph{Onboard AI for Earth Observation} (Esposito et al.) & 2022 & foco en EO especificamente \\
+\emph{Lessons from PhiSat-1} (Marcuccio et al.) & 2021 & post-mortem del primer satelite IA \\
+\emph{Edge ML for Space Systems} (Kabir et al.) & 2024 & hardware comparison para edge ML en orbita \\
+\emph{Cognitive Space Systems: state-of-the-art and challenges} (Ortiz et al.) & 2023 & autonomia, FDIR, cognitive radio \\
+\emph{State of the Art of CubeSats} (Bouwmeester et al.) & 2010+ & el clasico panorama general \\
+\emph{Why CubeSats Fail} (Swartwout, IEEE Aerospace) & 2018 & top 10 razones reales de fallos \\
+\bottomrule
+\end{longtable}
+
+\textbf{Buscar texto completo en}:
+\begin{itemize}[leftmargin=2em]
+  \item \url{https://arxiv.org}
+  \item \url{https://digitalcommons.usu.edu/smallsat/}
+\end{itemize}
+
+% =====================================================================
+\chapter{Conferencias y workshops dedicados}
+
+\begin{longtable}{p{4.5cm}p{6cm}p{4cm}}
+\toprule
+\textbf{Evento} & \textbf{Foco} & \textbf{Link} \\
+\midrule
+\endhead
+OBDP (On-Board Data Processing) & bianual ESA, lo mas alineado a IA on-board & \href{https://obdp2024.sciencesconf.org}{obdp2024} \\
+AI4Space (CVPR/ICCV)          & computer vision para espacio & \href{https://aiforspace.github.io}{aiforspace.github.io} \\
+SmallSat USU                  & el grande, todo lo de SmallSat & \href{https://digitalcommons.usu.edu/smallsat}{digitalcommons.usu.edu} \\
+Space Computing Conference (NASA) & hardware a bordo & \href{https://nepp.nasa.gov}{nepp.nasa.gov} \\
+EDHPC                         & European Data Handling and Data Processing & \href{https://www.edhpc-conference.com}{edhpc-conference.com} \\
+IAC                           & International Astronautical Congress & \href{https://www.iafastro.org}{iafastro.org} \\
+IEEE Aerospace Conference     & papers tecnicos & \href{https://www.aeroconf.org}{aeroconf.org} \\
+\bottomrule
+\end{longtable}
+
+% =====================================================================
+\chapter{Datasets publicos para entrenar IA espacial}
+
+\begin{longtable}{p{4cm}p{6cm}p{5cm}}
+\toprule
+\textbf{Dataset} & \textbf{Que tiene} & \textbf{Link} \\
+\midrule
+\endhead
+Sentinel-2                  & imagenes EO multiespectral & \href{https://scihub.copernicus.eu}{scihub.copernicus.eu} \\
+Landsat                     & imagenes EO 50 años & \href{https://earthexplorer.usgs.gov}{earthexplorer.usgs.gov} \\
+PROBA-V Cloud Detection     & el dataset que entreno PhiSat-1 & \href{https://kelvins.esa.int/proba-v-super-resolution/}{kelvins.esa.int} \\
+Mars Curiosity images       & NASA Planetary Data System & \href{https://pds.nasa.gov}{pds.nasa.gov} \\
+SatNOGS Network             & telemetria CubeSat & \href{https://network.satnogs.org}{network.satnogs.org} \\
+xView2 / xBD                & damage assessment EO & \href{https://xview2.org}{xview2.org} \\
+EuroSAT                     & clasificacion de cobertura terrestre & \href{https://github.com/phelber/EuroSAT}{github/EuroSAT} \\
+BigEarthNet                 & Sentinel-2 con labels & \href{https://bigearth.net}{bigearth.net} \\
+\bottomrule
+\end{longtable}
+
+% =====================================================================
+\chapter{Donde se ubica CubeSat-EdgeAI-Payload}
+
+El proyecto entra en la categoria de \textbf{Earth Observation con IA
+on-board}, pero con la diferencia significativa de que aplica
+\emph{microscopia biologica} en lugar de imagenes terrestres, lo que lo
+ubica en un nicho menos poblado y diferenciado.
+
+\section{Antecedentes directos}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{PharmaSat / GeneSat} (NASA Ames, 2006--2009): microscopia
+        biologica en CubeSat sin IA on-board. Capturan imagenes y bajan
+        crudo. Es el antecedente metodologico del experimento biologico.
+  \item \textbf{PhiSat-1} (ESA, 2020): IA en orbita por primera vez, pero
+        para EO. Establece el paradigma de procesar antes de bajar.
+  \item \textbf{HYPSO-1} (NTNU, 2022): RPi CM4 con IA on-board, modelo
+        similar de hardware al planeado para este proyecto.
+\end{itemize}
+
+\section{Aporte diferencial}
+
+Pipeline IA completo (segmentacion, mejora, medicion) en payload de
+microscopia biologica, no solo captura. Combina la linea de NASA Ames
+(biologia en CubeSat) con el paradigma de PhiSat (IA on-board EO).
+
+\begin{nicho}
+\textbf{Nicho diferencial frente a la competencia actual}:
+\begin{itemize}[leftmargin=1.5em]
+  \item Imaging \emph{biologico}, no observacion terrestre.
+  \item Lensless con OLED programable (apertura sintetica), poco usado en mision.
+  \item Pipeline IA con multiples modelos (StarDist + Real-ESRGAN + N2V) en un solo Pi.
+  \item Open-source (a diferencia de los desarrollos comerciales).
+\end{itemize}
+\end{nicho}
+
+\section{Lo que falta para alcanzar nivel SOTA}
+
+\begin{enumerate}[leftmargin=2em]
+  \item Migrar a hardware certificado para vuelo (Movidius o Antelope, no
+        RPi 5 de desarrollo). Para vuelo se planea \emph{Compute Module 5}.
+  \item Tests TVAC, vibracion y radiacion segun GEVS / ECSS.
+  \item Demostrar enlace uplink/downlink real con ground station.
+  \item Compararse con un sistema de referencia comercial (Ubotica
+        CogniSAT-XE2 o similar).
+\end{enumerate}
+
+% =====================================================================
+\chapter{Lectura priorizada}
+
+Si el tiempo es limitado, leer en este orden:
+
+\begin{enumerate}[leftmargin=2.2em, label=\arabic*.]
+  \item \textbf{PhiSat-1 paper} (Marcuccio 2021) --- el caso emblematico
+        mas cercano al proyecto.
+  \item \textbf{Furano et al. AI in Space} (ESA review) --- el panorama
+        completo en un PDF.
+  \item \textbf{OBDP 2024 proceedings} --- lo mas actual.
+  \item \textbf{HYPSO papers} (NTNU) --- usan RPi CM4 con AI, hw mas
+        cercano al nuestro.
+  \item \textbf{AI4Space workshop papers} --- repositorio de ideas + benchmarks.
+  \item \textbf{Why CubeSats Fail} (Swartwout) --- para evitar errores tipicos.
+  \item \textbf{Bouwmeester State of the art of CubeSats} --- fundamentos.
+\end{enumerate}
+
+% =====================================================================
+\chapter*{Como mantener este documento}
+\addcontentsline{toc}{chapter}{Como mantener este documento}
+
+Cuando alguien del equipo descubra una referencia nueva relevante:
+
+\begin{enumerate}[leftmargin=2em]
+  \item Identificar a que capitulo pertenece (1--13).
+  \item Agregar fila a la tabla con fecha, descripcion y link.
+  \item Si es un paper especialmente importante, sumarlo al ranking del
+        capitulo de lectura priorizada.
+  \item Compilar el \texttt{.tex} y commit + push.
+\end{enumerate}
+
+Si la referencia es de un area nueva no contemplada, abrir un capitulo
+nuevo manteniendo el formato consistente.
+
+\end{document}
