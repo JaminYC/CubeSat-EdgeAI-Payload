@@ -9,18 +9,20 @@ Copia y pega este texto en una nueva sesion de Claude Code, dentro del directori
 Hola. Estoy continuando el proyecto CubeSat-EdgeAI-Payload --- un payload de
 microscopia FPM lensless para el satelite INTISAT, basado en Raspberry Pi 5.
 
-Antes de responder cualquier cosa, lee estos 4 archivos en este orden:
+Antes de responder cualquier cosa, lee estos 5 archivos en este orden:
 
   1. Documentos de Referencia/contexto_sesion/CONTEXTO.md
   2. Documentos de Referencia/contexto_sesion/ESTADO.md
-  3. Documentos de Referencia/contexto_sesion/ARQUITECTURA.md
-  4. Documentos de Referencia/contexto_sesion/INDEX.md
+  3. Documentos de Referencia/contexto_sesion/TAREA_ACTUAL.md
+  4. Documentos de Referencia/contexto_sesion/ARQUITECTURA.md
+  5. Documentos de Referencia/contexto_sesion/INDEX.md
 
-Despues, en MAXIMO 6 lineas, confirmame que entendiste:
+Despues, en MAXIMO 8 lineas, confirmame que entendiste:
   - el objetivo concreto del payload,
   - las dimensiones reales de las 3 mascaras (numeros),
   - el modo de ensamblaje preferido (A, B o C),
-  - la tarea pendiente mas urgente,
+  - la TAREA ACTUAL en curso (medicion energetica con multimetro o INA219),
+  - el bug critico no resuelto en pipeline/controller.py,
   - cualquier ambiguedad que detectes en los documentos.
 
 Si esta todo claro, esperas mi pregunta y NO empezas a escribir codigo

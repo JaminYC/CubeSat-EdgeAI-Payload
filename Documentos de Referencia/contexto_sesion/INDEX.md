@@ -11,6 +11,7 @@ necesario.
 | `PROMPT_NUEVA_SESION.md` | corto | el prompt que pegas al iniciar Claude |
 | `CONTEXTO.md` | medio | que es el proyecto, decisiones frozen, glosario |
 | `ESTADO.md` | medio | snapshot de progreso, bugs, pendientes |
+| **`TAREA_ACTUAL.md`** | medio | **lo que se esta haciendo AHORA (medicion energetica)** |
 | `ARQUITECTURA.md` | largo | hardware, software, pinout, archivos clave |
 | `INDEX.md` | este archivo | mapa de todos los docs del proyecto |
 
@@ -22,6 +23,9 @@ necesario.
 | `Documentos de Referencia/Curso_Vision_Computadora.pdf` | 81 | libro de teoria CV (cero a vanguardia) |
 | `Documentos de Referencia/Informe_Mascaras_Lensless.pdf` | 21 | informe formal IMRyD del experimento |
 | `Documentos de Referencia/Guion_Mascaras_Lensless.pdf` | 25 | version narrativa para presentar |
+| `Documentos de Referencia/Bibliografia_AI_Espacial.pdf` | 18 | mapa de IA en operaciones espaciales |
+| `Documentos de Referencia/Raspberry_Pi_5_Profundo.pdf` | 25 | profundo tecnico del Pi 5 (ver cap. potencia) |
+| `Documentos de Referencia/Guia_Empleo_Industrial_Mineria.pdf` | 25 | guia de carrera (no aplica al desarrollo del payload) |
 
 ## Documentos de planificacion
 
@@ -98,7 +102,7 @@ necesario.
 | `tools/tareas_microscopia_slide.py` | regenera el slide de tareas |
 | `tools/build_apertures_presentation.py` | regenera la presentacion pptx |
 | `tools/build_energy_budget_xlsx.py` | regenera la planilla energetica |
-| `tools/power_profiler.py` | logger INA219 para presupuesto energetico |
+| **`tools/power_profiler.py`** | **logger INA219 para tarea actual de medicion** |
 
 ## Configuracion
 
