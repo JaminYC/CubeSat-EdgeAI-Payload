@@ -1,0 +1,686 @@
+\documentclass[11pt,a4paper,oneside]{report}
+\usepackage[spanish,activeacute,es-noshorthands]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{geometry}
+\geometry{margin=2.4cm, headheight=14pt}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\usepackage{caption}
+\captionsetup{font=small, labelfont=bf}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=NavyBlue,
+  citecolor=ForestGreen,
+  urlcolor=BrickRed,
+  pdftitle={Referencias open-source para CubeSat-EdgeAI-Payload},
+  pdfauthor={INTISAT}
+}
+
+\definecolor{intisat}{RGB}{26, 54, 93}
+\definecolor{intisataccent}{RGB}{197, 143, 0}
+\definecolor{ok}{RGB}{47, 133, 90}
+\definecolor{warn}{RGB}{197, 60, 60}
+\definecolor{prio}{RGB}{197, 143, 0}
+
+\titleformat{\chapter}[hang]
+  {\normalfont\Huge\bfseries\color{intisat}}
+  {\thechapter.}{0.6em}{}
+\titlespacing*{\chapter}{0pt}{-20pt}{20pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\nouppercase{\leftmark}}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\newtcolorbox{recomendacion}[1][]{
+  colback=yellow!7, colframe=intisataccent,
+  fonttitle=\bfseries, title=Recomendacion,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{nota}[1][]{
+  colback=blue!4, colframe=intisat,
+  fonttitle=\bfseries, title=Como usarlo en tu proyecto,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{cuidado}[1][]{
+  colback=red!4, colframe=warn,
+  fonttitle=\bfseries, title=Cuidado,
+  breakable, sharp corners=south, #1
+}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+\vspace*{1cm}
+{\color{intisat}\rule{\textwidth}{2pt}}
+\vspace{0.6cm}
+
+{\Huge\bfseries\color{intisat} Referencias open-source}\\[0.4em]
+{\LARGE\bfseries para el desarrollo del CubeSat}
+
+\vspace{0.7cm}
+{\Large\itshape 20 repositorios y recursos curados\\
+para construir flight software, ground station y simulacion}
+
+\vspace{1cm}
+{\color{intisataccent}\rule{0.6\textwidth}{1pt}}
+
+\vspace{2cm}
+
+\begin{tabular}{rl}
+\textbf{Proyecto:} & CubeSat-EdgeAI-Payload \\
+\textbf{Plataforma:} & INTISAT --- payload de microscopia FPM \\
+\textbf{Audiencia:} & Equipo tecnico de 4 personas \\
+\textbf{Plan asociado:} & 2 semanas de exploracion en paralelo \\
+\textbf{Repositorio:} & \texttt{github.com/JaminYC/CubeSat-EdgeAI-Payload} \\
+\textbf{Fecha:} & \today \\
+\textbf{Documento:} & v1.0
+\end{tabular}
+
+\vfill
+
+\begin{minipage}{0.85\textwidth}
+\textbf{Resumen.}\quad
+Compilacion curada de 20 repositorios open-source y recursos academicos
+relevantes para el desarrollo de un CubeSat con IA a bordo. Cubre flight
+software (NASA cFS, F'), ground station (OpenMCT), simulacion (42, GMAT),
+autonomia (PLEXIL), CubeSats academicos completos (OreSat, UPSat, AAUSAT)
+e IA en orbita (ESA Phi-Lab). Para cada referencia incluye URL,
+descripcion, prioridad para el proyecto, y como aplicarla concretamente
+al payload INTISAT. Acompaña al plan de exploracion paralela del equipo
+de 4 personas durante 2 semanas.
+\end{minipage}
+
+\vspace{1.2cm}
+{\color{intisat}\rule{\textwidth}{2pt}}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+% =====================================================================
+\chapter{Como leer este documento}
+
+Las 20 referencias estan ordenadas por categoria y dentro de cada
+categoria por \textbf{prioridad para tu proyecto}. Cada entrada incluye:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Nombre y URL} del repositorio o recurso.
+  \item \textbf{Tipo}: framework / app / libro / paper / dashboard / etc.
+  \item \textbf{Que es}: descripcion corta.
+  \item \textbf{Como aplicalo al INTISAT}: caja azul.
+  \item \textbf{Prioridad}: $\bigstar\bigstar\bigstar$ (top), $\bigstar\bigstar$ (medio),
+        $\bigstar$ (futuro / nice-to-have).
+  \item \textbf{Tiempo estimado de exploracion}.
+\end{itemize}
+
+\begin{recomendacion}
+Si el equipo es de 4 personas y solo tienen 2 semanas, atacar primero
+las marcadas con $\bigstar\bigstar\bigstar$. Cada miembro toma una
+referencia distinta y la presenta al equipo al final.
+\end{recomendacion}
+
+% =====================================================================
+\chapter{NASA --- el clasico (4 referencias)}
+
+\section{1. NASA cFS --- Core Flight System}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item URL: \url{https://github.com/nasa/cFS}
+  \item Tipo: \textbf{Framework de flight software}
+  \item Prioridad: $\bigstar\bigstar$ (medio --- arquitectura util)
+  \item Tiempo: 5--10 dias
+\end{itemize}
+
+\textbf{Que es}: framework de NASA para flight software. Goddard lo usa
+desde 2007 en TODAS las misiones. Diseñado para RTOS pero corre tambien
+en Linux.
+
+\textbf{Componentes clave}:
+\begin{itemize}[leftmargin=2em]
+  \item cFE (Core Flight Executive): runtime con publish/subscribe.
+  \item OSAL: capa de abstraccion sobre Linux/RTEMS/FreeRTOS/VxWorks.
+  \item PSP: adaptacion a hardware.
+  \item Apps: limit checker (LC), memory manager (MM), file manager (FM),
+        data storage (DS), housekeeping (HK), scheduler (SCH).
+\end{itemize}
+
+\begin{nota}
+El \textbf{patron arquitectural} de cFS (publish/subscribe + tablas de
+configuracion + FDIR) es directamente aplicable a tu daemon. NO copiar
+codigo (es complejo), sino imitar la estructura: cada subsistema publica
+mensajes, otros se suscriben, hay tablas de configuracion en tiempo de
+ejecucion. Tu \texttt{cubesat/daemon.py} ya hace algo similar via
+\texttt{/run/cubesat/}.
+\end{nota}
+
+\section{2. NASA F' (FPrime)}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item URL: \url{https://github.com/nasa/fprime}
+  \item Tipo: \textbf{Framework de flight software (moderno)}
+  \item Prioridad: $\bigstar\bigstar\bigstar$ (alto)
+  \item Tiempo: 3--7 dias
+\end{itemize}
+
+\textbf{Que es}: framework alternativo a cFS, mas reciente, mas simple,
+mas accesible. Usado en misiones reales: \textbf{MarCO} (los CubeSats
+interplanetarios que escoltaron a InSight) e \textbf{Ingenuity} (el
+helicoptero de Mars).
+
+\textbf{Por que vale}:
+\begin{itemize}[leftmargin=2em]
+  \item Mucho mejor documentado que cFS.
+  \item Tutorial oficial paso a paso: \url{https://nasa.github.io/fprime/Tutorials/index.html}
+  \item Generador de codigo a partir de XML.
+  \item Hello World corre en 1 hora.
+\end{itemize}
+
+\begin{nota}
+La opcion mas viable si quieren \textbf{adoptar un framework formal} en
+el INTISAT. Puede coexistir con tu daemon Python: F' maneja la coordinacion
+inter-subsistema y tu daemon corre el pipeline IA como un componente F'.
+\end{nota}
+
+\section{3. NASA OpenMCT}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item URL: \url{https://github.com/nasa/openmct}
+  \item Tipo: \textbf{Dashboard de mission control}
+  \item Prioridad: $\bigstar\bigstar\bigstar$ (alto)
+  \item Tiempo: 2 dias
+\end{itemize}
+
+\textbf{Que es}: framework web (JavaScript) para construir interfaces de
+control de misiones. Lo usa JPL en operaciones reales. Permite integrar
+telemetria de cualquier fuente y armar sinopticos, graficos, alarmas.
+
+\textbf{Por que vale}:
+\begin{itemize}[leftmargin=2em]
+  \item Te ahorra meses de desarrollo de tu ground station.
+  \item Tutorial en 30 minutos te deja un dashboard andando.
+  \item Plugin architecture: conectas tu fuente de telemetria.
+  \item Imprimible, exportable, theme-able.
+\end{itemize}
+
+\begin{nota}
+\textbf{Una persona del equipo deberia probarlo esta semana}. Conectar
+un script Python que lea \texttt{/run/cubesat/telemetry.json} (lo que ya
+publica tu daemon) y servirlo a OpenMCT por WebSocket. En 2 horas tienen
+el primer prototipo del dashboard del INTISAT.
+\end{nota}
+
+\section{4. NASA Astrobee}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item URL: \url{https://github.com/nasa/astrobee}
+  \item Tipo: \textbf{Software completo de un robot espacial}
+  \item Prioridad: $\bigstar\bigstar$ (medio)
+  \item Tiempo: 3 dias para entender, semanas para profundizar
+\end{itemize}
+
+\textbf{Que es}: el flight software de los 3 robots free-flying que vuelan
+dentro de la ISS. Open source completo: vision, navegacion, planificacion,
+comunicacion, control.
+
+\begin{nota}
+Util si quieren ver como NASA estructura un sistema con \textbf{vision
+computacional + autonomia + telemetria} todo junto. Tu payload tiene la
+misma combinacion (vision + IA + telemetria) en menor escala.
+\end{nota}
+
+% =====================================================================
+\chapter{NASA --- apps puntuales de cFS (3 referencias)}
+
+\section{5. cFS sample\_app}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item URL: \url{https://github.com/nasa/sample_app}
+  \item Tipo: \textbf{App de ejemplo de cFS}
+  \item Prioridad: $\bigstar\bigstar\bigstar$ (alto si quieren entender cFS)
+  \item Tiempo: 4--8 horas
+\end{itemize}
+
+\textbf{Que es}: el "Hello World" de cFS. Una app minima que muestra como
+se estructura cualquier subsistema en el ecosistema cFS. Ideal para
+aprender los conceptos sin perderse en el monstruo completo.
+
+\begin{nota}
+Antes de leer cFS completo, leer sample\_app. Te explica:
+publish/subscribe, telemetria, comandos, tablas de configuracion. En 4 horas
+ya tenes los conceptos.
+\end{nota}
+
+\section{6. cFS Limit Checker (LC)}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item URL: \url{https://github.com/nasa/lc}
+  \item Tipo: \textbf{App de FDIR}
+  \item Prioridad: $\bigstar\bigstar$
+  \item Tiempo: 1 dia
+\end{itemize}
+
+\textbf{Que es}: monitorea telemetria contra limites configurables y
+dispara acciones de FDIR (Fault Detection, Isolation, Recovery) cuando
+algo sale de rango. Ej: si la temperatura de la CPU supera 80°C, dispara
+un comando de SAFE\_MODE.
+
+\begin{nota}
+Tu daemon hoy NO tiene FDIR formal. Esta app es la \textbf{plantilla de
+referencia} para implementarlo. Conceptos: tabla de limites, watchpoints,
+actionpoints, response actions.
+\end{nota}
+
+\section{7. cFS Scheduler (SCH)}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item URL: \url{https://github.com/nasa/sch}
+  \item Tipo: \textbf{Scheduler de mision}
+  \item Prioridad: $\bigstar$ (futuro)
+  \item Tiempo: 1 dia
+\end{itemize}
+
+\textbf{Que es}: ejecuta tareas periodicas (housekeeping, telemetria,
+recolecciones cientificas) segun un schedule configurable. Ej: cada 30 s
+publica HK, cada 1 hora hace un scan de payload, etc.
+
+\begin{nota}
+Tu sistema es REACTIVO (espera comandos del OBC), no SCHEDULED. Pero si
+en algun momento queres un modo "autonomo cientifico" donde la payload
+decida sola cuando capturar, el patron de SCH es el de referencia.
+\end{nota}
+
+% =====================================================================
+\chapter{Simulacion y planeamiento (3 referencias)}
+
+\section{8. NASA 42 simulator}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item URL: \url{https://github.com/nasa/42}
+  \item Tipo: \textbf{Simulador 6-DOF de spacecraft}
+  \item Prioridad: $\bigstar\bigstar$ (alto si tienen ADCS team)
+  \item Tiempo: 2--3 dias para arrancar
+\end{itemize}
+
+\textbf{Que es}: simulador completo de dinamica de naves espaciales. Calcula
+orbita, actitud, sensores, actuadores, perturbaciones. Permite probar
+algoritmos ADCS sin satelite real.
+
+\begin{nota}
+El equipo ADCS del INTISAT (no vos, el de actitud) puede probar sus
+algoritmos aqui antes del integration test. Para tu payload no aplica
+directamente.
+\end{nota}
+
+\section{9. NASA GMAT}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item URL: \url{https://github.com/nasa/GMAT}
+  \item Tipo: \textbf{General Mission Analysis Tool}
+  \item Prioridad: $\bigstar\bigstar$ (alto para planeamiento)
+  \item Tiempo: 1 dia para basicos
+\end{itemize}
+
+\textbf{Que es}: la herramienta de NASA para diseño y analisis de mision.
+Calcula orbitas, eclipses, ground station passes, ventanas de comunicacion,
+delta-v, tiempo de vida de bateria.
+
+\begin{nota}
+\textbf{Una persona del equipo de operaciones} deberia tener GMAT
+configurado con la orbita real del INTISAT. Asi se predicen los pases
+para downlink, los eclipses (en SAFE\_MODE) y se planifica el schedule
+de scans.
+\end{nota}
+
+\section{10. NASA Trick}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item URL: \url{https://github.com/nasa/trick}
+  \item Tipo: \textbf{Framework de simulacion}
+  \item Prioridad: $\bigstar$ (futuro)
+  \item Tiempo: 1 semana
+\end{itemize}
+
+\textbf{Que es}: framework general de simulacion. Usado para crear
+simuladores de sistemas (no solo spacecraft). NASA lo usa para entrenar
+operadores y para testing pre-vuelo.
+
+% =====================================================================
+\chapter{Autonomia y vision (2 referencias)}
+
+\section{11. NASA PLEXIL}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item URL: \url{https://github.com/nasa/PLEXIL}
+  \item Tipo: \textbf{Lenguaje y motor de autonomia}
+  \item Prioridad: $\bigstar\bigstar$ (interesante para tu IA)
+  \item Tiempo: 1 semana
+\end{itemize}
+
+\textbf{Que es}: Plan Execution Interchange Language. Define planes
+ejecutables con condiciones, retries, recovery. Usado en rovers de Mars y
+en autonomous fault recovery.
+
+\begin{nota}
+Si en algun momento quieren que el payload INTISAT \textbf{decida solo}
+cuando hacer un scan, que mascara usar, que hacer si falla la primera, etc.,
+PLEXIL es la herramienta. No la van a usar en la primera mision pero vale
+saber que existe.
+\end{nota}
+
+\section{12. JPL Open Source Rover}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item URL: \url{https://github.com/nasa-jpl/open-source-rover}
+  \item Tipo: \textbf{Rover educativo}
+  \item Prioridad: $\bigstar$ (recreativo / didactico)
+  \item Tiempo: 1 dia para entender
+\end{itemize}
+
+\textbf{Que es}: rover construible en casa con piezas COTS, basado en
+Curiosity y Perseverance. Documenta arquitectura mecanica + software de
+movilidad + vision.
+
+\begin{nota}
+No directamente aplicable, pero \textbf{excelente para inspiracion}. El
+software de control del rover (en GitHub) usa patrones similares a tu
+daemon: comandos, telemetria, vision.
+\end{nota}
+
+% =====================================================================
+\chapter{ESA y la IA en orbita (3 referencias)}
+
+\section{13. ESA Phi-Lab}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item URL: \url{https://github.com/ESA-PhiLab}
+  \item Tipo: \textbf{Repositorio del laboratorio de IA de ESA}
+  \item Prioridad: $\bigstar\bigstar\bigstar$ (top --- directamente alineado)
+  \item Tiempo: 3--5 dias
+\end{itemize}
+
+\textbf{Que es}: la division de ESA dedicada a IA en orbita. Repos con codigo
+de PhiSat-1, PhiSat-2, datasets, herramientas de inferencia para Movidius
+Myriad 2, frameworks de evaluacion.
+
+\textbf{Repos destacados}:
+\begin{itemize}[leftmargin=2em]
+  \item \texttt{ESA-PhiLab/PhiSat-1\_Coastline} --- modelo de deteccion de costas
+  \item \texttt{ESA-PhiLab/Eyes-on-the-Earth} --- IA para EO en general
+  \item \texttt{ESA-PhiLab/iris} --- pipeline de inferencia on-board
+\end{itemize}
+
+\begin{nota}
+\textbf{Esto es lo mas cercano a lo que estan haciendo}. Leer los papers
+de PhiSat-1 + el repo de \texttt{iris} les muestra:
+\begin{itemize}[leftmargin=1em]
+  \item Como deployar un modelo entrenado a hardware embebido en orbita.
+  \item Que arquitecturas de red funcionan en Movidius / Pi.
+  \item Como filtrar imagenes utiles vs no utiles en tiempo real.
+\end{itemize}
+\textbf{Lectura prioritaria del equipo}.
+\end{nota}
+
+\section{14. ESA Operations}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item URL: \url{https://github.com/esa}
+  \item Tipo: \textbf{Repositorios oficiales de ESA}
+  \item Prioridad: $\bigstar\bigstar$
+  \item Tiempo: navegar 1 dia
+\end{itemize}
+
+\textbf{Que es}: repositorio principal de ESA con varios subgrupos: ECSS
+parsers, OPS-SAT experiments, MOOC materials, ESA herramientas.
+
+\section{15. ESA OPS-SAT experiments}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item URL: \url{https://nmf.esa.int/} y \url{https://github.com/esa/ops-sat-tutorials}
+  \item Tipo: \textbf{Plataforma + tutoriales de IA en orbita}
+  \item Prioridad: $\bigstar\bigstar\bigstar$
+  \item Tiempo: 2--3 dias
+\end{itemize}
+
+\textbf{Que es}: OPS-SAT es el satelite de ESA para experimentar con IA y
+software experimental in-orbit. Sus tutoriales muestran como subir un
+experimento al satelite, correrlo, recibir resultados.
+
+\begin{nota}
+\textbf{Inspiracion directa}: si en futuras misiones del INTISAT quieren
+correr experimentos cambiables, este es el modelo. Y si tu payload se
+postula a OPS-SAT VOLT como guest experiment, conocer esta plataforma es
+critico.
+\end{nota}
+
+% =====================================================================
+\chapter{CubeSats academicos open-source (3 referencias)}
+
+\section{16. OreSat (Portland State University)}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item URL: \url{https://github.com/oresat}
+  \item Tipo: \textbf{CubeSat 100\% open source}
+  \item Prioridad: $\bigstar\bigstar\bigstar$ (top)
+  \item Tiempo: 1 semana para profundizar
+\end{itemize}
+
+\textbf{Que es}: el CubeSat mas open de la historia. Hardware, firmware,
+software, ground station, todo open. Diseñado por Portland State Aerospace
+Society (PSAS). Han volado misiones reales.
+
+\textbf{Componentes destacados}:
+\begin{itemize}[leftmargin=2em]
+  \item \texttt{oresat-c3} --- Command, Control, Communications software.
+  \item \texttt{oresat-cans} --- comunicacion CAN entre subsistemas.
+  \item \texttt{oresat-mainboard} --- el carrier board del OBC.
+  \item \texttt{oresat-firmware} --- firmware multi-subsistema.
+\end{itemize}
+
+\begin{nota}
+\textbf{Es el ejemplo mas cercano a tu situacion}: CubeSat academico, RPi
+y MCUs, comunicacion por CAN, ground station propia. Antes de inventar
+nada en el INTISAT, mirar como lo hicieron en OreSat.
+\end{nota}
+
+\section{17. UPSat (Libre Space Foundation)}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item URL: \url{https://gitlab.com/librespacefoundation/upsat}
+  \item Tipo: \textbf{CubeSat open-source europeo}
+  \item Prioridad: $\bigstar\bigstar$
+  \item Tiempo: 4 dias
+\end{itemize}
+
+\textbf{Que es}: primer CubeSat completamente open-source en volar. Lanzado
+en 2017 desde la ISS. Toda la documentacion es publica: requirements,
+diseño, codigo, tests.
+
+\begin{nota}
+Util para ver \textbf{como se documenta un CubeSat para revisores}. Si en
+algun momento INTISAT pasa por una review formal (Critical Design Review,
+Flight Readiness Review), tener UPSat de referencia ayuda mucho.
+\end{nota}
+
+\section{18. AAUSAT-3 / -4 (Aalborg University)}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item URL: \url{http://www.space.aau.dk/}
+  \item Tipo: \textbf{Documentacion academica}
+  \item Prioridad: $\bigstar\bigstar$
+  \item Tiempo: 2 dias
+\end{itemize}
+
+\textbf{Que es}: serie de CubeSats academicos de la Universidad de Aalborg
+(Dinamarca). Documentacion publica con modos operativos detallados, FDIR,
+state machines.
+
+\begin{nota}
+La \textbf{descripcion de modos de operacion} de AAUSAT es probablemente
+la mejor del mundo academico. Si vas a diseñar el diagrama de estados
+de mision del INTISAT, este es el template.
+\end{nota}
+
+% =====================================================================
+\chapter{Estandares y handbooks (2 referencias)}
+
+\section{19. CalPoly CubeSat Design Specification}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item URL: \url{https://www.cubesat.org/cds-announcement}
+  \item Tipo: \textbf{Estandar mecanico/electrico}
+  \item Prioridad: $\bigstar\bigstar\bigstar$
+  \item Tiempo: 4 horas
+\end{itemize}
+
+\textbf{Que es}: el estandar de facto de CubeSats. Define dimensiones,
+masa, conector PC-104, requisitos de testing pre-vuelo. \textbf{Lectura
+obligatoria} para cualquier CubeSat.
+
+\section{20. NASA SE Handbook (Systems Engineering)}
+
+\begin{itemize}[leftmargin=1.5em]
+  \item URL: \url{https://www.nasa.gov/seh/}
+  \item Tipo: \textbf{Manual de ingenieria de sistemas}
+  \item Prioridad: $\bigstar\bigstar$
+  \item Tiempo: 1 semana lectura selectiva
+\end{itemize}
+
+\textbf{Que es}: manual oficial de NASA. Define el proceso completo:
+requirements, V\&V, reviews, modos operativos, FDIR, configuration
+management.
+
+\begin{nota}
+No leer entero. Capitulos clave para CubeSat:
+\begin{itemize}[leftmargin=1em]
+  \item Cap. 4 --- Project Phases.
+  \item Cap. 6 --- Operational Concept Document.
+  \item Cap. 9 --- Verification \& Validation.
+\end{itemize}
+\end{nota}
+
+% =====================================================================
+\chapter{Plan de exploracion para el equipo de 4 personas}
+
+Te propongo dividir el trabajo asi:
+
+\begin{table}[h!]
+\centering
+\caption{Asignacion de exploracion --- 2 semanas.}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{p{1cm}p{4.5cm}p{4.5cm}p{4cm}}
+\toprule
+\textbf{Persona} & \textbf{Repos asignados} & \textbf{Lo que tiene que entender} & \textbf{Output esperado} \\
+\midrule
+A & OpenMCT (\#3) + ESA Phi-Lab (\#13) & Dashboard mission control + IA en orbita & Prototipo de UI conectado al daemon \\
+B & cFS sample\_app (\#5) + LC (\#6) + F' (\#2) & Arquitectura pub/sub + FDIR & Doc 5 paginas con conceptos aplicables \\
+C & OreSat (\#16) + AAUSAT (\#18) & CubeSat open completo + state machines & Inventario de subsistemas no documentados en INTISAT \\
+D & 42 simulator (\#8) + GMAT (\#9) + UPSat (\#17) & Simulacion + planeamiento + docs formales & Borrador de orbita INTISAT con eclipses y pases \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Cronograma}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Dias 1--2}: cada persona instala las herramientas y corre los
+        tutoriales basicos.
+  \item \textbf{Dias 3--7}: profundizar en el repo asignado, tomar notas.
+  \item \textbf{Dia 8}: reunion intermedia, brief de 10 min cada uno.
+  \item \textbf{Dias 9--13}: profundizar en lo que se identifico como
+        prioritario.
+  \item \textbf{Dia 14}: reunion final --- decision sobre que 3 patrones se
+        adoptan en INTISAT.
+\end{itemize}
+
+\section{Output del equipo al final de las 2 semanas}
+
+\begin{enumerate}[leftmargin=2em]
+  \item Decision sobre arquitectura: ¿adoptamos F'? ¿Mantenemos daemon
+        Python con conceptos cFS? ¿Hibrido?
+  \item Prototipo de OpenMCT funcionando con telemetria del payload.
+  \item Borrador de modos de operacion de mision a nivel sistema.
+  \item Plan de orbita INTISAT con eclipses y pases.
+  \item Lista de patrones identificados en OreSat / AAUSAT que aplican.
+\end{enumerate}
+
+% =====================================================================
+\chapter{Lectura priorizada (top 5 si solo tenes tiempo limitado)}
+
+Si el equipo no puede dedicar 2 semanas, en orden:
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{OpenMCT tutorial} (\#3) --- 2 horas, salen ganando un dashboard.
+  \item \textbf{cFS sample\_app README} (\#5) --- 4 horas, entiendes cFS sin perderte.
+  \item \textbf{F' Tutorials} (\#2) --- 1 dia, alternativa moderna a cFS.
+  \item \textbf{ESA Phi-Lab iris} (\#13) --- caso real de IA en orbita.
+  \item \textbf{OreSat C3} (\#16) --- ver un CubeSat open completo.
+\end{enumerate}
+
+% =====================================================================
+\chapter{Recursos extra que no son repositorios pero suman}
+
+\section{NASA Software Catalog}
+
+\url{https://software.nasa.gov}
+
+Contiene codigo NASA NO publico en GitHub. Se descarga gratis con
+registro. Hay herramientas valiosas (analisis termico, control,
+simulacion) que no estan en GitHub.
+
+\section{Small Satellite Conference USU --- Open Access Papers}
+
+\url{https://digitalcommons.usu.edu/smallsat/}
+
+\textbf{Todas} las papers de las conferencias SmallSat de los ultimos 30
+años, gratis. El recurso \#1 academico de CubeSats. Buscar por keyword:
+\textit{state machine}, \textit{FDIR}, \textit{operational modes},
+\textit{onboard AI}.
+
+\section{ESA SAVOIR architecture}
+
+\url{https://savoir.estec.esa.int/}
+
+Reference architecture de ESA para spacecraft on-board software.
+Documentacion publica del esquema "como se hace un OBC en Europa".
+
+\section{NASA cFS resource center}
+
+\url{https://cfs.gsfc.nasa.gov/}
+
+Documentacion central de cFS, tutorials, training material en video.
+
+% =====================================================================
+\chapter{Cierre}
+
+Estas 20 referencias mas los 4 recursos extras te dan el universo de
+lo que existe abierto en el ecosistema CubeSat. \textbf{No es para leerlas
+todas}, es para que el equipo elija las 5 mas relevantes y las explore
+con rigor.
+
+\textbf{La leccion central}: NASA, ESA, y los proyectos academicos
+abiertos (OreSat, UPSat, AAUSAT) llevan 30 años resolviendo los problemas
+de CubeSat. Antes de inventar nada en el INTISAT, vale la pena ver como
+ya se resolvio antes y adaptar.
+
+\textbf{Lo que NO podes copiar} es la operacion: tu payload de microscopia
+biologica con OLED programable y mascaras intercambiables es \textbf{nuevo}.
+Eso es donde el equipo aporta valor diferencial. Pero la \textbf{arquitectura
+de software, comunicacion, FDIR y operaciones} ya esta resuelta y
+documentada. Hay que aprovecharla.
+
+\end{document}
