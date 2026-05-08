@@ -1,0 +1,1096 @@
+\documentclass[11pt,a4paper,oneside,openright]{book}
+\usepackage[spanish,activeacute,es-noshorthands]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath, amssymb, amsthm, mathtools}
+\usepackage{graphicx}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{circuits.ee.IEC, calc, arrows.meta, decorations.pathreplacing}
+\usepackage{listings}
+\usepackage{geometry}
+\geometry{margin=2.5cm, headheight=14pt}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\usepackage{caption}
+\captionsetup{font=small, labelfont=bf}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=NavyBlue,
+  citecolor=ForestGreen,
+  urlcolor=BrickRed,
+  pdftitle={Manual de electronica practica para CubeSat-EdgeAI},
+  pdfauthor={INTISAT}
+}
+
+\newtheorem{definicion}{Definicion}[chapter]
+\newtheorem{teorema}[definicion]{Teorema}
+\newtheorem{proposicion}[definicion]{Proposicion}
+\newtheorem*{nota}{Nota}
+
+\definecolor{codebg}{RGB}{248, 249, 250}
+\definecolor{codecomment}{RGB}{106, 153, 85}
+\definecolor{codekey}{RGB}{86, 156, 214}
+\definecolor{codestr}{RGB}{206, 145, 120}
+
+\lstdefinestyle{python}{
+  language=Python,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{codekey}\bfseries,
+  commentstyle=\color{codecomment}\itshape,
+  stringstyle=\color{codestr},
+  numberstyle=\tiny\color{gray},
+  numbers=left, numbersep=8pt,
+  frame=single, rulecolor=\color{gray!30},
+  framesep=4pt,
+  backgroundcolor=\color{codebg},
+  showstringspaces=false, breaklines=true, breakatwhitespace=true,
+  tabsize=2, captionpos=b,
+  literate={a}{{a}}1 {e}{{e}}1 {i}{{i}}1 {o}{{o}}1 {u}{{u}}1 {n}{{n}}1
+}
+\lstset{style=python}
+
+\newtcolorbox{intuibox}[1][]{
+  colback=green!5, colframe=green!40!black,
+  fonttitle=\bfseries, title=Intuicion,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{calculo}[1][]{
+  colback=gray!4, colframe=gray!55,
+  fonttitle=\bfseries, title=Calculo,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{payload}[1][]{
+  colback=blue!4, colframe=blue!50!black,
+  fonttitle=\bfseries, title=Conexion con el payload,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{cuidado}[1][]{
+  colback=red!5, colframe=red!50!black,
+  fonttitle=\bfseries, title=Cuidado,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{ejercicio}[1][]{
+  colback=orange!5, colframe=orange!60!black,
+  fonttitle=\bfseries, title=Ejercicios,
+  breakable, sharp corners=south, #1
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[RE]{\nouppercase{\leftmark}}
+\fancyhead[LO]{\nouppercase{\rightmark}}
+
+\title{\Huge\bfseries Manual de electronica practica\\[0.4em]
+\Large De los electrones al CubeSat\\[0.6em]
+\large Atado al proyecto CubeSat-EdgeAI-Payload}
+\author{Material acompañante de \texttt{INTISAT}}
+\date{\today}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+
+\chapter*{Prefacio}
+\addcontentsline{toc}{chapter}{Prefacio}
+
+Este manual es para alguien que se siente \emph{perdido} cuando aparecen
+terminos como I2C, SPI, INA219, MOSFET, regulador LDO, ground loop, etc.
+La idea es construir el lenguaje desde lo mas basico (que es un electron,
+que es un voltaje) hasta poder mantener una conversacion tecnica sobre
+diseño de carrier board para un satelite.
+
+\section*{Como leer este libro}
+
+El libro tiene 7 partes que avanzan en complejidad. Las primeras 3 son
+\emph{base obligatoria}; las siguientes son \emph{aplicaciones} a tu
+proyecto.
+
+\begin{description}[leftmargin=2em, style=nextline]
+  \item[Parte I --- Fundamentos electricos.] Que es voltaje, corriente,
+        resistencia. Ley de Ohm. Componentes pasivos.
+  \item[Parte II --- Componentes activos.] Diodos, transistores, op-amps.
+        Reguladores. La diferencia entre pasivo y activo.
+  \item[Parte III --- Electronica digital.] 0 y 1, compuertas, microcontroladores
+        y SoCs.
+  \item[Parte IV --- Comunicacion entre chips.] I2C, SPI, UART. Niveles
+        logicos. Level shifters.
+  \item[Parte V --- Sensores y actuadores.] CMOS, INA219, OLED, camera CSI.
+  \item[Parte VI --- Sistemas de potencia.] Bateries, reguladores, presupuesto
+        energetico, EPS satelital.
+  \item[Parte VII --- Aplicacion al CubeSat.] El stack del payload INTISAT,
+        el carrier board, los tests pre-vuelo.
+\end{description}
+
+Cada capitulo tiene:
+\begin{enumerate}[label=\arabic*., leftmargin=2em]
+  \item \textbf{Por que importa} --- el problema concreto que resuelve.
+  \item \textbf{Intuicion} --- la analogia antes de la formula (caja verde).
+  \item \textbf{Matematica} --- definiciones formales y ecuaciones (caja gris).
+  \item \textbf{Conexion con el payload} --- donde aparece en el INTISAT
+        (caja azul).
+  \item \textbf{Cuidado} --- errores comunes (caja roja).
+  \item \textbf{Ejercicios} --- experimentos sobre tu hardware (caja naranja).
+\end{enumerate}
+
+\section*{Prerequisitos}
+
+Solo se asume:
+\begin{itemize}[leftmargin=2em]
+  \item Algebra basica (resolver $V = I R$).
+  \item Concepto de funciones (sin necesidad de derivar/integrar fuera de
+        algunos casos puntuales).
+  \item Computadora con Python para simular y verificar.
+\end{itemize}
+
+\textbf{No se asume} conocimiento previo de electronica. Empezamos de cero.
+
+\tableofcontents
+
+\mainmatter
+
+% =====================================================================
+\part{Fundamentos electricos}
+
+\chapter{Magnitudes y unidades}
+
+\section{Por que importa}
+
+Antes de hablar de cualquier circuito, hay que hablar el mismo idioma. Cada
+medida que vas a leer en un datasheet (corriente de la Pi, voltaje de la
+bateria, capacidad de un capacitor) usa una unidad estandar del SI. Te paso
+las 7 que vas a usar el 95\% del tiempo.
+
+\section{Las 7 magnitudes esenciales}
+
+\begin{center}
+\begin{tabular}{lllll}
+\toprule
+\textbf{Magnitud} & \textbf{Simbolo} & \textbf{Unidad SI} & \textbf{Sigla} & \textbf{Lo que mide} \\
+\midrule
+Voltaje (tension)   & $V, U$ & volt     & V    & "presion electrica" \\
+Corriente            & $I$    & ampere   & A    & cantidad de carga por segundo \\
+Resistencia          & $R$    & ohm      & $\Omega$ & oposicion al paso de corriente \\
+Potencia             & $P$    & watt     & W    & energia por unidad de tiempo \\
+Energia              & $E$    & joule    & J    & "trabajo total" \\
+Capacitancia         & $C$    & farad    & F    & cuanta carga acumula al voltaje \\
+Inductancia          & $L$    & henry    & H    & cuanta energia magnetica almacena \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Voltaje --- la "presion"}
+
+\begin{intuibox}
+Pensa en un sistema de cañerias con agua. El \textbf{voltaje} es como la
+\emph{presion del agua}: mide cuanta fuerza tiene el sistema para empujar
+el flujo. Un punto a 5 V respecto a tierra (GND) tiene 5 V de "presion
+electrica" mas que el GND.
+\end{intuibox}
+
+\begin{definicion}[Voltaje]
+El voltaje entre dos puntos $A$ y $B$ es la diferencia de potencial
+electrico entre ellos:
+\begin{equation}
+V_{AB} = V_A - V_B
+\end{equation}
+Un voltaje absoluto no existe: siempre se mide \emph{respecto a otro punto}
+(generalmente GND, que arbitrariamente se llama 0 V).
+\end{definicion}
+
+\textbf{Voltajes que vas a ver}:
+
+\begin{center}
+\begin{tabular}{lc}
+\toprule
+\textbf{Sistema} & \textbf{Voltaje tipico} \\
+\midrule
+Bateria CR2032 (reloj de pulsera)   & 3.0 V \\
+USB                                  & 5.0 V \\
+Pi 5 (input)                         & 5.0 V \\
+GPIO de la Pi                        & 3.3 V \\
+Bateria de auto                      & 12 V \\
+Red electrica (Argentina)            & 220 V (AC) \\
+Linea de alta tension                & 13 200 V \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Corriente --- el flujo}
+
+\begin{intuibox}
+Si el voltaje es la \emph{presion}, la corriente es el \emph{caudal de
+agua} que efectivamente pasa. Mide cuantos electrones por segundo cruzan
+una seccion del cable.
+\end{intuibox}
+
+\begin{definicion}[Corriente]
+Corriente electrica es la cantidad de carga $Q$ que pasa por un punto en
+un tiempo $t$:
+\begin{equation}
+I = \frac{Q}{t}
+\end{equation}
+Unidad: ampere (A) $=$ coulomb por segundo (C/s). Un coulomb son
+$6.24 \times 10^{18}$ electrones.
+\end{definicion}
+
+\textbf{Corrientes que vas a ver}:
+
+\begin{center}
+\begin{tabular}{lc}
+\toprule
+\textbf{Caso} & \textbf{Corriente tipica} \\
+\midrule
+LED encendido                & 10--20 mA \\
+Sensor OV5647 activo          & 50--200 mA \\
+Pi 5 idle                     & 600 mA \\
+Pi 5 carga 100\%              & 1.4--1.8 A \\
+Boot transient Pi 5           & hasta 2.0 A \\
+Hervidor electrico            & 8--10 A \\
+Linea principal de la casa    & 30--60 A \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Convencion de signo}
+
+\textbf{Corriente convencional} fluye de + a $-$ (del punto de mayor a
+menor voltaje). Los electrones fisicamente se mueven al reves (de $-$ a
++) pero se acordo en el siglo XIX usar la convencion contraria. Hoy todo
+el mundo trabaja con la convencional.
+
+\section{Resistencia --- la oposicion}
+
+\begin{intuibox}
+Volviendo a la cañeria: una \textbf{resistencia} es como una manguera
+mas angosta que dificulta el paso del agua. A mas resistencia, menos caudal
+para la misma presion.
+\end{intuibox}
+
+\begin{definicion}[Resistencia]
+Es la oposicion al paso de corriente. Su unidad es el ohm ($\Omega$):
+1 $\Omega$ es la resistencia que deja pasar 1 A cuando se aplica 1 V.
+\end{definicion}
+
+\section{La Ley de Ohm}
+
+\begin{teorema}[Ley de Ohm]
+Para una resistencia ideal, la corriente es proporcional al voltaje:
+\begin{equation}
+\boxed{V = I \cdot R}
+\label{eq:ohm}
+\end{equation}
+\end{teorema}
+
+\textbf{Como leerla}:
+\begin{itemize}[leftmargin=2em]
+  \item Si fijas $R$, doblar el voltaje dobla la corriente.
+  \item Si fijas $V$, doblar la resistencia parte la corriente al medio.
+\end{itemize}
+
+\begin{calculo}
+\textbf{Ejemplo 1}: una LED roja necesita $20$ mA y cae $2$ V. La conectas
+a $5$ V. ¿Que resistencia poner en serie?
+
+La resistencia tiene que caer $5 - 2 = 3$ V con $0.020$ A pasando:
+\[
+R = \frac{V}{I} = \frac{3}{0.020} = 150\;\Omega
+\]
+\end{calculo}
+
+\begin{calculo}
+\textbf{Ejemplo 2}: tu Pi 5 idle consume $600$ mA a $5$ V. ¿Cual es su
+resistencia equivalente?
+\[
+R = \frac{V}{I} = \frac{5}{0.6} = 8.3\;\Omega
+\]
+La Pi se "ve" como una resistencia de $8.3\;\Omega$ desde la EPS.
+\end{calculo}
+
+\section{Potencia --- la energia por segundo}
+
+\begin{definicion}[Potencia]
+\begin{equation}
+\boxed{P = V \cdot I}
+\label{eq:power}
+\end{equation}
+Unidad: watt (W) $=$ volt $\times$ ampere.
+\end{definicion}
+
+Combinado con Ohm:
+\begin{align}
+P &= V \cdot I = I^2 \cdot R = \frac{V^2}{R}
+\end{align}
+
+\textbf{Ejemplos de potencia}:
+\begin{center}
+\begin{tabular}{lc}
+\toprule
+LED indicador & 0.04 W \\
+Pi 5 idle & 3 W \\
+Pi 5 a tope & 8 W \\
+Lampara LED de habitacion & 9 W \\
+Notebook & 50 W \\
+Motor de auto electrico & 100 000 W (100 kW) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Energia}
+
+La energia es potencia $\times$ tiempo:
+\begin{equation}
+E = P \cdot t
+\end{equation}
+Unidad: joule (J) $=$ watt $\times$ segundo. Tambien se mide en
+\textbf{watt-hora} (Wh): $1$ Wh $= 3600$ J.
+
+\textbf{Ejemplo}: Pi 5 corriendo a $7.5$ W durante $30$ s consume:
+\[
+E = 7.5 \times 30 = 225\;\text{J} = \frac{225}{3600} \approx 0.063\;\text{Wh}
+\]
+
+\begin{payload}
+Tu cuadro 4 del reporte energetico decia: \emph{286 J en modo FPM, 23 J en
+modo single}. Esos numeros vienen de aplicar $E = P \cdot t$ con la
+estimacion de $6.5$ W de potencia tipica y los tiempos medidos. Como NO
+mediste $P$ con INA219, asumiste $6.5$ W de datasheet. Esa es la limitacion.
+\end{payload}
+
+\begin{ejercicio}
+\begin{enumerate}[leftmargin=2em]
+  \item ¿Cuanta corriente consume un LED a $20$ mA si lo conectas a una
+        bateria de $9$ V con una resistencia de $470\;\Omega$? (sugerencia:
+        primero calcula el voltaje sobre el LED).
+  \item Tu Pi 5 corre $10$ scans en modo single ($23$ J cada uno). Una
+        bateria de $5000$ mAh a $5$ V tiene $\sim 90\,000$ J. ¿Cuantos scans
+        soporta?
+  \item Si la EPS del INTISAT da $5$ V $\times$ $6$ A, ¿cual es la potencia
+        maxima del rail \texttt{5V\_PAYLOAD}? ¿Cuanto margen tenes vs el
+        pico de Pi 5 a $8$ W?
+\end{enumerate}
+\end{ejercicio}
+
+\chapter{Componentes pasivos}
+
+\section{Resistor}
+
+El resistor es el componente mas simple: un trozo de material resistivo
+encapsulado. Se identifica por:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Valor}: en ohms, marcado con codigo de colores o numero.
+  \item \textbf{Tolerancia}: $\pm 1\%$, $\pm 5\%$, $\pm 10\%$.
+  \item \textbf{Potencia maxima}: 1/8 W, 1/4 W, 1/2 W, 1 W, etc.
+\end{itemize}
+
+\begin{cuidado}
+Si un resistor de $1/4$ W disipa $1$ W, se quema literalmente. Verificar
+siempre $P_{\text{esperado}} = I^2 R < P_{\text{nominal}}$.
+\end{cuidado}
+
+\subsection{En serie y en paralelo}
+
+\textbf{Serie} (uno detras del otro): las resistencias se suman.
+\begin{equation}
+R_{\text{eq}} = R_1 + R_2 + \dots + R_n
+\end{equation}
+
+\textbf{Paralelo} (en lineas separadas): los reciprocos se suman.
+\begin{equation}
+\frac{1}{R_{\text{eq}}} = \frac{1}{R_1} + \frac{1}{R_2} + \dots + \frac{1}{R_n}
+\end{equation}
+
+Para 2 en paralelo: $R_{\text{eq}} = \frac{R_1 R_2}{R_1 + R_2}$.
+
+\begin{intuibox}
+\textbf{Serie} es como poner mas filtros en linea: cada uno suma su
+oposicion. \textbf{Paralelo} es abrir mas caminos: aunque cada uno tenga
+oposicion, hay mas vias y la resistencia total baja.
+\end{intuibox}
+
+\section{Capacitor}
+
+\begin{definicion}[Capacitor]
+Es un componente que almacena energia en forma de campo electrico. Su
+ecuacion es:
+\begin{equation}
+Q = C \cdot V
+\end{equation}
+donde $Q$ es la carga acumulada y $C$ la capacitancia (F).
+\end{definicion}
+
+\textbf{Para entenderlo}: cuando aplicas un voltaje, el capacitor "se llena"
+de carga; cuando lo desconectas, mantiene esa carga (y por ende voltaje)
+hasta que algo lo descargue.
+
+\subsection{Tipos comunes}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+\textbf{Tipo} & \textbf{Capacitancia} & \textbf{Voltaje max} & \textbf{Uso tipico} \\
+\midrule
+Ceramico               & pF a $\mu$F   & 50--100 V & filtros, decoupling \\
+Electrolitico aluminio & $\mu$F a mF   & 6.3--400 V & filtros de fuente \\
+Tantalio               & $\mu$F a 100$\mu$F & 6.3--50 V & decoupling preciso \\
+Cermet                 & pF a nF       & alta       & RF \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Comportamiento dinamico}
+
+A diferencia del resistor (que cumple Ohm de forma instantanea), el
+capacitor reacciona al cambio:
+\begin{equation}
+I = C \frac{dV}{dt}
+\end{equation}
+
+\begin{intuibox}
+Un capacitor se opone a los \emph{cambios bruscos} de voltaje. Por eso se
+usa para filtrar ruido: el ruido es un cambio rapido y el capacitor lo
+absorbe.
+\end{intuibox}
+
+\subsection{En serie y paralelo}
+
+\textbf{Serie}: capacitancias en reciproco.
+\textbf{Paralelo}: se suman directamente (lo opuesto a las resistencias).
+
+\section{Inductor}
+
+\begin{definicion}[Inductor]
+Almacena energia en campo magnetico. Su ecuacion:
+\begin{equation}
+V = L \frac{dI}{dt}
+\end{equation}
+Se opone a los cambios de \emph{corriente}.
+\end{definicion}
+
+Aparece tipicamente en:
+\begin{itemize}[leftmargin=2em]
+  \item Reguladores switching (buck, boost, SEPIC).
+  \item Filtros de RF.
+  \item Antenas.
+\end{itemize}
+
+\begin{payload}
+En tu carrier board para CM5 vas a poner capacitores de \textbf{decoupling}
+de 100 nF cerca de cada chip. Filtran ruido del rail 3.3 V. Sin ellos,
+los chips fallan intermitentemente. Es la regla \#1 de PCB design.
+\end{payload}
+
+\chapter{Leyes de Kirchhoff}
+
+\section{Por que importa}
+
+Ohm sirve para una sola resistencia. Para circuitos con varios componentes
+necesitas las dos leyes de Kirchhoff. Son la base de todo analisis de
+circuitos.
+
+\section{KCL --- Ley de corrientes}
+
+\begin{teorema}[Kirchhoff Current Law]
+La suma de corrientes que entran a un nodo es igual a la suma de las que
+salen:
+\begin{equation}
+\sum I_{\text{entrada}} = \sum I_{\text{salida}}
+\end{equation}
+\end{teorema}
+
+\begin{intuibox}
+Es la conservacion de la carga: lo que entra a un punto tiene que salir
+(no se acumula). Como en una cañeria con un nodo, el agua que llega es la
+que sale por las ramas.
+\end{intuibox}
+
+\section{KVL --- Ley de voltajes}
+
+\begin{teorema}[Kirchhoff Voltage Law]
+La suma de voltajes en un lazo cerrado es cero:
+\begin{equation}
+\sum V_{\text{lazo}} = 0
+\end{equation}
+\end{teorema}
+
+\begin{intuibox}
+Si recorres un circuito cerrado y vuelves al mismo punto, la suma de
+"subidas" y "bajadas" de voltaje tiene que dar cero.
+\end{intuibox}
+
+\section{Aplicacion: divisor de voltaje}
+
+Dado dos resistencias en serie $R_1$, $R_2$ con voltaje total $V_{\text{in}}$:
+\begin{equation}
+V_{\text{out}} = V_{\text{in}} \cdot \frac{R_2}{R_1 + R_2}
+\end{equation}
+
+Es la formula mas usada en electronica analogica.
+
+\begin{ejercicio}
+\begin{enumerate}[leftmargin=2em]
+  \item Un divisor con $R_1 = 10$ k$\Omega$ y $R_2 = 5$ k$\Omega$ alimentado
+        con 5 V. ¿Cuanto sale?
+  \item ¿Que pasa si conectas una carga de $1$ k$\Omega$ a la salida?
+        (sugerencia: la carga queda en paralelo con $R_2$).
+\end{enumerate}
+\end{ejercicio}
+
+% =====================================================================
+\part{Componentes activos}
+
+\chapter{Diodos}
+
+\section{Que es}
+
+Un diodo es un componente de \textbf{2 terminales} que solo deja pasar
+corriente en una direccion. Es como una valvula check de plomeria: si la
+corriente trata de ir al reves, la bloquea.
+
+\subsection{Curva caracteristica}
+
+Se polariza directo: $V_{\text{anodo}} > V_{\text{catodo}} + V_F$
+($V_F \approx 0.7$ V para Si, $\approx 0.3$ V para Schottky).
+
+\subsection{Aplicaciones}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Rectificacion}: convertir AC a DC.
+  \item \textbf{Proteccion de polaridad inversa}: si conectas la fuente al
+        reves, el diodo bloquea.
+  \item \textbf{Diodo zener}: estabiliza voltaje de referencia.
+  \item \textbf{LED}: emite luz cuando hay corriente directa.
+\end{itemize}
+
+\begin{payload}
+En tu carrier board CM5 conviene poner un diodo Schottky en serie con el
+rail 5V de la EPS, asi si alguien lo conecta al reves, no quemas la Pi.
+Costo: $0.10$ USD. Vale ese seguro.
+\end{payload}
+
+\chapter{Transistores BJT y MOSFET}
+
+\section{Concepto general}
+
+Un transistor es un \textbf{interruptor electronico controlable}: una pequeña
+señal en un terminal controla un flujo grande entre otros dos. Es la base
+de la electronica moderna.
+
+\section{BJT (Bipolar Junction Transistor)}
+
+3 terminales: base (B), colector (C), emisor (E). Una pequeña corriente
+en la base permite una corriente mucho mayor entre C y E:
+\begin{equation}
+I_C = \beta \cdot I_B \quad (\beta \approx 100)
+\end{equation}
+
+Tipos: NPN (interruptor cierra con base alta) y PNP (cierra con base baja).
+
+\section{MOSFET}
+
+3 terminales: gate (G), drain (D), source (S). Un voltaje en G controla la
+corriente D-S, sin consumir corriente en G.
+
+\textbf{Por que importa}: la mayoria de la electronica digital moderna usa
+MOSFETs. Un microcontrolador tiene millones de ellos en el chip.
+
+\begin{payload}
+Si tu carrier board necesita encender/apagar el rail OLED bajo control de
+software, lo haces con un MOSFET P-channel: GPIO de la Pi controla el gate,
+el MOSFET deja pasar 5V al OLED. La Pi puede asi cortar el OLED para
+ahorrar energia en SAFE\_MODE.
+\end{payload}
+
+\chapter{Reguladores de tension}
+
+\section{Que problema resuelve}
+
+Tu fuente da $5$ V pero la Pi internamente necesita $0.85$ V para el CPU,
+$1.1$ V para la RAM, $1.8$ V para los buses, $3.3$ V para GPIO. Todos esos
+voltajes se generan a partir de los $5$ V externos con \textbf{reguladores}.
+
+\section{LDO (Low Dropout)}
+
+Es un regulador lineal: convierte un voltaje mayor en uno menor disipando
+la diferencia como \textbf{calor}.
+
+\textbf{Eficiencia}:
+\begin{equation}
+\eta = \frac{V_{\text{out}}}{V_{\text{in}}}
+\end{equation}
+
+Si convertis $5$ V a $3.3$ V con $1$ A:
+\begin{itemize}[leftmargin=2em]
+  \item Disipa $(5 - 3.3) \times 1 = 1.7$ W como calor.
+  \item Eficiencia: $66\%$.
+\end{itemize}
+
+\textbf{Pros}: simple, barato, bajo ruido.
+\textbf{Contras}: ineficiente, calienta.
+
+\section{Switching (buck, boost)}
+
+Usa inductor + capacitor para convertir voltaje con $> 90\%$ de eficiencia.
+Mas complejo, mas ruidoso, pero mucho mas eficiente.
+
+\textbf{Tipos}:
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Buck}: baja voltaje (5V $\to$ 3.3V).
+  \item \textbf{Boost}: sube voltaje (3.7V $\to$ 12V).
+  \item \textbf{Buck-boost}: ambos.
+  \item \textbf{SEPIC}: aislado.
+\end{itemize}
+
+\begin{payload}
+La PMIC interna de la Pi 5 (chip Renesas) hace todo esto en un solo IC:
+recibe 5V externos y genera 0.85V para CPU, 1.1V RAM, 1.8V IO, 3.3V GPIO.
+Si lees el datasheet del Pi 5 vas a ver el bloque de la PMIC. Es transparente
+para vos como usuario.
+\end{payload}
+
+% =====================================================================
+\part{Electronica digital}
+
+\chapter{Sistemas de numeracion}
+
+\section{Binario}
+
+Solo dos digitos: 0 y 1. Cada digito representa una potencia de 2.
+\[
+1011_2 = 1\cdot 8 + 0\cdot 4 + 1\cdot 2 + 1\cdot 1 = 11_{10}
+\]
+
+\section{Hexadecimal}
+
+16 digitos: 0--9, A--F. Cada digito hex representa 4 bits.
+\[
+0xA5 = A\cdot 16 + 5 = 10\cdot 16 + 5 = 165_{10} = 10100101_2
+\]
+
+\subsection{Por que importa}
+
+Las direcciones I2C, los registros, los comandos de tu daemon estan en hex.
+Tu I2C slave responde en \texttt{0x42}, lo que es:
+\[
+0x42 = 4 \cdot 16 + 2 = 66_{10} = 0100\,0010_2
+\]
+
+\section{Bytes y multiplos}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Unidad} & \textbf{Bytes} & \textbf{Ejemplo} \\
+\midrule
+1 byte (B)         & 8 bits       & un caracter ASCII \\
+1 kB ($2^{10}$ B)  & 1024 B        & un mensaje de texto largo \\
+1 MB ($2^{20}$ B)  & 1.05 M        & una imagen JPEG mediana \\
+1 GB ($2^{30}$ B)  & 1.07 G        & una pelicula comprimida \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\chapter{Algebra de Boole y compuertas logicas}
+
+\section{Compuertas basicas}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Compuerta} & \textbf{Operacion} & \textbf{Tabla de verdad} \\
+\midrule
+AND   & $A \wedge B$           & 1 solo si ambas son 1 \\
+OR    & $A \vee B$             & 1 si al menos una es 1 \\
+NOT   & $\bar{A}$              & invierte \\
+XOR   & $A \oplus B$           & 1 si son diferentes \\
+NAND  & $\overline{A \wedge B}$ & complemento de AND \\
+NOR   & $\overline{A \vee B}$  & complemento de OR \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Toda la electronica digital se construye combinando estas. Un microprocesador
+con miles de millones de transistores no es mas que estas compuertas
+ordenadas.
+
+\chapter{Microcontroladores y SoCs}
+
+\section{Microcontrolador}
+
+Un \textbf{microcontrolador} es un chip que integra: CPU + RAM + flash +
+perifericos (GPIO, I2C, SPI, UART, ADC, timers). Ejemplos: Arduino UNO
+(ATmega328), STM32, ESP32.
+
+\section{SoC (System on Chip)}
+
+Un \textbf{SoC} es un chip mas potente: CPU multi-core + GPU + ISP + DMA +
+controladores de memoria + buses. Ejemplos: el BCM2712 del Pi 5, los
+Apple M1/M2, los Qualcomm Snapdragon.
+
+\textbf{Diferencia clave}: el microcontrolador corre firmware; el SoC corre
+sistema operativo (Linux).
+
+\begin{payload}
+Tu Pi 5 tiene el SoC \textbf{BCM2712}: 4 nucleos ARM Cortex-A76 a 2.4 GHz,
+GPU VideoCore VII, RAM LPDDR4X de 4 GB. Lo controla un Linux completo.
+Si quisieras hacer un controlador de motor o un sensor simple, usarias un
+microcontrolador (ej. ATmega) que es 100x mas barato pero solo soporta
+firmware bare-metal.
+\end{payload}
+
+% =====================================================================
+\part{Comunicacion entre chips}
+
+\chapter{I2C}
+
+\section{Concepto}
+
+\textbf{I2C} = Inter-Integrated Circuit. Bus de 2 cables (mas GND) para
+conectar varios chips en serie. Inventado por Philips en 1982.
+
+\section{Cables}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{SDA} (Serial Data): los datos.
+  \item \textbf{SCL} (Serial Clock): el reloj.
+  \item GND: tierra comun.
+\end{itemize}
+
+Ambas lineas son \textbf{open-drain}: el chip solo puede tirar la linea a
+0 V; nadie puede ponerla a $V_{cc}$. Por eso se necesitan \textbf{pull-up
+resistors} (4.7 k$\Omega$ tipico) que mantienen la linea en alto cuando
+nadie la baja.
+
+\section{Direcciones}
+
+Cada slave tiene una direccion de 7 bits ($0$--$127$). El master inicia
+la comunicacion con: \texttt{[start] [address+R/W] [datos] [stop]}.
+
+\begin{payload}
+Tu I2C slave (la Pi) responde en \textbf{0x42}. El INA219 responde en
+\textbf{0x40}. El OLED en \textbf{0x3C}. Pueden compartir el mismo bus
+sin conflicto. \texttt{i2cdetect -y 1} te muestra todos los slaves
+presentes.
+\end{payload}
+
+\section{Velocidades estandar}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Modo} & \textbf{Velocidad} & \textbf{Cuando} \\
+\midrule
+Standard       & 100 kHz          & default, casi todos los chips \\
+Fast           & 400 kHz          & sensores rapidos \\
+Fast plus      & 1 MHz            & raro \\
+High speed     & 3.4 MHz          & muy raro \\
+Ultra          & 5 MHz            & muy moderno \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\chapter{SPI y UART}
+
+\section{SPI (Serial Peripheral Interface)}
+
+4 cables: SCLK, MOSI, MISO, CS. Mas rapido que I2C (hasta $50$ MHz),
+full-duplex (lee y escribe a la vez).
+
+\section{UART (Universal Asynchronous)}
+
+2 cables: TX, RX. Sin reloj compartido, depende de baud rate sincronizado
+en ambos extremos. Tipicamente 9600, 115200 bps.
+
+\chapter{Niveles logicos y level shifters}
+
+\section{El problema}
+
+Distintos chips usan distintos voltajes para "alto" (1) y "bajo" (0):
+\begin{itemize}[leftmargin=2em]
+  \item Pi 5 GPIO: $3.3$ V
+  \item Arduino UNO: $5$ V
+  \item ESP32 logico: $3.3$ V
+  \item Logica industrial CMOS: $5$ V o $24$ V
+\end{itemize}
+
+Conectar directo dañas chips.
+
+\section{Solucion: level shifter}
+
+Un \textbf{level shifter} es un IC que traduce voltajes en ambos sentidos
+sin conectarlos electricamente. Ejemplos: TXS0108E (8 canales),
+74LVC245 (octal), BSS138 (MOSFET simple).
+
+\begin{payload}
+Tu carrier board para CM5 va a tener un \textbf{TXS0108E} o similar entre
+el I2C de la Pi (3.3 V) y el bus PC-104 del INTISAT (que podria estar a
+3.3 V o 5 V segun el OBC). Sin el level shifter, riesgo de daño cuando
+el OBC tira la linea a $V_{cc}$ que no aplica.
+\end{payload}
+
+% =====================================================================
+\part{Sensores y actuadores}
+
+\chapter{Sensor de imagen CMOS (OV5647)}
+
+\section{Como funciona}
+
+Un sensor CMOS tiene una grilla de \textbf{fotodiodos} (uno por pixel).
+Cuando un foton llega, libera un electron. La cantidad de electrones
+acumulados en un tiempo de exposicion es proporcional a la intensidad
+luminosa de ese pixel. Despues, un convertidor ADC mide cada pixel y
+saca el valor.
+
+\section{Filtro de Bayer}
+
+El sensor es monocromatico por defecto. Para color, se le pone una grilla
+de filtros R, G, B alternados (patron Bayer). Cada pixel ve solo un color;
+el ISP interpola los otros dos.
+
+\begin{payload}
+Tu OV5647 es de $5$ MP ($2592 \times 1944$) con pixeles de $1.4\;\mu$m. Sin
+lente, captura proyecciones directas de la luz. El sensor por si solo da
+RAW10 (10 bits crudos por pixel). El ISP del Pi 5 lo convierte a RGB888.
+\end{payload}
+
+\chapter{INA219 --- sensor de corriente}
+
+\section{Como mide}
+
+Como vimos: ley de Ohm $I = V_{\text{shunt}}/R_{\text{shunt}}$. El INA219
+mide el voltaje sobre un shunt de $0.1\;\Omega$ y deduce la corriente.
+
+\begin{payload}
+Tu plan es usarlo para medir el consumo real de la Pi durante cada fase
+del daemon. Conectalo en serie con el rail $5$ V de la EPS, lee el bus
+I2C secundario, y obtenes V, I, P en tiempo real.
+\end{payload}
+
+\chapter{OLED SSD1351 / SSD1306}
+
+\section{Como funciona un OLED}
+
+Un OLED (Organic LED) tiene una matriz de pixeles donde cada uno es un
+LED organico. Cuando aplicas un voltaje, el pixel emite luz directa
+(no necesita backlight como un LCD).
+
+Cada pixel se controla por una tension entre $0$ V (apagado) y $3.3$ V
+(brillo maximo). Un controlador (SSD1351 / SSD1306) maneja la matriz por
+SPI o I2C.
+
+\begin{payload}
+Tu OLED es la fuente de iluminacion del payload. Lo manejas por SPI desde
+la Pi a $1$ MHz. En cada captura encendes un patron especifico (5x5
+para FPM, full white para single, etc.). Es un actuador opto-electronico
+programable.
+\end{payload}
+
+% =====================================================================
+\part{Sistemas de potencia}
+
+\chapter{Bateria de Litio}
+
+\section{Quimica}
+
+Una bateria Li-ion almacena energia en forma de iones de litio que
+migran entre el catodo (LiCoO$_2$) y el anodo (grafito) durante la carga
+y descarga.
+
+\section{Voltajes}
+
+\begin{itemize}[leftmargin=2em]
+  \item Cargada: $4.2$ V
+  \item Nominal: $3.7$ V
+  \item Descargada: $3.0$ V (no bajar de aqui o se daña)
+\end{itemize}
+
+\section{Capacidad}
+
+Se mide en \textbf{mAh} (mili-amperes-hora) o Wh (watt-hora):
+\[
+\text{Wh} = \text{V} \times \text{Ah}
+\]
+
+Una bateria de $5000$ mAh @ $3.7$ V tiene $5\,\text{Ah} \times 3.7\,\text{V} = 18.5$ Wh.
+
+\chapter{Reguladores switching y LDO}
+
+(Capitulo 8 ya cubrio la teoria.)
+
+\chapter{Presupuesto energetico}
+
+\section{Como se calcula}
+
+Se enumeran todos los modos de operacion del sistema, sus duraciones
+tipicas en una orbita, y la potencia de cada uno. Se calcula la energia
+por orbita.
+
+\textbf{Ejemplo simplificado para tu payload}:
+\[
+E_{\text{orbita}} = \sum_i P_i \cdot t_i
+\]
+
+Tu reporte estima:
+\begin{itemize}[leftmargin=2em]
+  \item Idle: $3.0$ W $\times$ $80$ min $= 14400$ J
+  \item 4 scans modo single: $23$ J $\times$ 4 $= 92$ J
+  \item Comms: $4$ W $\times$ $10$ min $= 2400$ J
+  \item \textbf{Total}: $\sim 17$ kJ por orbita $= 4.7$ Wh
+\end{itemize}
+
+\chapter{EPS satelital}
+
+Un EPS (Electrical Power System) tiene 4 bloques principales:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Paneles solares}: generan $5$--$30$ W segun tamaño y
+        eficiencia.
+  \item \textbf{MPPT} (Maximum Power Point Tracker): optimiza la extraccion.
+  \item \textbf{Bateria}: $10$--$80$ Wh.
+  \item \textbf{Distribucion}: rails de salida ($3.3$ V, $5$ V, $12$ V) con
+        proteccion contra cortos.
+\end{itemize}
+
+% =====================================================================
+\part{Aplicacion al CubeSat}
+
+\chapter{El stack del payload INTISAT}
+
+Resumen de todo lo que vimos aplicado a tu sistema:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Energia}: $5$V\_PAYLOAD desde EPS $\to$ LDO $\to$ Pi 5 $\to$ PMIC interna $\to$ todos los rails internos.
+  \item \textbf{Comunicacion}: I2C\_2 entre OBC y Pi via TXS0108E.
+  \item \textbf{Sensor}: OV5647 por CSI-2 directo a la Pi.
+  \item \textbf{Actuador}: OLED SSD1351 por SPI desde la Pi.
+  \item \textbf{Monitor de potencia}: INA219 por I2C secundario (futuro).
+\end{itemize}
+
+\chapter{Diseño del carrier board (CM5)}
+
+Cuando migren a CM5, el carrier board tiene que tener:
+
+\begin{enumerate}[leftmargin=2em]
+  \item Conector mezzanine de $200$ pines para el CM5 (Hirose DF40).
+  \item LDO o switching regulator que tome $5$V\_PAYLOAD y lo regule a
+        las tensiones que pide el CM5.
+  \item Capacitores de decoupling de $100$ nF cerca de cada chip.
+  \item Diodo Schottky de proteccion de polaridad inversa.
+  \item Fusible PTC de $5$ A para corto-circuito.
+  \item TXS0108E para I2C externo.
+  \item INA219 para monitor de potencia.
+  \item Conector PC-104 para integracion al INTISAT.
+  \item Conector CSI-2 (15 o 22 pines) para OV5647.
+  \item Conector SPI + GPIO para OLED.
+  \item LEDs de status de boot.
+  \item Pads de prueba para todos los buses.
+\end{enumerate}
+
+\chapter{Tests pre-vuelo}
+
+Resumen de tests electronicos que tu equipo va a hacer:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Continuidad y cortos}: con multimetro antes de encender.
+  \item \textbf{Polaridad de fuente}: verificar antes de cada encendido.
+  \item \textbf{Inrush current}: medir corriente de encendido inicial con osciloscopio.
+  \item \textbf{Power-on sequence}: verificar que cada rail enciende en el orden correcto.
+  \item \textbf{Burn-in}: 8 horas de operacion continua sin reboot.
+  \item \textbf{TVAC}: ciclos termicos en vacio (-40 a +85 C).
+  \item \textbf{Vibracion}: 3 g RMS, 5--2000 Hz, segun MIL-STD-810.
+  \item \textbf{EMC}: emisiones radiadas y conducidas, susceptibilidad.
+  \item \textbf{Funcional end-to-end}: 100 scans seguidos sin fallo.
+\end{itemize}
+
+% =====================================================================
+\appendix
+\chapter{Apendice --- Codigo de colores de resistores}
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Color} & \textbf{Digito / Multiplicador} & \textbf{Tolerancia} \\
+\midrule
+Negro    & 0 / $\times 1$        & --- \\
+Marron   & 1 / $\times 10$       & $\pm 1\%$ \\
+Rojo     & 2 / $\times 100$      & $\pm 2\%$ \\
+Naranja  & 3 / $\times 1k$       & --- \\
+Amarillo & 4 / $\times 10k$      & --- \\
+Verde    & 5 / $\times 100k$     & $\pm 0.5\%$ \\
+Azul     & 6 / $\times 1M$       & $\pm 0.25\%$ \\
+Violeta  & 7 / $\times 10M$      & $\pm 0.1\%$ \\
+Gris     & 8                      & --- \\
+Blanco   & 9                      & --- \\
+Dorado   & --- / $\times 0.1$    & $\pm 5\%$ \\
+Plata    & --- / $\times 0.01$   & $\pm 10\%$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\chapter{Apendice --- Conversiones rapidas}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Concepto} & \textbf{Formula} & \textbf{Ejemplo} \\
+\midrule
+Corriente (A) a mA   & $\times 1000$    & $1.5$ A $= 1500$ mA \\
+mAh a J              & $\times V \times 3.6$ & $1000$ mAh @ $5$ V $= 18\,000$ J \\
+J a Wh               & $\div 3600$       & $7200$ J $= 2$ Wh \\
+W a J/s              & $1:1$             & 5 W $= 5$ J/s \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\chapter{Apendice --- Hoja de ruta de aprendizaje}
+
+\section{Plan de 3 meses para profundizar}
+
+\textbf{Mes 1}: Capitulos 1--7. Construir un protoboard con resistencias,
+capacitores, LEDs. Implementar circuitos basicos de Ohm y Kirchhoff.
+
+\textbf{Mes 2}: Capitulos 8--13. Probar reguladores LDO y switching reales,
+ver como cambia la temperatura. Programar un microcontrolador (Arduino o
+ESP32).
+
+\textbf{Mes 3}: Capitulos 14--20. Implementar I2C, SPI, UART en un proyecto
+real. Diseñar y ordenar tu primer PCB en JLCPCB.
+
+\section{Recursos para profundizar}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Libro}: \emph{The Art of Electronics} (Horowitz \& Hill).
+        El "Gonzalez \& Woods" de electronica.
+  \item \textbf{Curso}: MIT 6.002 Circuits and Electronics (gratis online).
+  \item \textbf{Practica}: TinkerCAD Circuits para simulacion online sin
+        comprar nada.
+  \item \textbf{Tutorial PCB}: KiCad oficial (gratis, profesional).
+  \item \textbf{Comunidad}: \url{https://www.eevblog.com/forum/} y r/electronics.
+\end{itemize}
+
+\backmatter
+\chapter*{Bibliografia}
+\addcontentsline{toc}{chapter}{Bibliografia}
+
+\begin{enumerate}[leftmargin=2em]
+\item Horowitz P, Hill W. \emph{The Art of Electronics}. 3ed. Cambridge
+  University Press, 2015.
+\item Sedra A, Smith K. \emph{Microelectronic Circuits}. 8ed. Oxford, 2020.
+\item Razavi B. \emph{Fundamentals of Microelectronics}. 2ed. Wiley, 2014.
+\item Williams J. \emph{Analog Circuit Design}. Newnes, 1991.
+\item Texas Instruments. \emph{INA219 Datasheet}. \url{https://www.ti.com/product/INA219}.
+\item Raspberry Pi Foundation. \emph{BCM2712 Peripherals}. \url{https://datasheets.raspberrypi.com/bcm2712/}.
+\item OmniVision. \emph{OV5647 Datasheet}, 2009.
+\item Solomon Systech. \emph{SSD1351 Datasheet}, 2014.
+\end{enumerate}
+
+\end{document}
