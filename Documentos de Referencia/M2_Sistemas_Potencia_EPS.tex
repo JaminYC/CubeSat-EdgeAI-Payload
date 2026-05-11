@@ -1,0 +1,408 @@
+\documentclass[11pt,a4paper,oneside,openright]{book}
+\usepackage[spanish,activeacute,es-noshorthands]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{geometry}
+\geometry{margin=2.5cm, headheight=14pt}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\usepackage{caption}
+\captionsetup{font=small, labelfont=bf}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=NavyBlue, urlcolor=BrickRed,
+  pdftitle={M2 --- Sistemas de potencia para CubeSat}, pdfauthor={INTISAT}}
+
+\newtheorem{definicion}{Definicion}[chapter]
+\newtheorem*{nota}{Nota}
+
+\newtcolorbox{intuibox}[1][]{colback=green!5, colframe=green!40!black,
+  fonttitle=\bfseries, title=Intuicion, breakable, sharp corners=south, #1}
+\newtcolorbox{calculo}[1][]{colback=gray!4, colframe=gray!55,
+  fonttitle=\bfseries, title=Calculo, breakable, sharp corners=south, #1}
+\newtcolorbox{payload}[1][]{colback=blue!4, colframe=blue!50!black,
+  fonttitle=\bfseries, title=Conexion con el INTISAT, breakable, sharp corners=south, #1}
+\newtcolorbox{cuidado}[1][]{colback=red!5, colframe=red!50!black,
+  fonttitle=\bfseries, title=Cuidado, breakable, sharp corners=south, #1}
+\newtcolorbox{ejercicio}[1][]{colback=orange!5, colframe=orange!60!black,
+  fonttitle=\bfseries, title=Ejercicios, breakable, sharp corners=south, #1}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[RE]{\nouppercase{\leftmark}}
+\fancyhead[LO]{\nouppercase{\rightmark}}
+
+\title{\Huge\bfseries M2 --- Sistemas de potencia\\[0.4em]
+\Large EPS (Electrical Power System) para CubeSat\\[0.6em]
+\large Manual de la coleccion CubeSat (M2 / 11)}
+\author{Coleccion CubeSat para el proyecto INTISAT}
+\date{\today}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+
+\chapter*{Prefacio}
+\addcontentsline{toc}{chapter}{Prefacio}
+
+El sistema de potencia es la columna vertebral de un CubeSat. Si fallan
+las comms, perdes una mision; si falla el EPS, perdes el satelite
+completo. Este manual cubre como generar, almacenar y distribuir la
+energia que el resto del satelite necesita.
+
+\section*{Audiencia}
+Electronica de potencia, electronica analogica, integradores de sistema.
+
+\section*{Prerequisitos}
+M0 (CubeSat 101), Manual de electronica practica (capitulos 1-8).
+
+\tableofcontents
+
+\mainmatter
+
+\chapter{Generacion solar}
+
+\section{Por que el sol es la unica opcion}
+
+En LEO el satelite recibe energia solar 60--65\% del tiempo (el resto es
+eclipse). Las opciones de energia primaria son:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Solar}: lo usado en todo CubeSat. Tipica eficiencia 28\%
+        (celdas triple-juncion GaAs).
+  \item \textbf{Nuclear (RTG)}: caro, prohibido para mas misiones
+        academicas, usado solo en deep space.
+  \item \textbf{Chemical}: descartado (no se recarga).
+\end{itemize}
+
+\section{Tipos de celdas}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Tipo} & \textbf{Eficiencia} & \textbf{Costo relativo} \\
+\midrule
+Silicio (Si) cristalino       & 15-18\%  & 1x \\
+Silicio monocristalino HE     & 22\%     & 1.5x \\
+GaAs single-junction           & 22-24\%  & 5x \\
+\textbf{Triple-junction GaAs}  & \textbf{28-32\%} & \textbf{15x} \\
+Triple-junction with concentr & 35-40\%  & 30x \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Para CubeSat}: casi todos usan \textbf{triple-junction GaAs}
+pese al costo. La masa es limitada y la eficiencia importa mucho.
+
+\section{Calculo de generacion}
+
+\begin{calculo}
+La constante solar a 1 AU (en LEO):
+\[
+S = 1361\;\text{W/m}^2
+\]
+Para una celda de area $A = 30\;\text{cm}^2 = 0.003\;\text{m}^2$ con
+eficiencia $\eta = 0.28$:
+\[
+P = S \cdot A \cdot \eta = 1361 \cdot 0.003 \cdot 0.28 = 1.14\;\text{W}
+\]
+\end{calculo}
+
+Para un \textbf{3U} con 4 caras laterales cubiertas (cada cara
+$10 \times 30$ cm $= 300$ cm$^2$):
+\begin{itemize}[leftmargin=2em]
+  \item Por cara: $\sim 11$ W si recibe directo el sol.
+  \item En la practica solo 1-2 caras estan iluminadas a la vez (depende
+        de la orientacion).
+  \item Promedio orbital con sun-pointing: $\sim 8-10$ W.
+\end{itemize}
+
+\section{Factores de degradacion}
+
+La eficiencia BOL (Beginning of Life) cae con el tiempo:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Radiacion UV}: 1-2\% por año.
+  \item \textbf{Particulas energeticas}: 3-5\% por año en LEO.
+  \item \textbf{Micrometeoritos}: rasguñan la superficie.
+  \item \textbf{Termico}: ciclos termicos degradan los contactos.
+\end{itemize}
+
+\textbf{EOL (End of Life) tipico para 3 años en LEO}: 80-85\% del BOL.
+
+\section{Angulo de incidencia}
+
+La potencia generada cae con $\cos\theta$ donde $\theta$ es el angulo
+entre el sol y la normal del panel:
+\[
+P_{\text{real}} = P_{\text{max}} \cdot \cos\theta
+\]
+
+Para mantener $\theta$ bajo, el ADCS apunta el panel al sol (sun-pointing
+mode). Si el ADCS no puede, el sistema tumblea y la generacion oscila.
+
+\begin{payload}
+Para el INTISAT, asumir generacion BOL de $\sim 6-8$ W promedio orbital
+(considerando que el sat tiene paneles fijos sin apuntamiento perfecto).
+\end{payload}
+
+\chapter{MPPT --- Maximum Power Point Tracking}
+
+\section{El problema}
+
+Una celda solar tiene una curva $V$-$I$ no lineal. La maxima potencia se
+extrae a un punto especifico (MPP) que cambia con la temperatura y la
+iluminacion.
+
+Si la conectas directo a la bateria (que tiene voltaje fijo), no estas
+en el MPP $\to$ perdes 20-30\% de la energia disponible.
+
+\section{La solucion: MPPT}
+
+Un MPPT es un \textbf{convertidor DC-DC} (buck o boost) que ajusta su
+ratio para que la celda opere en el MPP. Algoritmos comunes:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Perturb \& Observe (P\&O)}: cambia el ratio un poco, mide
+        $P$, decide si seguir o volver.
+  \item \textbf{Incremental Conductance}: mas eficiente que P\&O en
+        cambios bruscos de iluminacion.
+\end{itemize}
+
+Eficiencia tipica del MPPT: 92-95\%.
+
+\chapter{Bateria de Litio}
+
+\section{Quimicas usadas}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Quimica} & \textbf{Voltaje nominal} & \textbf{Energia (Wh/kg)} \\
+\midrule
+Li-ion (LCO)        & 3.7 V & 150-200 \\
+Li-Polymer (LiPo)   & 3.7 V & 150-200 \\
+LiFePO4             & 3.2 V & 90-120 \\
+NMC                 & 3.7 V & 200-220 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Para CubeSat}: la mayoria usa Li-ion 18650 estandar o Li-Polymer
+custom.
+
+\section{Voltajes clave}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Cargada full}: 4.20 V (NO superar; daño permanente).
+  \item \textbf{Nominal}: 3.70 V.
+  \item \textbf{Descargada}: 3.0 V (NO bajar; daño irreversible).
+\end{itemize}
+
+\section{Capacidad}
+
+Se mide en mAh o Wh:
+\[
+\text{Wh} = \text{V}_{\text{nominal}} \times \text{Ah}
+\]
+
+Ejemplo: bateria 18650 de 3500 mAh @ 3.7 V $=$ $3.5 \times 3.7 = 12.95$ Wh.
+
+\begin{calculo}
+Tu INTISAT 3U necesita $\sim 1.8$ Wh por orbita (estimacion).
+Con bateria de $25$ Wh tenes capacidad para $25/1.8 = 14$ orbitas
+sin generacion solar (solo eclipses), con DoD 100\%.
+\end{calculo}
+
+\section{Depth of Discharge (DoD)}
+
+La bateria Li-ion sufre cuanto mas profundo la descargas:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{DoD} & \textbf{Ciclos hasta 80\% capacidad} \\
+\midrule
+100\% & 500 ciclos \\
+50\%  & 1500 ciclos \\
+20\%  & 5000 ciclos \\
+10\%  & 10000 ciclos \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Para CubeSat de 1 año}: ~5500 orbitas. Si DoD nominal es 20\%,
+la bateria llega al EOL con $> 90\%$ de capacidad.
+
+\section{BMS (Battery Management System)}
+
+Funciones del BMS:
+\begin{itemize}[leftmargin=2em]
+  \item Proteccion contra sobre-voltaje (cut-off > 4.2 V).
+  \item Proteccion contra sub-voltaje (cut-off < 3.0 V).
+  \item Proteccion contra sobre-corriente (corto-circuito).
+  \item Balance entre celdas (cuando hay multiples).
+  \item Monitor de temperatura.
+  \item Telemetria del estado (SoC, SoH).
+\end{itemize}
+
+\chapter{Reguladores}
+
+\section{Tipos}
+
+\textbf{LDO (lineal)}:
+\begin{itemize}[leftmargin=2em]
+  \item Eficiencia: $V_{out}/V_{in}$.
+  \item Disipa $(V_{in} - V_{out}) \cdot I$ como calor.
+  \item Ruido bajo, simple.
+  \item Mejor para diferencias pequeñas ($< 0.5$ V).
+\end{itemize}
+
+\textbf{Switching (buck/boost)}:
+\begin{itemize}[leftmargin=2em]
+  \item Eficiencia: $> 90\%$.
+  \item Ruidoso (switching freq).
+  \item Mas componentes (inductor, diodo).
+  \item Mejor para conversiones grandes.
+\end{itemize}
+
+\section{Topologias usadas}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Topologia} & \textbf{Direccion} & \textbf{Cuando} \\
+\midrule
+Buck                & baja voltaje      & 5V $\to$ 3.3V \\
+Boost               & sube voltaje      & 3.7V (bat) $\to$ 5V \\
+Buck-boost          & sube y baja        & cuando $V_{in}$ varia \\
+SEPIC                & aislado          & seguridad \\
+Flyback              & aislado            & potencia mayor \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\chapter{Power budget}
+
+\section{Como armar la tabla}
+
+\begin{enumerate}[leftmargin=2em]
+  \item Listar todos los subsistemas y modos.
+  \item Para cada uno: potencia y duracion en orbita.
+  \item Sumar $E = P \cdot t$.
+  \item Comparar con generacion en orbita.
+  \item Verificar margen $> 20\%$.
+\end{enumerate}
+
+\section{Ejemplo INTISAT}
+
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Modo} & \textbf{P (W)} & \textbf{t (min)} & \textbf{E (Wh)} & \textbf{\% orbita} \\
+\midrule
+IDLE                  & 3.0 & 70  & 3.50 & 73\% \\
+CAPTURING (4 scans)   & 6.0 & 4   & 0.40 & 4\% \\
+PROCESSING            & 7.5 & 12  & 1.50 & 13\% \\
+DOWNLINK              & 4.0 & 8   & 0.53 & 8\% \\
+SAFE (eclipse)         & 1.0 & 2   & 0.03 & 2\% \\
+\midrule
+\textbf{Total}        & --- & \textbf{96} & \textbf{5.96 Wh} & 100\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Generacion estimada}: 6 W $\times$ 60 min iluminados $= 6$ Wh.
+Margen: $(6 - 5.96)/6 = 0.7\%$ (muy ajustado).
+
+\begin{cuidado}
+El margen propuesto es \textbf{insuficiente}. Margen estandar para CubeSat
+academico es $\geq 20\%$. Decisiones para mejorar:
+\begin{itemize}[leftmargin=1em]
+  \item Reducir scans a 2 por orbita.
+  \item Optimizar PROCESSING (modo single en lugar de FPM).
+  \item Mejorar generacion (paneles deployables).
+\end{itemize}
+\end{cuidado}
+
+\chapter{EPS comerciales}
+
+\section{Opciones de mercado}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{4cm}p{2cm}}
+\toprule
+\textbf{Producto} & \textbf{Fabricante} & \textbf{Precio} \\
+\midrule
+NanoPower P31u           & GomSpace      & USD 4500 \\
+iEPS-A                   & ISIS          & USD 5000 \\
+EPS-1                    & EnduroSat     & USD 3500 \\
+EPS Optimal              & AAC Clyde     & USD 6000 \\
+Open Source EPS          & Open Cosmos   & USD 2000 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Cualquier EPS comercial:
+\begin{itemize}[leftmargin=2em]
+  \item Acepta paneles solares.
+  \item Tiene MPPT.
+  \item Maneja la bateria con BMS.
+  \item Genera rails 3.3V, 5V, 12V.
+  \item Provee telemetria por I2C.
+\end{itemize}
+
+\textbf{Para INTISAT}: idealmente un EPS comercial probado, no diseñarlo
+desde cero (alto riesgo).
+
+\chapter{Test de potencia}
+
+\section{Tests en banco}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Caracterizacion de panel solar}: bajo lampara halogena
+        simulada, medir curva I-V.
+  \item \textbf{Test del MPPT}: variar irradiancia, verificar que
+        rastrea el MPP.
+  \item \textbf{Test de BMS}: descargar bateria hasta cutoff, verificar
+        proteccion.
+  \item \textbf{Test de regulacion}: variar carga, medir ripple.
+  \item \textbf{Test de eficiencia}: medir eficiencia global del sistema.
+\end{itemize}
+
+\section{Tests ambientales}
+
+Para el EPS especificamente:
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{TVAC}: ciclos -20 a +60 °C. Verificar que la bateria
+        funciona en frio.
+  \item \textbf{Vibracion}: el packaging de las baterias 18650 puede
+        soltarse.
+  \item \textbf{Vacio}: bateria Li-ion no deberia inflarse en vacio
+        (electrolito gaseoso).
+\end{itemize}
+
+\backmatter
+
+\chapter*{Bibliografia}
+\addcontentsline{toc}{chapter}{Bibliografia}
+
+\begin{enumerate}[leftmargin=2em]
+\item Larson WJ, Wertz JR. \emph{Space Mission Analysis and Design}. 3ed. 1999.
+\item Patel MR. \emph{Spacecraft Power Systems}. CRC Press, 2005.
+\item GomSpace. \emph{NanoPower P31u Datasheet}. \url{https://gomspace.com}.
+\item ISIS. \emph{iEPS Datasheet}. \url{https://www.isispace.nl}.
+\item Bouwmeester J. State of the art of CubeSats. \emph{Acta Astronautica}, 2010.
+\end{enumerate}
+
+\end{document}
