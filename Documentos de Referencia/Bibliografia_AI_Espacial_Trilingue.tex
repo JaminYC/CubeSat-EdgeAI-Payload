@@ -1,0 +1,548 @@
+\documentclass[11pt,a4paper]{report}
+\usepackage[a4paper, margin=2.3cm]{geometry}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\usepackage[english,spanish,activeacute,es-noshorthands]{babel}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{caption}
+\captionsetup{font=small, labelfont=bf}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true, linkcolor=blue!50!black, urlcolor=red!50!black,
+  pdftitle={Bibliografia AI Espacial - Trilingue ES/EN/ZH},
+  pdfauthor={INTISAT}
+}
+
+% Fonts
+\setmainfont{Latin Modern Roman}
+\setCJKmainfont{FandolSong}[
+  BoldFont=FandolHei,
+  ItalicFont=FandolKai
+]
+
+\definecolor{intisat}{RGB}{26, 54, 93}
+\definecolor{intisataccent}{RGB}{197, 143, 0}
+
+\titleformat{\chapter}[hang]
+  {\normalfont\huge\bfseries\color{intisat}}
+  {\thechapter.}{0.6em}{}
+\titlespacing*{\chapter}{0pt}{-15pt}{15pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\nouppercase{\leftmark}}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\newtcolorbox{trilingue}[1][]{
+  colback=blue!4, colframe=intisat,
+  fonttitle=\bfseries, title=Conexion con CubeSat-EdgeAI / Connection with CubeSat-EdgeAI / 与CubeSat-EdgeAI项目的关联,
+  breakable, sharp corners=south, #1
+}
+
+\begin{document}
+
+% ─── Portada trilingue ──────────────────────────────────────────────
+\begin{titlepage}
+\centering
+\vspace*{1cm}
+{\color{intisat}\rule{\textwidth}{2pt}}
+\vspace{0.6cm}
+
+{\Huge\bfseries\color{intisat} Inteligencia Artificial en el espacio}\\[0.3em]
+{\LARGE\bfseries\color{intisat} Artificial Intelligence in Space}\\[0.3em]
+{\LARGE\bfseries\color{intisat} 空间人工智能}
+
+\vspace{0.6cm}
+{\color{intisataccent}\rule{0.6\textwidth}{1pt}}
+\vspace{0.6cm}
+
+{\Large\itshape Bibliografia comentada (trilingue ES / EN / ZH)\\
+Annotated bibliography (trilingual)\\
+注释参考文献}
+
+\vspace{1cm}
+
+\begin{tabular}{rl}
+\textbf{Proyecto / Project / 项目:} & CubeSat-EdgeAI-Payload \\
+\textbf{Plataforma / Platform / 平台:} & INTISAT \\
+\textbf{Fecha / Date / 日期:} & \today \\
+\textbf{Idiomas / Languages / 语言:} & Español / English / 中文 \\
+\end{tabular}
+
+\vfill
+
+\begin{minipage}{0.85\textwidth}
+\textbf{Resumen / Summary / 摘要.}\\[0.3em]
+\textbf{[ES]} Compilacion trilingue de misiones, hardware, empresas y
+papers relevantes para IA a bordo de satelites. Sirve para validar
+conceptos y aprender vocabulario tecnico en los tres idiomas.\\[0.3em]
+\textbf{[EN]} Trilingual compilation of missions, hardware, companies and
+papers relevant to onboard AI in satellites. For concept validation and
+learning technical vocabulary across all three languages.\\[0.3em]
+\textbf{[ZH]} 关于卫星机载人工智能的相关任务、硬件、公司和论文的三语汇编。
+用于概念验证和跨三种语言学习专业词汇。
+\end{minipage}
+
+\vspace{1cm}
+{\color{intisat}\rule{\textwidth}{2pt}}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+% =====================================================================
+\chapter{Introduccion / Introduction / 介绍}
+
+\noindent\textbf{[ES]}\quad
+La inteligencia artificial a bordo de satelites (\emph{onboard AI}) es
+una de las areas de mas rapido crecimiento en el sector espacial. Este
+documento compila las misiones, empresas, hardware y recursos academicos
+mas relevantes, presentados en tres idiomas para permitir al lector
+validar el vocabulario tecnico.
+
+\vspace{0.5em}
+\noindent\textbf{[EN]}\quad
+Onboard AI in satellites is one of the fastest-growing areas in the
+space sector. This document compiles the most relevant missions,
+companies, hardware and academic resources, presented in three languages
+to allow the reader to validate technical vocabulary.
+
+\vspace{0.5em}
+\noindent\textbf{[ZH]}\quad
+卫星机载人工智能是航天领域增长最快的方向之一。本文档汇编了最重要的
+任务、公司、硬件和学术资源，以三种语言呈现，让读者能够在不同语言间
+验证专业术语。
+
+\section{Como usar este documento / How to use this document / 如何使用本文档}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{[ES]} Cada concepto aparece en los 3 idiomas. Los nombres
+        propios (PhiSat, NASA, MarCO) permanecen en su idioma original.
+  \item \textbf{[EN]} Each concept appears in all 3 languages. Proper
+        nouns remain in their original language.
+  \item \textbf{[ZH]} 每个概念都以三种语言出现。专有名词（如PhiSat、NASA、
+        MarCO等）保留原文。
+\end{itemize}
+
+% =====================================================================
+\chapter{Observacion de la Tierra / Earth Observation / 对地观测}
+
+\noindent\textbf{[ES]} El area mas activa de IA a bordo: filtros de
+nubes, deteccion de cambios, clasificacion de cultivos, monitoreo de
+incendios.
+
+\noindent\textbf{[EN]} The most active area of onboard AI: cloud filters,
+change detection, crop classification, wildfire monitoring.
+
+\noindent\textbf{[ZH]} 机载AI最活跃的领域：云层过滤、变化检测、
+作物分类、火灾监测。
+
+\begin{center}
+\small
+\begin{longtable}{p{2.8cm}p{1.2cm}p{3.5cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Mision / Mission / 任务} &
+\textbf{Año / Year / 年份} &
+\textbf{Funcion / Function / 功能} &
+\textbf{Hardware} &
+\textbf{Origen / Origin / 来源} \\
+\midrule
+\endhead
+PhiSat-1 &
+2020 &
+Filtra nubes con CNN / Cloud filtering CNN / 用CNN过滤云层 &
+Intel Movidius Myriad 2 &
+ESA \\
+PhiSat-2 &
+2024 &
+6 apps simultaneas / 6 simultaneous apps / 6个同时运行的应用 &
+Intel Myriad X &
+ESA \\
+HYPSO-1/2 &
+2022/24 &
+ML hyperspectral / Hyperspectral ML / 高光谱机器学习 &
+RPi CM4 &
+NTNU (Noruega/Norway/挪威) \\
+Intuition-1 &
+2023 &
+IA hyperspectral on-board / Onboard hyperspectral AI / 机载高光谱AI &
+Antelope FPGA &
+KP Labs (Polonia/Poland/波兰) \\
+CogniSAT-6 &
+2024 &
+EO comercial con AI / Commercial EO with AI / 商业对地观测+AI &
+Movidius &
+Aiko + Open Cosmos \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\begin{trilingue}
+\textbf{[ES]} Tu INTISAT pertenece a esta familia pero aplicado a
+microscopia biologica. PhiSat-1 es el antecedente metodologico mas
+cercano.
+
+\textbf{[EN]} Your INTISAT belongs to this family but applied to
+biological microscopy. PhiSat-1 is the closest methodological precedent.
+
+\textbf{[ZH]} 你的INTISAT属于这个家族，但应用于生物显微镜领域。
+PhiSat-1是方法上最接近的先例。
+\end{trilingue}
+
+% =====================================================================
+\chapter{Marte y exploracion planetaria / Mars and Planetary Exploration / 火星与行星探索}
+
+\begin{center}
+\small
+\begin{longtable}{p{2.8cm}p{2.5cm}p{8.5cm}}
+\toprule
+\textbf{Mision / Mission / 任务} &
+\textbf{IA / AI / 人工智能} &
+\textbf{Detalle / Detail / 详情} \\
+\midrule
+\endhead
+Curiosity (2012-) &
+AEGIS (desde 2016) &
+\textbf{[ES]} El rover elige autonomamente que rocas estudiar.\\
+&&\textbf{[EN]} The rover autonomously selects which rocks to study.\\
+&&\textbf{[ZH]} 火星车自主选择要研究的岩石。\\
+\midrule
+Perseverance (2021-) &
+AutoNav &
+\textbf{[ES]} Conduccion autonoma con vision a 5 m/s. Triplica el ritmo vs teleop.\\
+&&\textbf{[EN]} Autonomous driving with vision at 5 m/s. Triples pace vs teleop.\\
+&&\textbf{[ZH]} 视觉自主驾驶，速度5 m/s。比远程操控快三倍。\\
+\midrule
+Ingenuity helicopter (2021-2024) &
+Vision-only nav &
+\textbf{[ES]} SLAM completo a bordo con IMU + camara.\\
+&&\textbf{[EN]} Full onboard SLAM with IMU + camera.\\
+&&\textbf{[ZH]} 通过IMU和相机实现完整的机载SLAM。\\
+\bottomrule
+\end{longtable}
+\end{center}
+
+% =====================================================================
+\chapter{Hardware AI usado en orbita / AI Hardware in Orbit / 在轨AI硬件}
+
+\begin{center}
+\small
+\begin{longtable}{p{4cm}p{4.5cm}p{6.5cm}}
+\toprule
+\textbf{Chip} &
+\textbf{Donde / Where / 应用于} &
+\textbf{Notas / Notes / 备注} \\
+\midrule
+\endhead
+Intel Movidius Myriad 2/X &
+PhiSat, CogniSAT &
+\textbf{[ES]} El caballo de batalla. $\sim$1 W, 1 TOPS.\\
+&&\textbf{[EN]} The workhorse. $\sim$1 W, 1 TOPS.\\
+&&\textbf{[ZH]} 业界主力。约1瓦特，1 TOPS算力。\\
+\midrule
+Google Edge TPU (Coral) &
+Tests LEO &
+\textbf{[ES]} Validado contra radiacion por NASA y JAXA.\\
+&&\textbf{[EN]} Radiation-validated by NASA and JAXA.\\
+&&\textbf{[ZH]} 经NASA和JAXA辐射验证。\\
+\midrule
+NVIDIA Jetson Nano/Orin &
+Comercial sats &
+\textbf{[ES]} Mas potente pero 5-10 W de consumo.\\
+&&\textbf{[EN]} More powerful but 5-10 W consumption.\\
+&&\textbf{[ZH]} 更强大，但功耗5-10瓦特。\\
+\midrule
+AMD Zynq Ultrascale+ &
+Mars rovers, JWST &
+\textbf{[ES]} Version radiation-hardened. Usado en mision real.\\
+&&\textbf{[EN]} Radiation-hardened version. Used in real missions.\\
+&&\textbf{[ZH]} 抗辐射加固版本。用于实际任务。\\
+\midrule
+RPi 4 / CM4 &
+HYPSO-1, Astro Pi &
+\textbf{[ES]} COTS, no rad-hard. Vida util 1-3 años.\\
+&&\textbf{[EN]} COTS, not rad-hard. Lifetime 1-3 years.\\
+&&\textbf{[ZH]} 商用现成品，非抗辐射。寿命1-3年。\\
+\bottomrule
+\end{longtable}
+\end{center}
+
+% =====================================================================
+\chapter{Empresas principales / Key Companies / 主要公司}
+
+\begin{center}
+\small
+\begin{longtable}{p{3.5cm}p{2cm}p{8.5cm}}
+\toprule
+\textbf{Empresa / Company / 公司} &
+\textbf{Pais / Country / 国家} &
+\textbf{Que hace / What it does / 业务} \\
+\midrule
+\endhead
+ESA $\Phi$-lab &
+EU/欧盟 &
+\textbf{[ES]} Division de IA de ESA. / \textbf{[EN]} AI division of ESA. / \textbf{[ZH]} 欧空局人工智能部门。 \\
+NASA FDL &
+USA &
+\textbf{[ES]} Sprints anuales de IA aplicada. / \textbf{[EN]} Annual sprints of applied AI. / \textbf{[ZH]} 应用AI年度冲刺项目。 \\
+Ubotica &
+Irlanda/Ireland/爱尔兰 &
+\textbf{[ES]} Hardware AI para PhiSat. / \textbf{[EN]} AI hardware for PhiSat. / \textbf{[ZH]} 为PhiSat提供AI硬件。 \\
+KP Labs &
+Polonia/Poland/波兰 &
+\textbf{[ES]} Procesador edge AI Antelope. / \textbf{[EN]} Antelope edge AI processor. / \textbf{[ZH]} Antelope边缘AI处理器。 \\
+Aiko Space &
+Italia/Italy/意大利 &
+\textbf{[ES]} Software AI para control de mision. / \textbf{[EN]} AI software for mission control. / \textbf{[ZH]} 任务控制AI软件。 \\
+Planet Labs &
+USA &
+\textbf{[ES]} 200+ Doves para observacion terrestre diaria. / \textbf{[EN]} 200+ Doves for daily Earth observation. / \textbf{[ZH]} 200+颗Dove卫星每日对地观测。 \\
+Spire Global &
+USA &
+\textbf{[ES]} Constelacion para meteorologia y AIS. / \textbf{[EN]} Constellation for weather and AIS. / \textbf{[ZH]} 气象与AIS星座。 \\
+Satellogic &
+Argentina/阿根廷 &
+\textbf{[ES]} EO de alta resolucion. / \textbf{[EN]} High-resolution EO. / \textbf{[ZH]} 高分辨率对地观测。 \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+% =====================================================================
+\chapter{Frameworks open-source / 开源框架}
+
+\begin{center}
+\small
+\begin{longtable}{p{3.5cm}p{10cm}}
+\toprule
+\textbf{Framework} &
+\textbf{Funcion / Function / 功能} \\
+\midrule
+\endhead
+NASA cFS &
+\textbf{[ES]} Sistema operativo de vuelo con extensiones AI. \\
+&\textbf{[EN]} Flight operating system with AI extensions. \\
+&\textbf{[ZH]} 带AI扩展的飞行操作系统。 \\
+\midrule
+NASA F' (FPrime) &
+\textbf{[ES]} Framework usado en MarCO e Ingenuity. \\
+&\textbf{[EN]} Framework used in MarCO and Ingenuity. \\
+&\textbf{[ZH]} 用于MarCO和Ingenuity的框架。 \\
+\midrule
+ESA Onboard AI demos &
+\textbf{[ES]} Repositorio publico de ESA Phi-Lab. \\
+&\textbf{[EN]} ESA Phi-Lab public repository. \\
+&\textbf{[ZH]} 欧空局Phi-Lab公开代码库。 \\
+\midrule
+OpenVINO &
+\textbf{[ES]} Wrapper para deployment en Movidius. \\
+&\textbf{[EN]} Wrapper for Movidius deployment. \\
+&\textbf{[ZH]} Movidius部署封装库。 \\
+\midrule
+TensorFlow Lite Micro &
+\textbf{[ES]} Inferencia en microcontroladores con restricciones. \\
+&\textbf{[EN]} Inference on constrained microcontrollers. \\
+&\textbf{[ZH]} 在资源受限微控制器上进行推理。 \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+% =====================================================================
+\chapter{Lectura priorizada / Priority Reading / 优先阅读}
+
+\noindent\textbf{[ES]} Si tu tiempo es limitado, lee en este orden:
+
+\noindent\textbf{[EN]} If your time is limited, read in this order:
+
+\noindent\textbf{[ZH]} 如果时间有限，按此顺序阅读：
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{PhiSat-1 paper} (Marcuccio 2021)\\
+        \textbf{[ES]} El caso emblematico mas cercano al proyecto.\\
+        \textbf{[EN]} The most relevant emblematic case.\\
+        \textbf{[ZH]} 与项目最相关的典范案例。
+
+  \item \textbf{Furano et al. AI in Space} (ESA review, 2020)\\
+        \textbf{[ES]} El panorama completo en un PDF.\\
+        \textbf{[EN]} The complete landscape in one PDF.\\
+        \textbf{[ZH]} 全景式综述一份PDF。
+
+  \item \textbf{OBDP 2024 proceedings}\\
+        \textbf{[ES]} Lo mas actual del campo.\\
+        \textbf{[EN]} The most current in the field.\\
+        \textbf{[ZH]} 该领域最新成果。
+
+  \item \textbf{HYPSO papers} (NTNU)\\
+        \textbf{[ES]} Usan RPi CM4 con AI, hardware similar al INTISAT.\\
+        \textbf{[EN]} Use RPi CM4 with AI, similar hardware to INTISAT.\\
+        \textbf{[ZH]} 使用Raspberry Pi CM4+AI，与INTISAT硬件类似。
+\end{enumerate}
+
+% =====================================================================
+\chapter{Glosario tecnico trilingue / Trilingual Technical Glossary / 三语技术词汇表}
+
+Lista de terminos clave para validar el vocabulario en los tres idiomas.
+
+\begin{center}
+\small
+\begin{longtable}{p{4cm}p{4cm}p{4.5cm}}
+\toprule
+\textbf{Español} & \textbf{English} & \textbf{中文} \\
+\midrule
+\endhead
+satelite & satellite & 卫星 \\
+nanosatelite & nanosatellite & 纳米卫星 \\
+CubeSat & CubeSat & 立方星 \\
+orbita & orbit & 轨道 \\
+orbita baja terrestre (LEO) & low Earth orbit (LEO) & 低地球轨道 \\
+sincronica solar & sun-synchronous & 太阳同步 \\
+eclipse & eclipse & 日食/地影 \\
+pase (de comunicacion) & pass & 过境 \\
+ground station & ground station & 地面站 \\
+estacion terrena & ground station & 地面站 \\
+carga util & payload & 有效载荷 \\
+sensor de imagen & image sensor & 图像传感器 \\
+camara & camera & 相机 \\
+lensless & lensless & 无透镜 \\
+microscopia & microscopy & 显微镜 \\
+inteligencia artificial (IA) & artificial intelligence (AI) & 人工智能 \\
+aprendizaje profundo & deep learning & 深度学习 \\
+red neuronal & neural network & 神经网络 \\
+red convolucional (CNN) & convolutional neural network & 卷积神经网络 \\
+segmentacion & segmentation & 分割 \\
+clasificacion & classification & 分类 \\
+modelo & model & 模型 \\
+entrenamiento & training & 训练 \\
+inferencia & inference & 推理 \\
+procesamiento a bordo & onboard processing & 机载处理 \\
+edge computing & edge computing & 边缘计算 \\
+acelerador AI & AI accelerator & AI加速器 \\
+TOPS (tera operaciones / s) & TOPS (tera operations / s) & TOPS（万亿次运算/秒） \\
+sistema de potencia (EPS) & power system (EPS) & 电源系统 \\
+panel solar & solar panel & 太阳能电池板 \\
+bateria & battery & 电池 \\
+celda de litio & lithium cell & 锂电池 \\
+regulador & regulator & 稳压器 \\
+voltaje & voltage & 电压 \\
+corriente & current & 电流 \\
+potencia & power & 功率 \\
+energia & energy & 能量 \\
+control de actitud (ADCS) & attitude control (ADCS) & 姿态控制 \\
+rueda de reaccion & reaction wheel & 反作用轮 \\
+magnetorquer & magnetorquer & 磁力矩器 \\
+gyroscopio & gyroscope & 陀螺仪 \\
+star tracker & star tracker & 星敏感器 \\
+computadora de a bordo (OBC) & on-board computer (OBC) & 星载计算机 \\
+software de vuelo & flight software & 飞行软件 \\
+telemetria & telemetry & 遥测 \\
+comando & command & 指令 \\
+uplink & uplink & 上行链路 \\
+downlink & downlink & 下行链路 \\
+banda UHF & UHF band & UHF频段 \\
+banda S & S-band & S频段 \\
+modulacion & modulation & 调制 \\
+codificacion (FEC) & coding (FEC) & 编码 \\
+ancho de banda & bandwidth & 带宽 \\
+test ambiental & environmental test & 环境试验 \\
+vibracion & vibration & 振动 \\
+vacio & vacuum & 真空 \\
+termico & thermal & 热 \\
+radiacion & radiation & 辐射 \\
+sistema de operaciones & operations system & 运行系统 \\
+mision & mission & 任务 \\
+lanzamiento & launch & 发射 \\
+deployment & deployment & 部署 \\
+re-entrada & re-entry & 再入 \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+% =====================================================================
+\chapter{Frases utiles trilingues / Useful Trilingual Phrases / 实用三语短语}
+
+\noindent\textbf{[ES]} Frases que vas a usar en reuniones tecnicas.
+
+\noindent\textbf{[EN]} Phrases you will use in technical meetings.
+
+\noindent\textbf{[ZH]} 你将在技术会议中使用的短语。
+
+\vspace{1em}
+
+\noindent\textbf{[ES]} ¿Cual es la apertura numerica del sistema?\\
+\textbf{[EN]} What is the numerical aperture of the system?\\
+\textbf{[ZH]} 系统的数值孔径是多少？
+
+\vspace{0.5em}
+\noindent\textbf{[ES]} El consumo en idle es de 3 watts.\\
+\textbf{[EN]} Idle consumption is 3 watts.\\
+\textbf{[ZH]} 空闲功耗为3瓦特。
+
+\vspace{0.5em}
+\noindent\textbf{[ES]} Necesitamos validar el bus I2C.\\
+\textbf{[EN]} We need to validate the I2C bus.\\
+\textbf{[ZH]} 我们需要验证I2C总线。
+
+\vspace{0.5em}
+\noindent\textbf{[ES]} La carga util pesa 800 gramos.\\
+\textbf{[EN]} The payload weighs 800 grams.\\
+\textbf{[ZH]} 有效载荷重800克。
+
+\vspace{0.5em}
+\noindent\textbf{[ES]} La orbita es heliosincrona a 500 kilometros.\\
+\textbf{[EN]} The orbit is sun-synchronous at 500 kilometers.\\
+\textbf{[ZH]} 轨道是太阳同步轨道，高度500公里。
+
+\vspace{0.5em}
+\noindent\textbf{[ES]} El modelo se entrena con 10 mil imagenes.\\
+\textbf{[EN]} The model is trained with 10,000 images.\\
+\textbf{[ZH]} 该模型使用10000张图像进行训练。
+
+\vspace{0.5em}
+\noindent\textbf{[ES]} Hay que aplicar FDIR ante fallo del sensor.\\
+\textbf{[EN]} FDIR must be applied if the sensor fails.\\
+\textbf{[ZH]} 如果传感器出现故障，必须应用FDIR。
+
+\vspace{0.5em}
+\noindent\textbf{[ES]} El downlink usa banda S a 2.2 GHz.\\
+\textbf{[EN]} The downlink uses S-band at 2.2 GHz.\\
+\textbf{[ZH]} 下行链路使用2.2 GHz的S频段。
+
+\vspace{0.5em}
+\noindent\textbf{[ES]} La inferencia tarda 30 segundos por imagen.\\
+\textbf{[EN]} Inference takes 30 seconds per image.\\
+\textbf{[ZH]} 每张图像的推理需要30秒。
+
+\vspace{0.5em}
+\noindent\textbf{[ES]} El bus PC-104 distribuye 5 voltios al payload.\\
+\textbf{[EN]} The PC-104 bus distributes 5 volts to the payload.\\
+\textbf{[ZH]} PC-104总线向有效载荷分配5伏电压。
+
+\chapter*{Cierre / Closing / 结语}
+\addcontentsline{toc}{chapter}{Cierre / Closing / 结语}
+
+\noindent\textbf{[ES]} Este documento es vivo. Cuando descubras un termino
+o referencia nueva, agregarla al glosario en los tres idiomas mantiene la
+biblioteca util para futuros miembros del equipo.
+
+\vspace{0.5em}
+\noindent\textbf{[EN]} This is a living document. When you discover a new
+term or reference, adding it to the glossary in all three languages keeps
+the library useful for future team members.
+
+\vspace{0.5em}
+\noindent\textbf{[ZH]} 这是一份活动文档。当你发现新术语或参考资料时，
+将其以三种语言添加到词汇表中，可以为未来的团队成员保持图书馆的实用性。
+
+\vspace{2em}
+\noindent
+\textbf{Repositorio / Repository / 仓库}:
+\url{https://github.com/JaminYC/CubeSat-EdgeAI-Payload}
+
+\end{document}
