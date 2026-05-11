@@ -1,0 +1,710 @@
+\documentclass[11pt,a4paper,oneside]{report}
+\usepackage[spanish,activeacute,es-noshorthands]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{geometry}
+\geometry{margin=2.3cm, headheight=14pt}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\usepackage{caption}
+\captionsetup{font=small, labelfont=bf}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true, linkcolor=NavyBlue, urlcolor=BrickRed,
+  pdftitle={Plan de documentacion CubeSat},
+  pdfauthor={INTISAT --- CubeSat-EdgeAI-Payload}
+}
+
+\definecolor{intisat}{RGB}{26, 54, 93}
+\definecolor{intisataccent}{RGB}{197, 143, 0}
+\definecolor{ok}{RGB}{47, 133, 90}
+\definecolor{warn}{RGB}{197, 60, 60}
+\definecolor{prio}{RGB}{197, 143, 0}
+
+\titleformat{\chapter}[hang]
+  {\normalfont\Huge\bfseries\color{intisat}}
+  {\thechapter.}{0.6em}{}
+\titlespacing*{\chapter}{0pt}{-20pt}{20pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\nouppercase{\leftmark}}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\newtcolorbox{tip}[1][]{
+  colback=green!5, colframe=ok,
+  fonttitle=\bfseries, title=Recomendacion,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{nota}[1][]{
+  colback=blue!4, colframe=intisat,
+  fonttitle=\bfseries, title=Nota,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{prioritario}[1][]{
+  colback=orange!5, colframe=intisataccent,
+  fonttitle=\bfseries, title=Manual prioritario,
+  breakable, sharp corners=south, #1
+}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+\vspace*{1cm}
+{\color{intisat}\rule{\textwidth}{2pt}}
+\vspace{0.6cm}
+
+{\Huge\bfseries\color{intisat} Plan de documentacion}\\[0.4em]
+{\LARGE\bfseries Coleccion de manuales para construir un CubeSat}
+
+\vspace{0.7cm}
+{\Large\itshape Dimensionamiento, contenidos y prioridades\\
+para una serie tecnica completa}
+
+\vspace{1cm}
+{\color{intisataccent}\rule{0.6\textwidth}{1pt}}
+
+\vspace{2cm}
+
+\begin{tabular}{rl}
+\textbf{Proyecto:} & CubeSat-EdgeAI-Payload \\
+\textbf{Plataforma:} & INTISAT \\
+\textbf{Audiencia:} & Equipo tecnico, estudiantes, futuras misiones \\
+\textbf{Total proyectado:} & 11 manuales --- aprox. 510 paginas \\
+\textbf{Repositorio:} & \texttt{github.com/JaminYC/CubeSat-EdgeAI-Payload} \\
+\textbf{Fecha:} & \today \\
+\textbf{Documento:} & v1.0 --- plan inicial
+\end{tabular}
+
+\vfill
+
+\begin{minipage}{0.85\textwidth}
+\textbf{Resumen.}\quad
+Plan estructurado para producir una coleccion completa de manuales
+tecnicos que cubre el ciclo de vida de un CubeSat: desde los fundamentos
+fisicos y de subsistemas hasta integracion, testing y operaciones. El
+plan dimensiona 11 manuales (7 nuevos y 4 ya existentes) con sus
+contenidos, prioridades, dependencias de lectura y tiempos estimados de
+escritura. Permite al equipo decidir cuales redactar primero segun el
+estado del proyecto.
+\end{minipage}
+
+\vspace{1.2cm}
+{\color{intisat}\rule{\textwidth}{2pt}}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+% =====================================================================
+\chapter{Como esta organizado este plan}
+
+Un CubeSat es un sistema complejo. Aprenderlo requiere documentos que
+combinen \emph{fundamentos teoricos} con \emph{aplicaciones practicas} y
+\emph{ejemplos del INTISAT}.
+
+Esta coleccion se organiza en 4 niveles:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Nivel 0 --- Introduccion}: que es un CubeSat, ecosistema,
+        actores, fases.
+  \item \textbf{Nivel 1 --- Subsistemas}: un manual por subsistema (potencia,
+        comms, ADCS, etc.).
+  \item \textbf{Nivel 2 --- Cross-cutting}: temas que atraviesan todos los
+        subsistemas (testing, operaciones, system engineering).
+  \item \textbf{Nivel 3 --- Especifico de mision}: lo unico del INTISAT
+        (payload de microscopia, OLED, FPM).
+\end{itemize}
+
+Cada manual sigue la \textbf{misma plantilla} (la misma de
+\texttt{Manual\_Electronica\_Practica.pdf} y \texttt{Curso\_Vision\_Computadora.pdf}):
+
+\begin{enumerate}[leftmargin=2em]
+  \item Prefacio con audiencia y prerequisitos.
+  \item Cuerpo en capitulos con: \emph{por que importa, intuicion, matematica,
+        conexion con el payload, cuidado, ejercicios}.
+  \item Apendices con tablas de consulta y referencias.
+  \item Bibliografia.
+\end{enumerate}
+
+\section{Lo que ya existe}
+
+\begin{center}
+\begin{tabular}{p{4.5cm}p{1.5cm}p{2cm}p{5cm}}
+\toprule
+\textbf{Documento} & \textbf{Pag} & \textbf{Tipo} & \textbf{Estado} \\
+\midrule
+Curso\_Vision\_Computadora.pdf      & 81  & libro    & completo \\
+Manual\_Electronica\_Practica.pdf   & 44  & manual   & completo \\
+Raspberry\_Pi\_5\_Profundo.pdf      & 25  & manual   & completo \\
+Pipeline\_IA\_Microscopia.pdf       & 13  & paper    & completo \\
+Informe\_Mascaras\_Lensless.pdf     & 21  & informe  & completo \\
+Bibliografia\_AI\_Espacial.pdf      & 18  & referencia & completo \\
+Referencias\_OpenSource\_CubeSat.pdf & 18  & referencia & completo \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Total existente: 220 paginas}.
+
+\section{Lo que falta (este plan propone)}
+
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Manual} & \textbf{Pag} & \textbf{Prio} & \textbf{Tiempo} & \textbf{Audiencia} \\
+\midrule
+M0: CubeSat 101                      & 50 & bigstarbigstarbigstar & 1 sem & todo el equipo \\
+M1: Mecanica y estructura            & 50 & bigstarbigstar  & 1 sem & ing mecanica \\
+M2: Sistemas de potencia (EPS)       & 60 & bigstarbigstarbigstar & 1.5 sem & elec/potencia \\
+M3: Control de actitud (ADCS)        & 60 & bigstarbigstar  & 2 sem & control \\
+M4: Comunicaciones (RF + antenas)    & 60 & bigstarbigstarbigstar & 1.5 sem & RF \\
+M5: Flight software y OBC            & 60 & bigstarbigstarbigstar & 1.5 sem & software \\
+M6: Control termico                  & 40 & bigstarbigstar  & 1 sem & termico \\
+M7: Integracion y test campaign      & 60 & bigstarbigstarbigstar & 1.5 sem & AIT \\
+M8: Operaciones y ground station     & 50 & bigstarbigstar  & 1 sem & ops \\
+M9: Project management y SE          & 40 & bigstar   & 1 sem & lider proyecto \\
+M10: CM5 + carrier para INTISAT      & 50 & bigstarbigstarbigstar & 1.5 sem & hw payload \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Total proyectado nuevo: 580 paginas} --- ~15 semanas de escritura
+(repartido entre el equipo: 4 personas $\to$ 4 semanas reales).
+
+% =====================================================================
+\chapter{Manual M0: CubeSat 101 --- introduccion al ecosistema}
+
+\begin{prioritario}
+Prioridad: $\bigstar\bigstar\bigstar$ (top). Es el manual que abre la
+serie y todo el equipo deberia leer primero.
+\end{prioritario}
+
+\textbf{Paginas estimadas}: 50
+
+\textbf{Audiencia}: cualquier persona nueva en el proyecto, sin background
+aeroespacial.
+
+\textbf{Objetivo}: que despues de leerlo, la persona pueda mantener una
+conversacion tecnica con un ingeniero de CubeSat y entender los grandes
+bloques.
+
+\section{Contenido propuesto (TOC)}
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Que es un CubeSat}: definicion CalPoly, formatos (1U, 3U, 6U, 12U),
+        estandar de despliegue.
+  \item \textbf{Historia breve}: 1999 origen, GeneSat-1, PhoneSat, PhiSat-1,
+        constelaciones modernas.
+  \item \textbf{Anatomia de un CubeSat}: los 6 subsistemas (mecanica, EPS,
+        ADCS, COMMS, OBC, payload).
+  \item \textbf{Fases de vida del satelite}: concepto, diseño, integracion,
+        lanzamiento, operacion, decomission.
+  \item \textbf{Como llega al espacio}: rideshare, lanzadores tipicos (SpaceX
+        Transporter, Rocket Lab, ISRO PSLV).
+  \item \textbf{Despliegue desde el lanzador}: P-POD, NanoRacks, ISS deployer.
+  \item \textbf{Orbita LEO 101}: altura, periodo, eclipses, regimen termico,
+        radiacion.
+  \item \textbf{El ecosistema}: NASA, ESA, agencias espaciales LATAM,
+        universidades, startups NewSpace.
+  \item \textbf{Estandares clave}: CalPoly CDS, ECSS, NASA GEVS,
+        MIL-STD-810.
+  \item \textbf{Vocabulario}: glosario de 100+ siglas (TRL, FDIR, AIT, RF,
+        BOL/EOL, etc.).
+\end{enumerate}
+
+\textbf{Por que es prioritario}: sin esto, los manuales subsiguientes no
+tienen contexto. Es como un \textbf{onboarding} para un miembro nuevo.
+
+% =====================================================================
+\chapter{Manual M1: Mecanica y estructura}
+
+\begin{prioritario}
+Prioridad: $\bigstar\bigstar$ (medio).
+\end{prioritario}
+
+\textbf{Paginas}: 50 ~|~ \textbf{Audiencia}: ingenieria mecanica.
+
+\section{Contenido propuesto}
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Estandares CalPoly}: dimensiones, masa, centro de gravedad,
+        rails de aluminio anodizado.
+  \item \textbf{Materiales}: aluminio 6061-T6, titanio, magnesio,
+        composites de fibra de carbono.
+  \item \textbf{Diseño estructural}: cargas estaticas, dinamicas, modos
+        propios, factor de seguridad.
+  \item \textbf{Analisis de elementos finitos (FEA)}: que es, herramientas
+        (ANSYS, SimScale, FreeCAD-FEM).
+  \item \textbf{Tornilleria espacial}: M2, M3 con loctite, retenes, locking.
+  \item \textbf{Despliegues}: antenas, paneles solares, mecanismos burn-wire.
+  \item \textbf{PC-104}: el estandar mecanico/electrico, dimensiones, pinout.
+  \item \textbf{Test de ajuste y CG}: como verificar el centro de masa antes
+        del lanzamiento.
+  \item \textbf{Outgassing}: por que importa, materiales prohibidos
+        (UV degradable, plasticos con plastificantes).
+\end{enumerate}
+
+% =====================================================================
+\chapter{Manual M2: Sistemas de potencia (EPS)}
+
+\begin{prioritario}
+Prioridad: $\bigstar\bigstar\bigstar$ (top --- la energia es restriccion
+critica de todo CubeSat).
+\end{prioritario}
+
+\textbf{Paginas}: 60 ~|~ \textbf{Audiencia}: electronica de potencia.
+
+\section{Contenido propuesto}
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Generacion solar}: celdas GaAs vs Si, eficiencia (28\%
+        triple-juncion vs 15\% Si), degradacion en orbita.
+  \item \textbf{Calculo de generacion}: solar constant, angulo de incidencia,
+        sombras, eclipse fraction.
+  \item \textbf{Maximum Power Point Tracking (MPPT)}: por que se necesita,
+        algoritmos (P\&O, IncCond).
+  \item \textbf{Bateria Li-ion}: quimica, voltajes, capacidad, degradacion
+        ciclica, depth of discharge (DoD).
+  \item \textbf{Battery Management System (BMS)}: balance, proteccion contra
+        sobre/sub-voltaje, sobre-corriente, temperatura.
+  \item \textbf{Reguladores}: LDO vs switching, eficiencia, ruido,
+        ripple.
+  \item \textbf{Distribucion}: rails (3.3V, 5V, 12V), proteccion contra
+        cortos (PTC, eFuse), enable lines.
+  \item \textbf{Power budget}: como armar la tabla, modos de mision,
+        margenes ($\geq 20\%$).
+  \item \textbf{EPS comerciales}: GomSpace P31u, ISIS iEPS, EnduroSat
+        EPS-1, especificaciones y precios.
+  \item \textbf{Tests de potencia}: validacion en banco, ciclos de carga,
+        TVAC.
+\end{enumerate}
+
+\section{Conexion al INTISAT}
+
+Tu payload ya tiene un presupuesto teorico (\texttt{Energy\_Budget\_Microscopia.xlsx}).
+Este manual lo lleva al \textbf{nivel mision}: como dimensionar paneles +
+bateria + reguladores para alimentar tu payload + todos los otros
+subsistemas durante una vida util de 1 año en orbita LEO.
+
+% =====================================================================
+\chapter{Manual M3: Control de actitud (ADCS)}
+
+\textbf{Paginas}: 60 ~|~ \textbf{Audiencia}: control / aeroespacial.
+~|~ Prioridad: $\bigstar\bigstar$.
+
+\section{Contenido}
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Por que se necesita}: apuntar paneles al sol, antena a la
+        tierra, payload al objetivo.
+  \item \textbf{Sensores de actitud}: gyros, magnetometros, sun sensors,
+        star trackers, GPS.
+  \item \textbf{Actuadores}: magnetorquers, reaction wheels, thrusters
+        (raros en CubeSat).
+  \item \textbf{Algoritmos}: B-dot (detumble), TRIAD, Kalman filter, PID,
+        LQR.
+  \item \textbf{Determinacion de actitud}: usar 2 sensores no paralelos
+        (sol + magnetometro tipico).
+  \item \textbf{Control de actitud}: closed loop, deadbands, slew rates.
+  \item \textbf{Modos}: detumble, sun-pointing, nadir, target, idle.
+  \item \textbf{Perturbaciones}: gradiente gravitacional, presion solar,
+        drag atmosferico.
+  \item \textbf{Componentes comerciales}: CubeWheel, NSS, MTQ, Cubespace,
+        BlueCanyon XACT.
+  \item \textbf{Validacion en lab}: air bearing, Helmholtz cage, sol
+        simulado.
+\end{enumerate}
+
+% =====================================================================
+\chapter{Manual M4: Comunicaciones}
+
+\begin{prioritario}
+Prioridad: $\bigstar\bigstar\bigstar$.
+\end{prioritario}
+
+\textbf{Paginas}: 60 ~|~ \textbf{Audiencia}: RF / comunicaciones.
+
+\section{Contenido}
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Bandas usadas en CubeSat}: VHF (143 MHz), UHF (433-460 MHz),
+        S-Band (2.2-2.4 GHz), X-Band (8 GHz), Ka-Band (26 GHz).
+  \item \textbf{Link budget}: potencia tx, ganancia antenas, free space
+        loss, ruido, margen.
+  \item \textbf{Modulacion}: BPSK, QPSK, GMSK, FSK, OFDM.
+  \item \textbf{Codificacion}: FEC, Reed-Solomon, Turbo codes, LDPC,
+        convolutional.
+  \item \textbf{Protocolos}: AX.25, CCSDS Space Packet, KISS, CSP (CubeSat
+        Space Protocol).
+  \item \textbf{Antenas en CubeSat}: dipolo (UHF), patch (S-Band), helical,
+        omni vs directional.
+  \item \textbf{Despliegue de antenas}: burn-wire deployment, dipole
+        unfold.
+  \item \textbf{Ground station}: receptor, decoder, doppler tracking,
+        rotator azimuth/elevation, SatNOGS.
+  \item \textbf{Coordinacion con IARU}: registracion de frecuencia,
+        coordinacion internacional, licencias amateur radio.
+  \item \textbf{Componentes comerciales}: ISIS UHF/VHF, EnduroSat S-Band,
+        Tethers Unlimited X-Band, GomSpace.
+\end{enumerate}
+
+% =====================================================================
+\chapter{Manual M5: Flight software y OBC}
+
+\begin{prioritario}
+Prioridad: $\bigstar\bigstar\bigstar$.
+\end{prioritario}
+
+\textbf{Paginas}: 60 ~|~ \textbf{Audiencia}: software embebido.
+
+\section{Contenido}
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Arquitecturas de OBC}: microcontrolador vs Linux SoC,
+        cuando usar cada uno.
+  \item \textbf{Sistemas operativos}: FreeRTOS, RTEMS, Zephyr, Linux,
+        VxWorks (no en CubeSat usualmente).
+  \item \textbf{Frameworks de flight software}: NASA cFS, F' (FPrime), KubOS,
+        BRASS.
+  \item \textbf{Tareas vs interrupciones}: prioridades, scheduling.
+  \item \textbf{Comunicacion inter-tareas}: queues, semaphores, pub/sub.
+  \item \textbf{Telemetria y comandos}: CCSDS, beacon, housekeeping.
+  \item \textbf{FDIR}: deteccion, aislamiento, recuperacion de fallos.
+  \item \textbf{Watchdog hardware y software}.
+  \item \textbf{OTA updates}: como actualizar firmware en orbita con rollback.
+  \item \textbf{Versiones y configuration management}: git, branches,
+        releases.
+  \item \textbf{Casos especificos}: el daemon del INTISAT, CCSDS sobre I2C,
+        chunking.
+\end{enumerate}
+
+% =====================================================================
+\chapter{Manual M6: Control termico}
+
+\textbf{Paginas}: 40 ~|~ \textbf{Audiencia}: termico / materiales.
+~|~ Prioridad: $\bigstar\bigstar$.
+
+\section{Contenido}
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Modos de transferencia de calor}: conduccion, radiacion
+        (no conveccion en vacio).
+  \item \textbf{Calculo de balance termico}: $Q_{\text{in}} = Q_{\text{out}}$
+        en equilibrio.
+  \item \textbf{Propiedades de superficie}: emisividad, absorbtividad,
+        ratio $\alpha/\epsilon$.
+  \item \textbf{Materiales}: pinturas, MLI (Multi-Layer Insulation),
+        thermal tape, radiators.
+  \item \textbf{Control activo vs pasivo}: heaters, conductive paths.
+  \item \textbf{Componentes sensibles}: bateria (debe estar $> 0$ °C para
+        cargar), sensor de imagen (drift termico).
+  \item \textbf{Analisis termico}: Thermal Desktop, FreeCAD-FEM,
+        NX Thermal, ESATAN.
+  \item \textbf{TVAC test}: ciclos en vacio, gradientes, soak.
+  \item \textbf{Disipacion en el Pi 5}: pad termico al frame, limite de
+        frecuencia.
+\end{enumerate}
+
+% =====================================================================
+\chapter{Manual M7: Integracion y test campaign}
+
+\begin{prioritario}
+Prioridad: $\bigstar\bigstar\bigstar$.
+\end{prioritario}
+
+\textbf{Paginas}: 60 ~|~ \textbf{Audiencia}: AIT (Assembly, Integration,
+Test).
+
+\section{Contenido}
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Filosofia de testing en aeroespacial}: test as you fly,
+        protoflight, qualification model, flight model.
+  \item \textbf{Estandares}: NASA GEVS, ECSS-E-ST-10-03, MIL-STD-810.
+  \item \textbf{Test funcional}: smoke test, comm test, end-to-end.
+  \item \textbf{Test de vibracion}: sine sweep, random, shock,
+        niveles (3 g RMS tipico CubeSat).
+  \item \textbf{Test termico vacuum (TVAC)}: bake-out, ciclos, soak,
+        funcional caliente y frio.
+  \item \textbf{Test de vacio}: outgassing, vacuum chamber alone.
+  \item \textbf{Test EMC/EMI}: emisiones radiadas, conducidas,
+        susceptibilidad.
+  \item \textbf{Test de radiacion}: TID con Co-60, SEU con protones, TLD.
+  \item \textbf{Test funcional final}: 100 scans, 168 h burn-in.
+  \item \textbf{Mass properties}: balance, CG, inercia.
+  \item \textbf{Cleanliness}: clean room class 100K.
+  \item \textbf{Reviews}: PDR, CDR, TRR, PSR, MRR.
+\end{enumerate}
+
+% =====================================================================
+\chapter{Manual M8: Operaciones y ground station}
+
+\textbf{Paginas}: 50 ~|~ \textbf{Audiencia}: operadores de mision.
+~|~ Prioridad: $\bigstar\bigstar$.
+
+\section{Contenido}
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Ciclo de operaciones diario}: passes, comandos, downlink.
+  \item \textbf{Diseño de ground station}: antena, rotator, SDR,
+        software (gpredict, satnogs).
+  \item \textbf{Planificacion de pases}: STK, GMAT, GPredict.
+  \item \textbf{Mission control software}: OpenMCT, COSMOS, Yamcs.
+  \item \textbf{Telemetria}: parsing CCSDS, dashboards, alarmas.
+  \item \textbf{Comandos uplink}: secuencias, ACK, retries.
+  \item \textbf{Anomaly response}: procedures, escalacion.
+  \item \textbf{Flight rules}: que se puede y no se puede hacer.
+  \item \textbf{Decomissioning}: deorbit, passivacion, end-of-life.
+  \item \textbf{Coordinacion con autoridades}: ANATEL, IARU, FCC.
+\end{enumerate}
+
+% =====================================================================
+\chapter{Manual M9: Project management y system engineering}
+
+\textbf{Paginas}: 40 ~|~ \textbf{Audiencia}: lider de proyecto.
+~|~ Prioridad: $\bigstar$ (mas tarde).
+
+\section{Contenido}
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Fases NASA}: Pre-A, A, B, C, D, E, F.
+  \item \textbf{Reviews tecnicas}: SRR, PDR, CDR, TRR, FRR, PSR, ORR.
+  \item \textbf{Requirements engineering}: como redactar y rastrear.
+  \item \textbf{V-model de verificacion y validacion}.
+  \item \textbf{Configuration management}: baseline, change requests.
+  \item \textbf{Risk management}: matriz probabilidad/impacto.
+  \item \textbf{Cost estimation}: Cost models para CubeSat.
+  \item \textbf{Schedule}: Gantt, dependencias, critical path.
+  \item \textbf{Team organization}: roles, communicacion, herramientas
+        (Jira, Notion, Trello).
+\end{enumerate}
+
+% =====================================================================
+\chapter{Manual M10: CM5 y carrier para INTISAT}
+
+\begin{prioritario}
+Prioridad: $\bigstar\bigstar\bigstar$ --- es el siguiente paso concreto
+para el INTISAT.
+\end{prioritario}
+
+\textbf{Paginas}: 50 ~|~ \textbf{Audiencia}: hardware del payload.
+
+\section{Contenido}
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Diferencias Pi 5 vs CM5}.
+  \item \textbf{Conector mezzanine}: DF40 200-pin, voltajes, signal map.
+  \item \textbf{Diseño del carrier}: KiCad, layout, layers.
+  \item \textbf{Componentes en el carrier}: LDO, fusible, INA219,
+        TXS0108E, conectores.
+  \item \textbf{Compatibilidad PC-104}: pinout, footprint.
+  \item \textbf{Power-on sequence}.
+  \item \textbf{Flash de eMMC}: rpiboot, imagen pre-configurada.
+  \item \textbf{Conectores externos}: CSI-2 para OV5647, SPI para OLED.
+  \item \textbf{Test de banco}: bring-up procedure.
+  \item \textbf{Validacion ambiental}: vibracion y TVAC del carrier.
+\end{enumerate}
+
+% =====================================================================
+\chapter{Orden de lectura sugerido}
+
+\section{Para un miembro nuevo (full onboarding)}
+
+\textbf{Semana 1}: M0 (CubeSat 101) + lo basico del proyecto en
+\texttt{contexto\_sesion/}.
+
+\textbf{Semana 2}: Manual\_Electronica\_Practica.pdf (ya existe) + M2 (EPS)
+fundamentos.
+
+\textbf{Semana 3}: Raspberry\_Pi\_5\_Profundo.pdf (ya existe) + M5
+(Flight Software).
+
+\textbf{Semana 4}: M4 (Comms) + M7 (Testing) capitulos 1-3.
+
+Despues, especializacion segun rol.
+
+\section{Para un ingeniero electronico de payload}
+
+M0 $\to$ Manual\_Electronica\_Practica $\to$ Raspberry\_Pi\_5\_Profundo $\to$
+M2 (EPS) $\to$ M10 (CM5 carrier) $\to$ M7 (Testing).
+
+\section{Para un operador de mision}
+
+M0 $\to$ M4 (Comms) $\to$ M8 (Ops) $\to$ Referencias\_OpenSource\_CubeSat
+(OpenMCT) $\to$ Bibliografia\_AI\_Espacial.
+
+\section{Para un lider de proyecto}
+
+M0 $\to$ M9 (Project management) $\to$ M7 (Testing) $\to$ resto en panorama.
+
+% =====================================================================
+\chapter{Cronograma de produccion sugerido}
+
+\section{Si el equipo es de 4 personas, 15 semanas}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Sprint} & \textbf{Manual a escribir} & \textbf{Responsable} \\
+\midrule
+1--2  & M0 CubeSat 101                            & lider tecnico \\
+3--4  & M2 EPS (paralelo con M5)                  & elec/potencia \\
+3--4  & M5 Flight software (paralelo con M2)      & software \\
+5--6  & M4 Comms (paralelo con M10)               & RF \\
+5--6  & M10 CM5 carrier (paralelo con M4)         & hw payload \\
+7--8  & M7 Testing                                 & AIT \\
+9--10 & M1 Mecanica y M3 ADCS (paralelo)          & mec y control \\
+11--12 & M6 Termico y M8 Operaciones (paralelo)    & termico y ops \\
+13--14 & M9 Project management                     & lider proyecto \\
+15    & Revision cruzada, integracion              & todos \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Si son menos personas o menos tiempo}
+
+\textbf{Si solo hay 2 personas}: enfocarse en los $\bigstar\bigstar\bigstar$
+unicamente. Total: M0 + M2 + M4 + M5 + M7 + M10 = 6 manuales, $\sim 340$ pag,
+$\sim 9$ semanas.
+
+\textbf{Si solo hay 1 persona escribiendo}: $\sim 30$ semanas para los 6
+prioritarios. Mejor reclutar mas.
+
+% =====================================================================
+\chapter{Convenciones de estilo}
+
+Para mantener consistencia entre manuales escritos por distintas personas:
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{LaTeX class}: \texttt{book} para los grandes ($> 50$ pag),
+        \texttt{report} para los medianos.
+  \item \textbf{Idioma}: español (es-noshorthands, sin acentos en codigo).
+  \item \textbf{Cajas de color} consistentes:
+    \begin{itemize}[leftmargin=1em]
+      \item Verde: \texttt{intuibox} (analogias, intuiciones)
+      \item Gris: \texttt{calculo} (formulas, derivaciones)
+      \item Azul: \texttt{payload} (conexion con INTISAT)
+      \item Roja: \texttt{cuidado} (errores comunes)
+      \item Naranja: \texttt{ejercicio} (practica)
+    \end{itemize}
+  \item \textbf{Cada capitulo}: la misma plantilla (por que importa,
+        intuicion, mate, conexion, cuidado, ejercicios).
+  \item \textbf{Bibliografia}: minimo 5 referencias por manual.
+  \item \textbf{Apendices}: tablas de consulta + roadmap de aprendizaje.
+\end{enumerate}
+
+\begin{nota}
+\textbf{Plantilla base}: tomar \texttt{Manual\_Electronica\_Practica.tex}
+como template y reemplazar el contenido. Asi todos los manuales tendran
+el mismo \texttt{look \& feel}.
+\end{nota}
+
+% =====================================================================
+\chapter{Estimacion de esfuerzo}
+
+\section{Promedio por pagina}
+
+Para un manual tecnico de calidad (escrito desde cero con investigacion):
+
+\begin{itemize}[leftmargin=2em]
+  \item Investigacion previa: 30 min/pagina.
+  \item Redaccion: 60 min/pagina.
+  \item Diagramas / tablas: 30 min/pagina.
+  \item Revision y correccion: 20 min/pagina.
+  \item \textbf{Total}: $\sim 2.3$ h/pagina.
+\end{itemize}
+
+\section{Aplicado a la coleccion}
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Manual} & \textbf{Pag} & \textbf{Horas} \\
+\midrule
+M0 CubeSat 101                       & 50 & 115 \\
+M1 Mecanica                          & 50 & 115 \\
+M2 EPS                                & 60 & 138 \\
+M3 ADCS                               & 60 & 138 \\
+M4 Comms                              & 60 & 138 \\
+M5 Flight software                    & 60 & 138 \\
+M6 Termico                            & 40 & 92  \\
+M7 Testing                            & 60 & 138 \\
+M8 Operaciones                        & 50 & 115 \\
+M9 PM/SE                              & 40 & 92  \\
+M10 CM5 carrier                       & 50 & 115 \\
+\midrule
+\textbf{Total}                       & \textbf{580} & \textbf{1334 h} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+$\sim 1334$ h $= 167$ dias-persona de 8 h $= 33$ semanas-persona.
+Con un equipo de 4 personas: $\sim 8$ semanas reales (dedicacion plena).
+Con dedicacion parcial (2 h/dia): $\sim 6$ meses.
+
+% =====================================================================
+\chapter{Plan de arranque concreto}
+
+\section{Primer manual a escribir: M0 CubeSat 101}
+
+\textbf{Justificacion}: es el que mas valor genera (todo el equipo se
+beneficia), no requiere prerequisitos, y es el que mejor consolida el
+vocabulario tecnico que todos deberian compartir.
+
+\textbf{Tiempo estimado}: 115 h, 1 persona dedicada full-time durante 3
+semanas, o equipo en sprint.
+
+\section{Segundo manual: M5 (Flight Software) o M2 (EPS)}
+
+Segun cual subsistema esta mas adelantado en INTISAT, priorizar:
+
+\begin{itemize}[leftmargin=2em]
+  \item Si el payload de microscopia esta avanzado (lo que vemos) $\to$ M5.
+  \item Si el sistema de potencia esta en bring-up $\to$ M2.
+\end{itemize}
+
+\section{Tercer manual: M10 CM5 carrier}
+
+Justifica una vez que se decide migrar el payload a CM5. Es muy especifico
+pero da el siguiente nivel concreto al INTISAT.
+
+% =====================================================================
+\chapter{Conclusion}
+
+\begin{tip}
+\textbf{Decision sugerida}: empezar por \textbf{M0 CubeSat 101} esta
+semana. Es de alto impacto, no bloquea otras tareas, y genera material
+inmediatamente util para onboarding del equipo. Asignar a una persona
+dedicada o repartir capitulos entre el equipo (cada uno escribe 1
+capitulo de 5 paginas en 1 semana $=$ 50 paginas en 1 semana del equipo
+de 10).
+\end{tip}
+
+\textbf{Una vez completo M0}, el equipo decide segun prioridades del
+proyecto:
+\begin{itemize}[leftmargin=2em]
+  \item Si la prioridad es \textbf{integrar el payload al INTISAT}: M2, M5, M10.
+  \item Si la prioridad es \textbf{prepararse para vuelo}: M7, M8.
+  \item Si la prioridad es \textbf{onboarding} de nuevos miembros: solo M0
+        alcanza.
+\end{itemize}
+
+Esta coleccion no se hace en un mes. Es un activo de mediano plazo
+(6 meses con dedicacion parcial). Pero \textbf{cada manual completado vale
+por si mismo}: es util desde el dia que se publica, no espera a estar
+toda la serie completa.
+
+\end{document}
