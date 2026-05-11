@@ -1,0 +1,841 @@
+\documentclass[11pt,a4paper,oneside,openright]{book}
+\usepackage[spanish,activeacute,es-noshorthands]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{listings}
+\usepackage{geometry}
+\geometry{margin=2.5cm, headheight=14pt}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\usepackage{caption}
+\captionsetup{font=small, labelfont=bf}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true, linkcolor=NavyBlue, citecolor=ForestGreen, urlcolor=BrickRed,
+  pdftitle={M10 --- Compute Module 5 + carrier para INTISAT},
+  pdfauthor={INTISAT}
+}
+
+\newtheorem{definicion}{Definicion}[chapter]
+\newtheorem*{nota}{Nota}
+
+\definecolor{codebg}{RGB}{248, 249, 250}
+
+\lstdefinestyle{shell}{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{codebg},
+  frame=single, rulecolor=\color{gray!30},
+  framesep=4pt, breaklines=true,
+  showstringspaces=false,
+  literate={a}{{a}}1 {e}{{e}}1 {i}{{i}}1 {o}{{o}}1 {u}{{u}}1 {n}{{n}}1
+}
+\lstset{style=shell}
+
+\newtcolorbox{intuibox}[1][]{
+  colback=green!5, colframe=green!40!black,
+  fonttitle=\bfseries, title=Intuicion,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{calculo}[1][]{
+  colback=gray!4, colframe=gray!55,
+  fonttitle=\bfseries, title=Calculo,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{payload}[1][]{
+  colback=blue!4, colframe=blue!50!black,
+  fonttitle=\bfseries, title=Aplicacion al INTISAT,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{cuidado}[1][]{
+  colback=red!5, colframe=red!50!black,
+  fonttitle=\bfseries, title=Cuidado,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{ejercicio}[1][]{
+  colback=orange!5, colframe=orange!60!black,
+  fonttitle=\bfseries, title=Ejercicios,
+  breakable, sharp corners=south, #1
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[RE]{\nouppercase{\leftmark}}
+\fancyhead[LO]{\nouppercase{\rightmark}}
+
+\title{\Huge\bfseries M10 --- Compute Module 5\\[0.4em]
+\Large Diseño del carrier board para el INTISAT\\[0.6em]
+\large Manual de la coleccion CubeSat (M10 / 11)}
+\author{Coleccion CubeSat para el proyecto INTISAT}
+\date{\today}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+
+\chapter*{Prefacio}
+\addcontentsline{toc}{chapter}{Prefacio}
+
+Este manual es la guia practica para migrar tu payload de Raspberry Pi 5
+de desarrollo al \textbf{Compute Module 5} (CM5) montado en un carrier
+board propio diseñado para el INTISAT.
+
+El CM5 es la version "industrial" del Pi 5: mismo SoC BCM2712, mismo
+software, pero compacto, sin USB / Ethernet expuestos, con eMMC en lugar
+de SD, y con un conector mezzanine de 200 pines que vos llevas al
+carrier que diseñes.
+
+\section*{Audiencia}
+
+\begin{itemize}[leftmargin=2em]
+  \item Ingenieria electronica del payload.
+  \item Diseñadores de PCB (KiCad, Altium, EAGLE).
+  \item Integradores mecanicos del CubeSat.
+\end{itemize}
+
+\section*{Prerequisitos}
+
+\begin{itemize}[leftmargin=2em]
+  \item Manual M0 leido (conceptos de CubeSat).
+  \item Manual de Electronica Practica (Capitulos 1-12).
+  \item Manual Raspberry\_Pi\_5\_Profundo (capitulos 1-7).
+  \item Familiaridad con KiCad o equivalente.
+\end{itemize}
+
+\section*{Objetivo del manual}
+
+Que al final tengas:
+\begin{enumerate}[leftmargin=2em]
+  \item Diseño esquematico del carrier (KiCad).
+  \item Layout del PCB de 4 layers.
+  \item BOM completa con part numbers.
+  \item Procedimiento de bring-up.
+  \item Plan de test ambiental.
+\end{enumerate}
+
+\tableofcontents
+
+\mainmatter
+
+% =====================================================================
+\chapter{Por que migrar a CM5}
+
+El Raspberry Pi 5 retail es excelente para \textbf{desarrollo} en lab,
+pero tiene problemas para vuelo:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Tamaño}: 85$\times$56 mm. Casi todo un slot de 1U.
+  \item \textbf{Conectores expuestos}: USB-C, USB-A x4, HDMI, Ethernet,
+        GPIO header. Cada conector es un riesgo mecanico y de
+        contaminacion.
+  \item \textbf{SD card}: el slot mecanico de la SD se afloja con
+        vibracion. La SD misma se corrompe con radiacion y temperatura.
+  \item \textbf{Componentes no usados consumen}: WiFi, Bluetooth,
+        Ethernet PHY... 0.5-1 W de consumo innecesario.
+\end{itemize}
+
+\section{Lo que aporta el CM5}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{5cm}p{5.5cm}}
+\toprule
+\textbf{Aspecto} & \textbf{Pi 5 retail} & \textbf{CM5} \\
+\midrule
+Dimensiones        & 85$\times$56 mm    & 55$\times$40 mm (45\% mas chico) \\
+Conector           & headers + USB + Ethernet & mezzanine DF40 200-pin \\
+Almacenamiento     & SD card            & eMMC integrada (4-64 GB) \\
+USB                & 4 puertos          & solo en pines, no conectores fisicos \\
+Ethernet           & RJ-45              & solo PHY (vos pones el conector) \\
+HDMI               & si                 & expuesto via mezzanine \\
+Conector camara    & FFC 22-pin         & via mezzanine \\
+Consumo            & 3-8 W              & 2.5-7 W (10\% menos) \\
+Long-term avail.   & 5-7 años           & 10+ años (industrial grade) \\
+Precio             & \$80                & \$50 + carrier custom \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Lo que NO aporta el CM5}
+
+\begin{itemize}[leftmargin=2em]
+  \item NO es rad-hard. Sigue siendo COTS comercial.
+  \item NO esta certificado para temperatura industrial extendida.
+  \item NO tiene ECC en RAM.
+  \item NO viene con carrier; tenes que diseñarlo.
+\end{itemize}
+
+\begin{payload}
+Para el INTISAT (mision academica LEO de 1-2 años), el CM5 es \textbf{el
+sweet spot}: tiene los beneficios mecanicos y de eMMC del industrial,
+pero al costo del comercial. La radiacion en LEO baja no llega a niveles
+que requieran rad-hard.
+\end{payload}
+
+% =====================================================================
+\chapter{Anatomia del CM5}
+
+\section{Especificaciones}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Spec} & \textbf{Valor} \\
+\midrule
+SoC                 & Broadcom BCM2712 \\
+CPU                 & 4x ARM Cortex-A76 @ 2.4 GHz \\
+GPU                 & VideoCore VII \\
+RAM (variantes)     & 2 / 4 / 8 / 16 GB LPDDR4X \\
+eMMC (variantes)    & Lite (0) / 4 / 16 / 32 / 64 GB \\
+WiFi/BT (opcional)  & Cypress CYW43455 dual-band \\
+Voltaje principal   & 5 V \\
+Voltaje IO          & 3.3 V (configurable a 1.8 V) \\
+Dimensiones         & 55 $\times$ 40 $\times$ 4.7 mm \\
+Conector            & 2x Hirose DF40C-100DS (100 pin c/u $=$ 200 pin total) \\
+Stack height        & 1.5 mm (al carrier) \\
+Temperatura         & 0 a +85 °C (comercial) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Variantes para elegir}
+
+\begin{center}
+\begin{tabular}{lllll}
+\toprule
+\textbf{Variante} & \textbf{RAM} & \textbf{eMMC} & \textbf{WiFi} & \textbf{Precio} \\
+\midrule
+CM5 Lite (2 GB)    & 2 GB & --- & no & 25 USD \\
+CM5 (4 GB / 32GB)  & 4 GB & 32 GB & no & 60 USD \\
+CM5 (8 GB / 64 GB) & 8 GB & 64 GB & no & 95 USD \\
+CM5 + WiFi (8/64)  & 8 GB & 64 GB & si & 105 USD \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{payload}
+\textbf{Recomendacion para INTISAT}: CM5 \textbf{4 GB / 32 GB sin WiFi}.
+Tu pipeline IA cabe en 4 GB. eMMC de 32 GB alcanza para sistema operativo,
+codigo, y buffer de scans (8-10 dias antes de overwrite). WiFi se desactiva
+para vuelo, no vale la pena pagarlo.
+\end{payload}
+
+\section{Los 200 pines del mezzanine}
+
+Los 200 pines del CM5 se dividen en:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Power}: 14 pines (5V in, 3V3, GND).
+  \item \textbf{GPIO}: 40 (mismos que el header de la Pi 5).
+  \item \textbf{Buses dedicados}: 2x I2C, 5x SPI, 6x UART, USB 3.0 x4, USB 2.0 x4.
+  \item \textbf{CSI-2 cameras}: 4 lanes diferenciales x2 instancias.
+  \item \textbf{DSI displays}: idem.
+  \item \textbf{HDMI}: 1 puerto.
+  \item \textbf{Ethernet}: pines del PHY.
+  \item \textbf{PCIe Gen 2 x1}.
+  \item \textbf{Control}: nRUN (reset), nPOWER\_BTN, EEPROM\_nDIS, LED.
+\end{itemize}
+
+El pinout completo esta en el datasheet:
+\url{https://datasheets.raspberrypi.com/cm5/cm5-datasheet.pdf}.
+
+% =====================================================================
+\chapter{Que debe tener el carrier}
+
+\section{Lista de bloques funcionales}
+
+El carrier para el INTISAT necesita:
+
+\begin{enumerate}[leftmargin=2em]
+  \item Conectores mezzanine DF40 (2 unidades hembra de 100 pin).
+  \item Regulacion de 5V con proteccion (LDO o switching).
+  \item Capacitores de decoupling (100 nF cerca de cada chip).
+  \item Diodo Schottky de proteccion polaridad inversa.
+  \item Fusible PTC reseteable.
+  \item Level shifter TXS0108E para I2C externo.
+  \item Sensor INA219 de corriente.
+  \item Conector CSI-2 para OV5647.
+  \item Conector SPI / GPIO para OLED SSD1351.
+  \item Conector PC-104 para integracion al INTISAT.
+  \item Boton de reset y LED de status.
+  \item Pads de prueba para todos los buses.
+  \item Conector de programacion de eMMC (rpiboot).
+\end{enumerate}
+
+\section{Diagrama de bloques}
+
+\begin{center}
+\begin{tabular}{|p{14cm}|}
+\hline
+\textbf{Bloque} \\
+\hline
+\textbf{Entrada de potencia}: PC-104 5V\_PAYLOAD $\to$ fusible PTC 5A $\to$
+diodo Schottky $\to$ LDO 5V/6A $\to$ 5V interno. \\
+\hline
+\textbf{Mezzanine CM5}: 2x DF40C-100DS, stack height 1.5 mm. Conectados a
+todas las lineas relevantes. \\
+\hline
+\textbf{Comms con OBC}: pines I2C del CM5 $\to$ TXS0108E $\to$ pines del PC-104. \\
+\hline
+\textbf{Monitor de potencia}: INA219 entre 5V externo y CM5, conectado a
+I2C secundario del CM5. \\
+\hline
+\textbf{Camara}: conector FFC 15-pin a OV5647 directo del CSI-2 del CM5. \\
+\hline
+\textbf{OLED}: conector header 5-pin (MOSI, SCLK, CE, DC, RST + 3V3 + GND)
+a SSD1351. \\
+\hline
+\textbf{Status}: LED bicolor controlado por GPIO. \\
+\hline
+\end{tabular}
+\end{center}
+
+% =====================================================================
+\chapter{Diseño esquematico}
+
+\section{Herramienta: KiCad}
+
+KiCad es open-source, multi-plataforma, y suficiente para diseñar un PCB
+de 4 layers de calidad aeroespacial. Tambien valen Altium (caro) o EAGLE
+(deprecated).
+
+\section{Hierarchical schematic}
+
+El esquematico se divide en \textbf{hojas jerarquicas}:
+
+\begin{enumerate}[leftmargin=2em]
+  \item \texttt{TOP.kicad\_sch} --- vista general con bloques.
+  \item \texttt{power.kicad\_sch} --- entrada PC-104, regulacion, INA219.
+  \item \texttt{cm5.kicad\_sch} --- conectores DF40, decoupling.
+  \item \texttt{io\_obc.kicad\_sch} --- TXS0108E + PC-104.
+  \item \texttt{io\_camera.kicad\_sch} --- conector CSI-2.
+  \item \texttt{io\_oled.kicad\_sch} --- conector SPI + GPIO.
+  \item \texttt{debug.kicad\_sch} --- LED, boton, test pads.
+\end{enumerate}
+
+\section{Reglas de diseño electricas}
+
+\begin{itemize}[leftmargin=2em]
+  \item Todo pin de power tiene un capacitor 100 nF a menos de 3 mm.
+  \item Capacitor de bulk 10 uF cerca de cada rail.
+  \item Cada chip tiene su propio decoupling.
+  \item Ground plane continuo en la layer 2.
+  \item Power plane en layer 3 (dividido por rails).
+  \item Signal routing en layers 1 y 4.
+\end{itemize}
+
+% =====================================================================
+\chapter{Regulacion de potencia}
+
+\section{De PC-104 a CM5}
+
+El CM5 acepta 5V $\pm$ 5\%. La entrada del PC-104 puede tener picos.
+Tres opciones:
+
+\subsection{Opcion A: LDO}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Pros}: simple, sin ruido switching, costo bajo.
+  \item \textbf{Contras}: ineficiente; disipa $(V_{in} - V_{out}) \times I$ como calor.
+\end{itemize}
+
+Si $V_{in} = 5$ V y $V_{out} = 5$ V (con dropout de $\sim 0.2$ V), no hay
+mucha disipacion. Pero el LDO solo "limpia" el rail, no convierte.
+
+\subsection{Opcion B: Buck switching}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Pros}: eficiencia $> 92\%$.
+  \item \textbf{Contras}: ruidoso (switching freq 500 kHz - 2 MHz), mas
+        complejo de diseñar.
+\end{itemize}
+
+\subsection{Opcion C: $\mu$Module}
+
+Chips como el LTM4631 de Analog Devices vienen completos (regulador +
+inductor + capacitores en un solo chip). Mas caros pero \emph{plug and play}.
+
+\begin{payload}
+Recomendacion: \textbf{$\mu$Module} (LTM4631 o similar). Ocupa $9\times 9$ mm,
+da 5V $@$ 6A con $94\%$ eficiencia, y diseño simple. Cuesta USD 25 pero
+ahorra horas de diseño y debugging.
+\end{payload}
+
+\section{Proteccion polaridad inversa}
+
+Diodo Schottky (1N5817 o similar) en serie con la entrada:
+\begin{itemize}[leftmargin=2em]
+  \item Cae 0.3 V (Schottky tiene menos drop que diodo Si normal).
+  \item Si conectan al reves, bloquea.
+\end{itemize}
+
+\section{Fusible PTC}
+
+Fusible reseteable de 5A. Si hay un corto:
+\begin{itemize}[leftmargin=2em]
+  \item PTC sube su resistencia rapidamente.
+  \item Corta el rail (limita la corriente).
+  \item Cuando se enfria, vuelve a conducir.
+\end{itemize}
+
+% =====================================================================
+\chapter{Subsistemas auxiliares}
+
+\section{INA219 --- monitor de corriente}
+
+Como vimos en el manual de electronica practica, el INA219 mide $V$ e $I$
+del rail 5V del CM5. Lo conectas:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{IN+}: lado de la fuente.
+  \item \textbf{IN-}: lado del CM5.
+  \item \textbf{SDA, SCL}: I2C secundario del CM5 (no el que va al OBC).
+  \item \textbf{V+}: alimentacion 3.3V del CM5.
+\end{itemize}
+
+Address default: 0x40. Configurable con jumpers a 0x41, 0x44, 0x45.
+
+\section{TXS0108E --- level shifter}
+
+Si el OBC del INTISAT usa 5V en su I2C y el CM5 usa 3.3V, necesitas un
+level shifter bidireccional. El TXS0108E es la opcion estandar:
+
+\begin{itemize}[leftmargin=2em]
+  \item 8 canales (usamos 2: SDA y SCL).
+  \item Auto-direction (no necesita pin de control).
+  \item Voltajes: 1.65V a 5.5V en cada lado.
+  \item Encapsulado: TSSOP-20.
+\end{itemize}
+
+\section{Conector CSI-2 para OV5647}
+
+El CM5 expone 2 conectores de camara CSI-2 de 4 lanes cada uno. La OV5647
+usa 2 lanes. Conectar via FFC 15-pin estandar del Pi.
+
+\begin{nota}
+Lamentablemente el CM5 expone CSI-2 via las lineas del mezzanine, no
+directo. Hay que rutear las lineas diferenciales con $90~\Omega$ de impedancia
+controlada en el carrier.
+\end{nota}
+
+\section{Conector OLED}
+
+Header simple de 7 pines:
+\begin{itemize}[leftmargin=2em]
+  \item 3.3V
+  \item GND
+  \item MOSI (GPIO10)
+  \item SCLK (GPIO11)
+  \item CE (GPIO8)
+  \item DC (GPIO18)
+  \item RST (GPIO24)
+\end{itemize}
+
+% =====================================================================
+\chapter{Layout del PCB}
+
+\section{Tamaño y forma}
+
+\begin{itemize}[leftmargin=2em]
+  \item Tamaño: $\sim 90 \times 90$ mm (compatible con estandar PC-104).
+  \item Forma: cuadrado con 4 esquinas redondeadas.
+  \item 4 agujeros de montaje M3 en las esquinas.
+  \item Conectores PC-104 en los bordes (los 104 pines estandar).
+\end{itemize}
+
+\section{Stackup recomendado}
+
+\textbf{4 layers}:
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Layer 1 (top)}: signal + componentes.
+  \item \textbf{Layer 2}: ground plane continuo.
+  \item \textbf{Layer 3}: power plane (dividido por rails 5V, 3.3V, etc.).
+  \item \textbf{Layer 4 (bottom)}: signal de retorno + componentes pasivos.
+\end{enumerate}
+
+\section{Reglas de routing}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Track width minimum}: 0.15 mm (6 mil) para signal.
+  \item \textbf{Track width power}: 0.5 mm para 5V/3.3V; 1.0 mm para
+        bus principal.
+  \item \textbf{Clearance}: 0.2 mm minimo.
+  \item \textbf{Vias}: 0.4 mm hole, 0.8 mm pad.
+  \item \textbf{Impedancia controlada} en CSI-2 (90 $\Omega$ diferencial).
+  \item \textbf{Sin antenas}: evitar tracks largos paralelos.
+\end{itemize}
+
+\section{Componentes criticos}
+
+\textbf{Cerca del CM5}:
+\begin{itemize}[leftmargin=2em]
+  \item Capacitores de bulk 10 uF en cada rail.
+  \item 100 nF en cada pin de power del CM5.
+\end{itemize}
+
+\textbf{Cerca del INA219}:
+\begin{itemize}[leftmargin=2em]
+  \item Shunt 0.1 $\Omega$ con SMD 0805 de 1\% de tolerancia.
+  \item Bypass 100 nF en VCC.
+\end{itemize}
+
+\textbf{Cerca de los conectores externos}:
+\begin{itemize}[leftmargin=2em]
+  \item TVS (Transient Voltage Suppressor) en cada pin externo para ESD.
+\end{itemize}
+
+% =====================================================================
+\chapter{BOM (Bill of Materials)}
+
+Lista preliminar de componentes:
+
+\begin{center}
+\small
+\begin{tabular}{p{4.5cm}p{4cm}p{3cm}p{1.5cm}}
+\toprule
+\textbf{Componente} & \textbf{Part number} & \textbf{Proveedor} & \textbf{Costo} \\
+\midrule
+CM5 (4 GB/32 GB)              & SC1230               & RPi Trading & \$60 \\
+DF40 mezzanine (2x)            & Hirose DF40C-100DS-0.4V & Hirose      & \$8 \\
+$\mu$Module 5V/6A regulator    & LTM4631              & Analog Devices & \$25 \\
+Diodo Schottky 5A              & 1N5824               & Vishay      & \$0.50 \\
+Fusible PTC 5A reseteable      & MF-MSMF050           & Bourns      & \$1 \\
+INA219 modulo                  & INA219AIDR            & TI          & \$3 \\
+TXS0108E level shifter         & TXS0108EPWR           & TI          & \$1 \\
+Cap. ceramico 100 nF (50x)     & GRM188R71H104KA93D    & Murata      & \$0.05/u \\
+Cap. tantalio 10 uF (10x)      & T491A106K016AT        & Kemet       & \$0.30/u \\
+Conector FFC 15-pin            & 5025810-09           & Molex       & \$1 \\
+Conector header 7-pin OLED      & estandar 2.54 mm     & ---         & \$0.50 \\
+Boton SMD tactile              & 1825910-6             & TE Connectivity & \$0.50 \\
+LED bicolor SMD                & APBA3025LSGSGCG       & Kingbright  & \$0.50 \\
+Resistor 5.6 ohm 1\%           & varios               & ---         & \$0.05 \\
+PCB 4-layer (10 unidades)      & JLCPCB / OshPark      & ---         & \$50 \\
+\midrule
+\textbf{Total estimado}        & --- & --- & \textbf{\$155} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Donde comprar}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Mouser}: el lider para componentes electronicos. Envia a Peru.
+  \item \textbf{Digikey}: similar, a veces mejor stock.
+  \item \textbf{LCSC}: barato, China, envio lento.
+  \item \textbf{Arrow}: para vol\'umenes grandes.
+  \item \textbf{JLCPCB}: PCB con assembly opcional, calidad aceptable.
+  \item \textbf{OshPark}: PCB premium, mas caro.
+\end{itemize}
+
+% =====================================================================
+\chapter{Bring-up del carrier}
+
+Procedimiento despues de recibir el PCB ensamblado:
+
+\section{Step 1: inspeccion visual}
+
+\begin{itemize}[leftmargin=2em]
+  \item Microscopio para soldaduras: solder bridges, joints frios.
+  \item Verificar componentes en sus footprints correctos.
+  \item Verificar polaridad de capacitores polarizados.
+  \item Verificar orientacion de diodos.
+\end{itemize}
+
+\section{Step 2: tests sin CM5 montado}
+
+Antes de poner el CM5:
+
+\begin{itemize}[leftmargin=2em]
+  \item Verificar continuidad de GND con multimetro.
+  \item Verificar que NO hay corto entre GND y rails (5V, 3V3).
+  \item Alimentar con fuente externa a 5V, $\sim$100 mA limite.
+  \item Verificar que el regulador entrega 5V estable.
+  \item Verificar que INA219 responde via I2C.
+\end{itemize}
+
+\section{Step 3: montar el CM5}
+
+\begin{itemize}[leftmargin=2em]
+  \item Alinear el CM5 con los conectores DF40.
+  \item Presionar firme y uniformemente.
+  \item Verificar que esta a 1.5 mm de stack height (no se quedo
+        atorado).
+  \item Conectar el cable Hostboot via micro-USB / pogo pin.
+\end{itemize}
+
+\section{Step 4: flashear la eMMC}
+
+Para el primer boot, hay que flashear el OS en la eMMC:
+
+\begin{lstlisting}
+# En una PC linux con el CM5 conectado por USB
+# Boton de boot mantenido para entrar a USB device mode
+sudo rpiboot
+
+# La eMMC aparece como /dev/sda
+# Usar Raspberry Pi Imager para flashear
+\end{lstlisting}
+
+\section{Step 5: primer boot}
+
+\begin{itemize}[leftmargin=2em]
+  \item Verificar LED de status.
+  \item Conectar HDMI debug (si carrier tiene salida) o serial console.
+  \item Verificar boot sequence en logs.
+  \item Verificar que detecta camara y OLED.
+\end{itemize}
+
+\section{Step 6: instalar el daemon cubesat/}
+
+\begin{lstlisting}
+cd /opt
+git clone https://github.com/JaminYC/CubeSat-EdgeAI-Payload.git
+cd CubeSat-EdgeAI-Payload
+sudo bash cubesat/install.sh
+\end{lstlisting}
+
+% =====================================================================
+\chapter{Validacion ambiental}
+
+Una vez bring-up exitoso, hay que validar contra los ambientes de
+mision.
+
+\section{Test electrico}
+
+\begin{itemize}[leftmargin=2em]
+  \item Variar voltaje de entrada 4.5V a 5.5V, verificar operacion estable.
+  \item Test de cortocircuito en salidas (sin daño persistente).
+  \item Test de ESD en conectores externos.
+  \item Test de inrush current con osciloscopio.
+\end{itemize}
+
+\section{Test funcional}
+
+\begin{itemize}[leftmargin=2em]
+  \item 100 scans seguidos sin reboot.
+  \item I2C OBC bidireccional, 1000 comandos.
+  \item Downlink chunked, validar checksums.
+  \item Test de SAFE\_MODE: entrada y salida.
+  \item Test de OTA: rollback en caso de fallo.
+\end{itemize}
+
+\section{Test ambiental}
+
+Como detallado en el manual M7 (Testing):
+\begin{itemize}[leftmargin=2em]
+  \item TVAC: ciclos -20 a +60 °C, 3 ciclos minimo.
+  \item Vibracion: 3 g RMS en cada eje, 1 minuto.
+  \item Shock: 1500 g, 0.5 ms (simulando despliegue).
+  \item Vacio: $10^{-5}$ Torr durante 24 h (outgassing).
+\end{itemize}
+
+\begin{cuidado}
+Despues de cada test ambiental, repetir el test funcional para verificar
+que no hubo degradacion latente.
+\end{cuidado}
+
+% =====================================================================
+\chapter{Diferencias con el Pi 5 de desarrollo}
+
+Cosas que tu codigo actual deberia adaptar:
+
+\section{eMMC en lugar de SD}
+
+\begin{itemize}[leftmargin=2em]
+  \item No hay slot fisico. La eMMC es soldada.
+  \item Para flashear: rpiboot via USB.
+  \item Para acceder: como cualquier disco interno.
+  \item Backup: copiar imagen completa con \texttt{dd}.
+\end{itemize}
+
+\section{No hay Ethernet ni WiFi}
+
+\begin{itemize}[leftmargin=2em]
+  \item No se puede SSH durante el vuelo (obvio).
+  \item Para debug en lab: el carrier puede tener conector RJ-45 si lo
+        decidiste; sino, solo serial console.
+\end{itemize}
+
+\section{Distinto pinout del header GPIO}
+
+\begin{itemize}[leftmargin=2em]
+  \item Los 40 pines del GPIO siguen iguales en numero BCM.
+  \item Pero fisicamente van por el mezzanine, no por header.
+\end{itemize}
+
+\section{Sin USB physical}
+
+\begin{itemize}[leftmargin=2em]
+  \item Los 4 USB siguen disponibles via mezzanine.
+  \item Vos decides si exponerlos en el carrier o no.
+\end{itemize}
+
+% =====================================================================
+\chapter{Software igual, hardware diferente}
+
+Lo bueno: el sistema operativo (Raspberry Pi OS Bookworm) es \textbf{identico}
+en Pi 5 y CM5. Tu pipeline IA corre sin cambios.
+
+\section{Cambios menores en el codigo}
+
+\begin{itemize}[leftmargin=2em]
+  \item \texttt{cubesat/paths.py}: cambiar rutas si decides estructura
+        diferente (probablemente no cambia).
+  \item Verificar que \texttt{pigpio} sigue funcionando (si).
+  \item \texttt{cubesat/install.sh}: agregar paso de detectar eMMC vs SD.
+  \item Documentacion de boot: actualizar instrucciones.
+\end{itemize}
+
+\section{Cambios en configuracion}
+
+\begin{itemize}[leftmargin=2em]
+  \item \texttt{/boot/firmware/config.txt}: similar, agregar
+        \texttt{dtparam=eeprom\_write\_protect=on} para evitar escritura
+        accidental.
+  \item Desactivar HDMI: \texttt{hdmi\_force\_hotplug=0}.
+  \item Desactivar WiFi/BT (si la version trae): \texttt{dtoverlay=disable-wifi},
+        \texttt{dtoverlay=disable-bt}.
+\end{itemize}
+
+% =====================================================================
+\chapter{Cronograma de migracion}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Semanas 1-2}: comprar CM5 + componentes. Diseñar
+        esquematico en KiCad.
+  \item \textbf{Semanas 3-4}: layout del PCB. Revision interna.
+  \item \textbf{Semana 5}: enviar a fabricar (JLCPCB con assembly).
+  \item \textbf{Semanas 6-7}: esperar PCBs. Mientras tanto, preparar
+        test plan.
+  \item \textbf{Semana 8}: recibir PCBs. Bring-up.
+  \item \textbf{Semanas 9-10}: validacion funcional.
+  \item \textbf{Semanas 11-14}: tests ambientales (vibracion, TVAC).
+  \item \textbf{Semana 15}: integracion al INTISAT.
+\end{itemize}
+
+\section{Costo total estimado}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Item} & \textbf{Costo (USD)} \\
+\midrule
+Componentes para 1 unidad      & 155 \\
+PCB (10 unidades)              & 50 \\
+Assembly por JLCPCB            & 100 \\
+Envio internacional            & 100 \\
+Herramientas (estacion de soldadura, microscopio) & 300 (una vez) \\
+Aranceles (Peru, 18\%)          & 60 \\
+\midrule
+\textbf{Total primera iteracion} & \textbf{$\sim$ 765 USD} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Numero de iteraciones}
+
+Tipicamente:
+\begin{itemize}[leftmargin=2em]
+  \item Iteracion 1 (prototipo): tiene bugs menores. Costo $\sim$ \$765.
+  \item Iteracion 2 (revisado): casi listo. Costo $\sim$ \$500 (PCBs solo).
+  \item Iteracion 3 (qual model): pasa todos los tests. Costo $\sim$ \$500.
+  \item Iteracion 4 (flight model): el que vuela. Costo $\sim$ \$500.
+\end{itemize}
+
+\textbf{Total proyectado}: \$2200 USD para llegar al flight model.
+
+% =====================================================================
+\appendix
+\chapter{Apendice --- Plantilla KiCad}
+
+Estructura recomendada del proyecto:
+
+\begin{lstlisting}
+intisat-payload-carrier/
+|-- intisat-payload-carrier.kicad_pro
+|-- intisat-payload-carrier.kicad_sch
+|-- intisat-payload-carrier.kicad_pcb
+|-- schematics/
+|   |-- power.kicad_sch
+|   |-- cm5.kicad_sch
+|   |-- io_obc.kicad_sch
+|   |-- io_camera.kicad_sch
+|   |-- io_oled.kicad_sch
+|   `-- debug.kicad_sch
+|-- libraries/
+|   |-- intisat-symbols.kicad_sym
+|   `-- intisat-footprints.pretty/
+|-- bom/
+|   `-- BOM-rev1.csv
+|-- outputs/
+|   |-- gerbers/
+|   |-- 3d-step/
+|   `-- docs/
+`-- README.md
+\end{lstlisting}
+
+\chapter{Apendice --- Pinout DF40 del CM5 (resumen)}
+
+Para el pinout completo ver datasheet oficial. Pines mas usados:
+
+\begin{center}
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Pin DF40} & \textbf{Funcion} & \textbf{Notas} \\
+\midrule
+1, 2         & GND                                 & soldar a ground plane \\
+3, 5         & 5V\_IN                              & alimentacion principal \\
+7, 9         & 3V3\_IN (no usar como output)       & 3.3V para perifericos \\
+J1-100       & misc GPIO + buses dedicados         & ver tabla completa \\
+J2-1, J2-2   & GND                                 & --- \\
+J2-3-100     & otros buses + control               & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\chapter{Apendice --- Diferencias entre versiones del CM5}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Version} & \textbf{Cambio} & \textbf{Fecha} \\
+\midrule
+CM5             & version original   & 2024 \\
+CM5 Lite        & sin eMMC           & 2024 \\
+CM5 + WiFi      & con CYW43455       & 2024 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\backmatter
+
+\chapter*{Bibliografia}
+\addcontentsline{toc}{chapter}{Bibliografia}
+
+\begin{enumerate}[leftmargin=2em]
+\item Raspberry Pi Foundation. \emph{Compute Module 5 Datasheet}. \\
+  \url{https://datasheets.raspberrypi.com/cm5/cm5-datasheet.pdf}, 2024.
+\item Raspberry Pi Foundation. \emph{CM5 IO Board Datasheet}. \\
+  \url{https://datasheets.raspberrypi.com/cm5/cm5-ioboard-datasheet.pdf}, 2024.
+\item Analog Devices. \emph{LTM4631 Datasheet}. \\
+  \url{https://www.analog.com/en/products/ltm4631.html}, 2020.
+\item Texas Instruments. \emph{TXS0108E Datasheet}. \\
+  \url{https://www.ti.com/product/TXS0108E}.
+\item Texas Instruments. \emph{INA219 Datasheet}. \\
+  \url{https://www.ti.com/product/INA219}.
+\item Hirose Electric. \emph{DF40 Series Datasheet}. \\
+  \url{https://www.hirose.com/en/product/series/DF40}.
+\item KiCad. \emph{Official Documentation}. \\
+  \url{https://docs.kicad.org/}.
+\end{enumerate}
+
+\end{document}
