@@ -1,0 +1,454 @@
+\documentclass[11pt,a4paper,oneside,openright]{book}
+\usepackage[spanish,activeacute,es-noshorthands]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{listings}
+\usepackage{geometry}
+\geometry{margin=2.5cm, headheight=14pt}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\usepackage{caption}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=NavyBlue, urlcolor=BrickRed,
+  pdftitle={M5 --- Flight Software para CubeSat}, pdfauthor={INTISAT}}
+
+\definecolor{codebg}{RGB}{248, 249, 250}
+\lstdefinestyle{shell}{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{codebg},
+  frame=single, framesep=4pt, breaklines=true,
+  showstringspaces=false,
+  literate={a}{{a}}1 {e}{{e}}1 {i}{{i}}1 {o}{{o}}1 {u}{{u}}1 {n}{{n}}1
+}
+\lstset{style=shell}
+
+\newtcolorbox{intuibox}[1][]{colback=green!5, colframe=green!40!black,
+  fonttitle=\bfseries, title=Intuicion, breakable, sharp corners=south, #1}
+\newtcolorbox{payload}[1][]{colback=blue!4, colframe=blue!50!black,
+  fonttitle=\bfseries, title=Conexion con el INTISAT, breakable, sharp corners=south, #1}
+\newtcolorbox{cuidado}[1][]{colback=red!5, colframe=red!50!black,
+  fonttitle=\bfseries, title=Cuidado, breakable, sharp corners=south, #1}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[RE]{\nouppercase{\leftmark}}
+\fancyhead[LO]{\nouppercase{\rightmark}}
+
+\title{\Huge\bfseries M5 --- Flight Software\\[0.4em]
+\Large Software de a bordo para CubeSat\\[0.6em]
+\large Manual de la coleccion CubeSat (M5 / 11)}
+\date{\today}
+
+\begin{document}
+\frontmatter
+\maketitle
+
+\chapter*{Prefacio}
+\addcontentsline{toc}{chapter}{Prefacio}
+
+El \emph{flight software} (FSW) es el software que corre en el OBC del
+satelite y en cada subsistema con procesador. Este manual cubre como
+diseñarlo, estructurarlo, y operarlo.
+
+\textbf{Prerequisitos}: M0 (CubeSat 101), Raspberry\_Pi\_5\_Profundo.
+
+\tableofcontents
+
+\mainmatter
+
+\chapter{Arquitecturas de OBC}
+
+\section{Microcontrolador vs SoC con Linux}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{5cm}p{5cm}}
+\toprule
+\textbf{Aspecto} & \textbf{Microcontrolador} & \textbf{SoC con Linux} \\
+\midrule
+Ejemplo            & STM32, ESP32, ATmega       & RPi 5, Jetson \\
+Precio             & 5--20 USD                   & 50--500 USD \\
+Consumo            & 0.1--1 W                    & 3--15 W \\
+RAM                & 64--512 kB                  & 1--16 GB \\
+Tipo de software   & firmware bare-metal o RTOS  & sistema operativo \\
+Determinismo       & alto (controlable)          & bajo (jitter del kernel) \\
+Complejidad        & baja                        & alta \\
+Workforce          & ingenieria embebida         & devs Linux \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Cuando usar cada uno}:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Microcontrolador}: para subsistemas con tareas simples y
+        deterministas. EPS, ADCS, COMMS suelen usar STM32.
+  \item \textbf{SoC con Linux}: para payloads que necesitan
+        procesamiento pesado (IA, vision, machine learning). Tu Pi 5 es
+        un caso ejemplar.
+\end{itemize}
+
+\begin{payload}
+En el INTISAT, la arquitectura tipica seria:
+\begin{itemize}[leftmargin=1em]
+  \item \textbf{OBC principal}: microcontrolador STM32 (deterministico).
+  \item \textbf{Payload}: Raspberry Pi 5 con Linux (potencia de calculo).
+  \item \textbf{ADCS, COMMS, EPS}: cada uno con su propio microcontrolador.
+\end{itemize}
+Los buses I2C/CAN conectan todo.
+\end{payload}
+
+\chapter{Sistemas operativos}
+
+\section{Para microcontroladores}
+
+\textbf{Sin OS (bare-metal)}: solo loop principal + interrupciones. Util
+para subsistemas muy simples.
+
+\textbf{FreeRTOS}: el RTOS mas popular en CubeSat. Tareas, queues,
+semaphores, timers. Open source.
+
+\textbf{Zephyr}: alternativa moderna a FreeRTOS, soportado por Linux
+Foundation. Tiene drivers para muchos chips.
+
+\textbf{RTEMS}: usado en mision aeroespacial real (Mars rovers,
+satellites NASA). Mas complejo de aprender.
+
+\section{Para SoCs}
+
+\textbf{Linux}: distribuciones tipicas en CubeSat:
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Raspberry Pi OS} (Bookworm): el que usamos.
+  \item \textbf{Yocto / OpenEmbedded}: para builds custom super
+        optimizadas.
+  \item \textbf{Buildroot}: similar a Yocto pero mas simple.
+  \item \textbf{Ubuntu Server}: si necesitas paquetes mas modernos.
+\end{itemize}
+
+\chapter{Frameworks de flight software}
+
+\section{NASA cFS (Core Flight System)}
+
+El estandar de NASA. Arquitectura publish-subscribe con apps
+modulares. Usa publish/subscribe + tablas de configuracion + FDIR.
+
+\textbf{Pros}: probado en misiones reales, ecosistema maduro.
+
+\textbf{Contras}: complejo, curva de aprendizaje empinada.
+
+\textbf{URL}: \url{https://github.com/nasa/cFS}
+
+\section{NASA F' (FPrime)}
+
+Framework moderno usado en MarCO e Ingenuity. Mas accesible que cFS.
+XML define los componentes, codigo auto-generado.
+
+\textbf{URL}: \url{https://github.com/nasa/fprime}
+
+\section{KubOS}
+
+Framework dedicado a CubeSat. Descontinuado pero docs todavia utiles.
+
+\section{Custom (lo que estamos haciendo en INTISAT)}
+
+Python + systemd corriendo en Linux. Mas simple pero menos formal.
+
+\begin{cuidado}
+Para mision \emph{academica}: custom esta bien. Para mision
+\emph{comercial o critica}: usar framework formal (F' o cFS) para
+trazabilidad y certificacion.
+\end{cuidado}
+
+\chapter{Tareas y concurrencia}
+
+\section{Tareas en RTOS}
+
+Una \emph{tarea} es un hilo de ejecucion. Cada una tiene:
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Prioridad}: las altas se ejecutan primero.
+  \item \textbf{Stack}: memoria propia.
+  \item \textbf{Estado}: running, ready, blocked, suspended.
+\end{itemize}
+
+Las tareas tipicas en un CubeSat:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Tarea} & \textbf{Prioridad} & \textbf{Periodo} \\
+\midrule
+Watchdog              & alta      & 1 s \\
+Telemetria HK         & alta      & 1 s \\
+Comms RX               & alta      & evento \\
+Comms TX               & media     & evento \\
+ADCS control           & alta      & 100 ms \\
+Payload                & baja      & event-driven \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Comunicacion inter-tarea}
+
+\textbf{Queues}: cola FIFO de mensajes. Una tarea publica, otra
+consume. Es el patron mas usado.
+
+\textbf{Semaphores}: sincronizacion entre tareas (binarios o contadores).
+
+\textbf{Mutexes}: proteccion de recursos compartidos.
+
+\textbf{Notifications}: senales directas tarea-tarea (mas rapido que
+queue).
+
+\chapter{Telemetria y comandos}
+
+\section{CCSDS Space Packet}
+
+El estandar de empaquetado mas usado en aeroespacial:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Campo} & \textbf{Tamaño} \\
+\midrule
+Header primario             & 6 bytes \\
+Header secundario           & variable \\
+Datos                       & variable \\
+Trailer (CRC)               & 0-4 bytes \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Beacon}
+
+Mensaje periodico que el satelite emite cada N segundos. Contiene
+estado basico (voltaje, temperatura, modo). Es el "latido" del satelite.
+
+\section{Housekeeping (HK)}
+
+Empaquetado de telemetria mas detallada que el beacon. Tipicamente:
+\begin{itemize}[leftmargin=2em]
+  \item Voltajes de cada rail.
+  \item Corrientes consumidas.
+  \item Temperaturas de varios sensores.
+  \item Estado de cada subsistema.
+  \item Contadores de eventos.
+  \item Codigos de error activos.
+\end{itemize}
+
+Periodo tipico: 1 cada 10 segundos durante operacion nominal.
+
+\section{Comandos uplink}
+
+Estructura tipica:
+\begin{itemize}[leftmargin=2em]
+  \item Opcode (que hacer).
+  \item Parametros.
+  \item Checksum.
+  \item Authentication (cuando aplica).
+\end{itemize}
+
+\begin{payload}
+Tu I2C slave del INTISAT usa una variante simplificada de CCSDS:
+\texttt{[CMD\_BYTE] [LEN] [DATA...]}. Esta bien para mision academica.
+Para una version mas profesional, podrias migrar a CCSDS completo.
+\end{payload}
+
+\chapter{FDIR --- Fault Detection, Isolation, Recovery}
+
+\section{Concepto}
+
+FDIR es el conjunto de mecanismos para detectar fallas, aislarlas, y
+recuperarse autonomamente. Sin FDIR un satelite \emph{se muere} al primer
+glitch.
+
+\section{Las tres etapas}
+
+\textbf{Deteccion}: identificar que hay un problema. Se hace con:
+\begin{itemize}[leftmargin=2em]
+  \item Limit checks (telemetria fuera de rango).
+  \item Heartbeat checks (un subsistema no responde).
+  \item Self-tests periodicos.
+  \item Validacion de checksums.
+\end{itemize}
+
+\textbf{Aislamiento}: identificar QUE subsistema fallo (no propagar el
+error).
+
+\textbf{Recovery}: aplicar accion correctiva:
+\begin{itemize}[leftmargin=2em]
+  \item Re-intentar la operacion.
+  \item Reiniciar el subsistema.
+  \item Cambiar a modo de respaldo.
+  \item Pasar a SAFE\_MODE.
+  \item Esperar comando de tierra.
+\end{itemize}
+
+\section{Niveles de severidad}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{INFO}: informativo, no requiere accion.
+  \item \textbf{WARNING}: prestar atencion pero no critico.
+  \item \textbf{ERROR}: requiere accion.
+  \item \textbf{CRITICAL}: forzar SAFE\_MODE.
+\end{itemize}
+
+\chapter{Watchdog}
+
+\section{Watchdog hardware}
+
+Es un timer externo al CPU. Si el CPU no le da "kick" cada N segundos,
+el watchdog resetea el sistema completo.
+
+\textbf{Por que importa}: si el CPU se cuelga (loop infinito,
+deadlock, error de hardware), el watchdog es la unica forma de
+recuperarse sin intervencion.
+
+\textbf{En CubeSat}: imprescindible. Sin watchdog hardware, el satelite
+se muere ante el primer cuelgue.
+
+\section{Watchdog software (systemd)}
+
+En Linux, systemd ofrece watchdog a nivel servicio:
+
+\begin{lstlisting}
+[Service]
+Type=notify
+WatchdogSec=600
+ExecStart=...
+\end{lstlisting}
+
+El servicio debe llamar \texttt{sd\_notify("WATCHDOG=1")} regularmente.
+Si no lo hace en 600 s, systemd lo reinicia.
+
+\begin{payload}
+Tu \texttt{cubesat-pipeline.service} ya usa WatchdogSec=600 (ver
+\texttt{cubesat/systemd/*.service}). Eso protege contra cuelgues del
+pipeline IA.
+\end{payload}
+
+\chapter{OTA --- Over The Air Updates}
+
+\section{Por que se necesita}
+
+Despues del lanzamiento no se puede mas modificar el hardware. El unico
+modo de mejorar el satelite es \textbf{actualizar el software}.
+
+\section{Requisitos del OTA}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Atomico}: una actualizacion exitosa, o sino el sistema
+        queda en estado previo.
+  \item \textbf{Verificable}: validar el binario antes de aplicarlo.
+  \item \textbf{Recuperable}: si falla, rollback automatico al estado
+        previo.
+  \item \textbf{Resistente a corte}: si se interrumpe (perdida de pase,
+        muerte de bateria), se reintenta.
+\end{itemize}
+
+\section{Estrategias de OTA}
+
+\textbf{A/B partitioning}: dos particiones identicas. Al actualizar,
+se escribe en la inactiva. Si todo OK, se cambia el bootloader para usar
+la nueva. Si falla, vuelve a la vieja.
+
+\textbf{Git fetch + checkout}: lo que usas en el INTISAT. Simple pero
+requiere disco con historico.
+
+\textbf{Delta updates}: solo transmitir las diferencias. Ahorra bandwidth.
+
+\begin{payload}
+Tu \texttt{cubesat/ota.py} implementa git fetch + checkout con health
+check + rollback. Esta validado.
+\end{payload}
+
+\chapter{Telemetria y comandos en INTISAT}
+
+\section{Protocolo I2C}
+
+El I2C slave en 0x42 responde a 14 comandos:
+
+\begin{itemize}[leftmargin=2em]
+  \item \texttt{CMD\_GET\_STATUS} (0x01): estado actual.
+  \item \texttt{CMD\_START\_CAPTURE} (0x02): dispara scan.
+  \item \texttt{CMD\_GET\_THUMBNAIL} (0x06): bajada chunked de imagen.
+  \item \texttt{CMD\_GET\_TELEMETRY} (0x05): bajada de telemetria.
+  \item \texttt{CMD\_SAFE\_MODE} (0x10): pasar a safe.
+  \item \texttt{CMD\_RESUME} (0x11): salir de safe.
+  \item \texttt{CMD\_OTA\_PREPARE} (0x20): preparar update.
+  \item \texttt{CMD\_OTA\_COMMIT} (0x21): aplicar update.
+  \item \texttt{CMD\_REBOOT} (0x30): reboot suave.
+\end{itemize}
+
+\section{Chunking}
+
+El I2C limita transferencias a 32 bytes. Para data mayor (thumbnail
+100 KB), se trocea en frames de 30 bytes con flag \texttt{more=1/0}.
+
+\chapter{Configuration management}
+
+\section{Git en orbita}
+
+Tu daemon usa git para OTA. Eso te da:
+\begin{itemize}[leftmargin=2em]
+  \item Historial completo de cambios.
+  \item Capacidad de rollback a cualquier commit.
+  \item Branches para testing.
+  \item Tags para versiones de vuelo.
+\end{itemize}
+
+\section{Tablas de parametros}
+
+Como en cFS, se pueden cargar tablas de configuracion en runtime:
+
+\begin{itemize}[leftmargin=2em]
+  \item Limites para FDIR.
+  \item Coeficientes de calibracion.
+  \item Schedule de tareas.
+  \item Tunable parameters del pipeline.
+\end{itemize}
+
+Esto permite ajustar comportamiento sin actualizar codigo.
+
+\chapter{Testing del flight software}
+
+\section{Unit tests}
+
+Probar cada modulo aislado. Pytest, GoogleTest, etc.
+
+\section{Integration tests}
+
+Probar la interaccion entre modulos.
+
+\section{HIL --- Hardware In the Loop}
+
+Conectar el flight software a una simulacion del hardware (sensores
+y actuadores virtuales). Permite probar logica completa sin satellite
+real.
+
+\section{Long duration test}
+
+Burn-in: correr el FSW durante 168 horas (1 semana) sin reboot.
+Verifica que no hay memory leaks, deadlocks acumulativos, etc.
+
+\backmatter
+
+\chapter*{Bibliografia}
+\addcontentsline{toc}{chapter}{Bibliografia}
+
+\begin{enumerate}[leftmargin=2em]
+\item NASA. \emph{cFS documentation}. \url{https://github.com/nasa/cFS}.
+\item NASA. \emph{F' Tutorials}. \url{https://nasa.github.io/fprime/}.
+\item CCSDS. \emph{Space Packet Protocol Recommendation}. \url{https://public.ccsds.org}.
+\item FreeRTOS. \emph{Official documentation}. \url{https://www.freertos.org}.
+\item NASA Software Engineering Handbook. \url{https://swehb.nasa.gov}.
+\end{enumerate}
+
+\end{document}
