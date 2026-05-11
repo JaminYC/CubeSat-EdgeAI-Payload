@@ -1,0 +1,1024 @@
+\documentclass[11pt,a4paper,oneside,openright]{book}
+\usepackage[spanish,activeacute,es-noshorthands]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{geometry}
+\geometry{margin=2.5cm, headheight=14pt}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\usepackage{caption}
+\captionsetup{font=small, labelfont=bf}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true, linkcolor=NavyBlue, citecolor=ForestGreen, urlcolor=BrickRed,
+  pdftitle={M0 --- CubeSat 101 --- introduccion al ecosistema},
+  pdfauthor={INTISAT --- CubeSat-EdgeAI-Payload}
+}
+
+\newtheorem{definicion}{Definicion}[chapter]
+\newtheorem{teorema}[definicion]{Teorema}
+\newtheorem*{nota}{Nota}
+
+\definecolor{codebg}{RGB}{248, 249, 250}
+
+\newtcolorbox{intuibox}[1][]{
+  colback=green!5, colframe=green!40!black,
+  fonttitle=\bfseries, title=Intuicion,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{calculo}[1][]{
+  colback=gray!4, colframe=gray!55,
+  fonttitle=\bfseries, title=Calculo,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{payload}[1][]{
+  colback=blue!4, colframe=blue!50!black,
+  fonttitle=\bfseries, title=Conexion con el payload INTISAT,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{cuidado}[1][]{
+  colback=red!5, colframe=red!50!black,
+  fonttitle=\bfseries, title=Cuidado,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{ejercicio}[1][]{
+  colback=orange!5, colframe=orange!60!black,
+  fonttitle=\bfseries, title=Ejercicios,
+  breakable, sharp corners=south, #1
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[RE]{\nouppercase{\leftmark}}
+\fancyhead[LO]{\nouppercase{\rightmark}}
+
+\title{\Huge\bfseries M0 --- CubeSat 101\\[0.4em]
+\Large Introduccion al ecosistema de los nanosatelites\\[0.6em]
+\large Manual de la coleccion CubeSat (M0 / 11)}
+\author{Coleccion CubeSat para el proyecto INTISAT}
+\date{\today}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+
+\chapter*{Prefacio}
+\addcontentsline{toc}{chapter}{Prefacio}
+
+Este es el manual numero \textbf{cero} de la coleccion CubeSat. Su
+proposito es darte el lenguaje y los conceptos para entender los manuales
+que siguen.
+
+Si estas leyendo esto, probablemente sos parte de un equipo que quiere
+construir un CubeSat (o ya esta en proceso) y necesitas \emph{ubicarte en
+el panorama}. Te lo voy a contar como una historia: que es esto, de donde
+salio, como funciona, quien lo usa, y donde encaja tu proyecto.
+
+\section*{Audiencia}
+
+\begin{itemize}[leftmargin=2em]
+  \item Estudiantes de ingenieria que no han trabajado en aeroespacial.
+  \item Profesionales de otras industrias (mineria, software, electronica)
+        que estan transicionando.
+  \item Miembros nuevos del equipo INTISAT que vienen sin background.
+  \item Curiosos en general.
+\end{itemize}
+
+\section*{Prerequisitos}
+
+\textbf{Ninguno tecnico}. Algo de matematica de secundaria ayuda para los
+calculos de orbita. Si entendes Pitagoras y la formula de un circulo,
+estas bien.
+
+\section*{Como leer}
+
+El manual son \textbf{8 capitulos} mas apendices. Total $\sim$ 50 paginas.
+Lectura completa: 1 dia laboral. Lectura selectiva: capitulos sueltos
+segun necesidad.
+
+\textbf{Cajas de color} (igual convencion que el resto de la coleccion):
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Verde} (Intuicion): analogias que ayudan a entender.
+  \item \textbf{Gris} (Calculo): cuentas y derivaciones.
+  \item \textbf{Azul} (Conexion con payload): como aplica al INTISAT.
+  \item \textbf{Rojo} (Cuidado): errores comunes a evitar.
+  \item \textbf{Naranja} (Ejercicios): preguntas para verificar.
+\end{itemize}
+
+\tableofcontents
+
+\mainmatter
+
+% =====================================================================
+\chapter{Que es un CubeSat}
+\label{ch:que-es}
+
+\section{Definicion oficial}
+
+\begin{definicion}[CubeSat]
+Un \emph{CubeSat} es un satelite pequeño cuyo diseño cumple con el
+estandar \textbf{CubeSat Design Specification (CDS)} desarrollado por
+California Polytechnic State University (Cal Poly) en 1999.
+\end{definicion}
+
+El estandar define las dimensiones, masa y propiedades mecanicas que
+permiten que muchos CubeSats compartan el mismo lanzador en un dispenser
+estandar. Ese fue su gran aporte: \textbf{estandarizar el formato} para
+abaratar el acceso al espacio.
+
+\section{La unidad: 1U}
+
+La unidad basica es \textbf{1U} (de "unit"):
+
+\begin{itemize}[leftmargin=2em]
+  \item Cubo de $10 \times 10 \times 10$ cm.
+  \item Masa maxima: $1.33$ kg (originalmente $1.0$ kg, luego revisado).
+  \item Centro de gravedad: dentro de un cubo de $\pm 2$ cm desde el centro
+        geometrico.
+  \item Materiales aprobados: aluminio 6061-T6 o 7075-T73.
+  \item Estructura externa con rails de aluminio en las 4 aristas
+        longitudinales.
+\end{itemize}
+
+\begin{intuibox}
+Pensa el 1U como una caja de zapatos chica (de un par de tenis de niño)
+pero hecha de aluminio. Entra en la palma de la mano. Pesa lo mismo que
+una botella de gaseosa llena.
+\end{intuibox}
+
+\section{Multiplos: 1.5U, 2U, 3U, 6U, 12U, 16U, 27U}
+
+Los CubeSats se construyen apilando unidades:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Formato} & \textbf{Dimensiones} & \textbf{Masa max} \\
+\midrule
+1U     & $10 \times 10 \times 10$ cm     & 1.33 kg \\
+1.5U   & $10 \times 10 \times 15$ cm     & 2.0 kg  \\
+2U     & $10 \times 10 \times 22.7$ cm   & 2.66 kg \\
+3U     & $10 \times 10 \times 34$ cm     & 4.0 kg  \\
+6U     & $20 \times 10 \times 34$ cm     & 12.0 kg \\
+12U    & $20 \times 20 \times 34$ cm     & 24.0 kg \\
+16U    & $20 \times 20 \times 45$ cm     & 32.0 kg \\
+27U    & $30 \times 30 \times 34$ cm     & 54.0 kg \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Tipico hoy}: el 80\% de los CubeSats lanzados son 3U o 6U.
+
+\begin{payload}
+El INTISAT es probablemente un \textbf{3U} (a confirmar con el equipo de
+mecanica). Tu payload de microscopia ocupa un slot de 1U dentro del
+3U, dejando 1U para OBC y 1U para EPS + COMMS.
+\end{payload}
+
+\section{Por que existen}
+
+Antes de los CubeSats, lanzar un satelite costaba decenas o cientos de
+millones de dolares. Solo gobiernos y grandes corporaciones podian.
+
+CubeSat baja la barrera a:
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Costo}: USD 100,000 -- 500,000 para una mision academica
+        completa (lanzamiento incluido), gracias al rideshare.
+  \item \textbf{Tiempo}: 1-3 años de desarrollo (vs 7-10 de satelite tradicional).
+  \item \textbf{Riesgo}: tolerable. Una mision fallida no quiebra la
+        organizacion.
+  \item \textbf{Educacion}: estudiantes universitarios pueden hacer una
+        mision completa antes de graduarse.
+\end{itemize}
+
+\section{Lo que NO es un CubeSat}
+
+\begin{cuidado}
+\textbf{No todo satelite pequeño es CubeSat}. Un nanosatelite que no
+cumple CDS no es CubeSat, aunque pese menos de 10 kg. Casos:
+\begin{itemize}[leftmargin=1em]
+  \item TubeSat (cilindricos, hasta 0.75 kg) --- otro estandar.
+  \item PocketQube (5x5x5 cm) --- otro estandar.
+  \item Satellogic NewSat-1 (38 kg) --- nanosatelite pero no CubeSat.
+\end{itemize}
+\end{cuidado}
+
+\section{Numeros del ecosistema (2024)}
+
+\begin{itemize}[leftmargin=2em]
+  \item Mas de \textbf{2 000} CubeSats lanzados desde 1999.
+  \item Tasa actual: $\sim 200$ por año.
+  \item Pais con mas: Estados Unidos ($\sim 60\%$).
+  \item Universidades involucradas: $> 100$ en el mundo.
+\end{itemize}
+
+% =====================================================================
+\chapter{Historia breve}
+\label{ch:historia}
+
+\section{El origen --- 1999}
+
+En 1999, Jordi Puig-Suari (Cal Poly) y Bob Twiggs (Stanford) proponen un
+estandar para que los estudiantes puedan hacer satelites \emph{de verdad}.
+La motivacion era educativa: en aquel entonces, la unica forma de
+participar en una mision real era hacer una pasantia en NASA o JPL.
+
+\section{Hitos clave}
+
+\begin{center}
+\begin{tabular}{p{1.3cm}p{12cm}}
+\toprule
+\textbf{Año} & \textbf{Evento} \\
+\midrule
+1999  & Cal Poly y Stanford definen el estandar CDS. \\
+2003  & Primer lanzamiento exitoso (6 CubeSats al mismo tiempo, ruso). \\
+2006  & GeneSat-1 (NASA Ames): primer CubeSat con biologia (E. coli). \\
+2009  & PharmaSat (NASA Ames): levaduras + microscopia de fluorescencia. \\
+2013  & PhoneSat (NASA): smartphone Nexus como OBC. \\
+2014  & Planet Labs lanza la primera flota de Doves (constelacion EO). \\
+2017  & UPSat (Libre Space): primer CubeSat 100\% open source. \\
+2018  & MarCO (NASA): primeros CubeSats interplanetarios (Marte). \\
+2020  & PhiSat-1 (ESA): primer satelite con IA on-board. \\
+2022  & HYPSO-1 (NTNU): IA on-board con RPi CM4 (parecido al INTISAT). \\
+2024  & PhiSat-2 (ESA): 6 apps de IA simultaneas. \\
+2024  & CogniSAT-6 (Aiko): primer CubeSat EO comercial con AI integrada. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Los antecedentes peruanos}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{CHASQUI-I} (UNI, 2014): primer CubeSat peruano, lanzado
+        desde la ISS.
+  \item \textbf{PUCP-Sat 1} (PUCP, 2013): primer CubeSat operativo del pais.
+  \item \textbf{POCKET-PUCP} (PUCP, 2013): el "femtosat" mas chico de su tiempo.
+  \item \textbf{UAPSAT-1} (UAP, 2013): educativo.
+  \item \textbf{INTISAT} (en curso): tu proyecto.
+\end{itemize}
+
+% =====================================================================
+\chapter{Anatomia de un CubeSat}
+\label{ch:anatomia}
+
+\section{Los 6 subsistemas}
+
+Todo CubeSat tiene los mismos 6 subsistemas, sin importar la mision:
+
+\begin{center}
+\begin{tabular}{p{2.5cm}p{12.5cm}}
+\toprule
+\textbf{Subsistema} & \textbf{Funcion} \\
+\midrule
+\textbf{Mecanica}   & estructura, aleta, deployments. Es el "chasis". \\
+\textbf{EPS}        & Electrical Power System: paneles solares, bateria,
+                      reguladores. La energia. \\
+\textbf{OBC}        & On-Board Computer: la "cabeza" que coordina todo. \\
+\textbf{ADCS}       & Attitude Determination \& Control System: hacia
+                      donde apunta el satelite. \\
+\textbf{COMMS}      & comunicacion con tierra (UHF, S-Band, etc.). \\
+\textbf{Payload}    & la mision cientifica o comercial (lo que justifica
+                      lanzarlo). \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Mecanica}
+
+La estructura es de aluminio anodizado (negro). Cuatro rails
+longitudinales sobresalen para encajar en el dispenser. Adentro, slots
+PC-104 (estandar de bus electrico/mecanico) sostienen las placas de cada
+subsistema.
+
+\textbf{Cosas mecanicas a considerar}:
+\begin{itemize}[leftmargin=2em]
+  \item Centro de gravedad bien centrado (criterio CalPoly).
+  \item Vibracion durante el lanzamiento (test 5--2000 Hz).
+  \item Outgassing (materiales que liberen vapor en vacio).
+  \item Despliegues post-lanzamiento (antenas, paneles solares).
+\end{itemize}
+
+\section{EPS --- el corazon energetico}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Paneles solares}: tipicamente cubren 4 caras del 3U.
+        Generan 6--10 W promedio.
+  \item \textbf{Bateria}: Li-ion, 10--40 Wh.
+  \item \textbf{Reguladores}: generan 3.3V, 5V, 12V para los demas
+        subsistemas.
+  \item \textbf{Distribucion}: rails con proteccion contra cortos.
+\end{itemize}
+
+\section{OBC --- el cerebro}
+
+Generalmente un microcontrolador (STM32, ESP32) o un SoC (Raspberry Pi CM4
+en los modernos). Corre el flight software que coordina todo: lee
+sensores de actitud, controla actuadores, gestiona comms, dispara payload.
+
+\section{ADCS --- la orientacion}
+
+Tres formas de controlar la actitud:
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Detumble} con magnetorquers (electroimanes que interactuan
+        con el campo magnetico terrestre).
+  \item \textbf{Pointing} fino con reaction wheels (ruedas que aceleran
+        para girar el satelite).
+  \item \textbf{Determinacion} con gyros, magnetometros, sun sensors, star
+        trackers.
+\end{itemize}
+
+\section{COMMS --- el enlace}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{UHF} (430 MHz): comms basicos, amateur radio. Baja velocidad
+        (1--9.6 kbps), pero atraviesa nubes y barato.
+  \item \textbf{S-Band} (2.2 GHz): comms medios. 100 kbps -- 1 Mbps.
+  \item \textbf{X-Band} (8 GHz): downlink rapido. 10--100 Mbps.
+\end{itemize}
+
+\section{Payload --- la mision}
+
+Es lo que el CubeSat \emph{hace}. Puede ser:
+\begin{itemize}[leftmargin=2em]
+  \item Camara de observacion de la Tierra (Planet, Spire).
+  \item Sensor cientifico (campo magnetico, radiacion, gases).
+  \item Demostrador tecnologico (nuevo propulsor, nuevo material).
+  \item \textbf{Microscopia biologica con IA on-board (INTISAT)}.
+\end{itemize}
+
+\begin{payload}
+Tu payload del INTISAT es:
+\begin{itemize}[leftmargin=1em]
+  \item Raspberry Pi 5 como computador del payload.
+  \item Sensor OmniVision OV5647 sin lente (lensless).
+  \item OLED SSD1351 como matriz de iluminacion programable.
+  \item Mascaras opticas intercambiables (pinhole, cuadrada, slit).
+  \item Pipeline de IA para segmentacion celular (StarDist, Cellpose).
+\end{itemize}
+\end{payload}
+
+\section{Cuanto pesa y cuanto consume cada uno}
+
+\textbf{Para un 3U tipico}:
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Subsistema} & \textbf{Masa (g)} & \textbf{Consumo idle (W)} \\
+\midrule
+Mecanica + harness   & 800  & 0 \\
+EPS                  & 400  & 0.2 \\
+OBC                  & 100  & 1.5 \\
+ADCS                 & 600  & 0.5 \\
+COMMS                & 300  & 0.3 \\
+Payload (estimado)   & 800  & 3.0 \\
+\midrule
+\textbf{Total}       & \textbf{3000} & \textbf{5.5} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Masa total $\leq 4$ kg (limite CDS para 3U). Consumo idle $\leq 6$ W
+(promedio de generacion solar).
+
+% =====================================================================
+\chapter{Fases de vida del satelite}
+\label{ch:fases}
+
+NASA define oficialmente \textbf{7 fases} en el ciclo de vida de una
+mision. Estas son las de aplicacion universal:
+
+\section{Pre-A: Estudio de concepto}
+
+\textbf{Que hace}: definir si la mision es posible y vale la pena.
+
+\textbf{Output}: documento de concepto, presupuesto preliminar,
+identificacion de tecnologia critica.
+
+\textbf{Duracion tipica CubeSat}: 3--6 meses.
+
+\section{Fase A: Diseño preliminar}
+
+\textbf{Que hace}: arquitectura del sistema, decisiones top-down.
+
+\textbf{Output}: arquitectura por subsistema, requirements de alto nivel,
+diseño preliminar.
+
+\textbf{Hito}: \textbf{SRR} (System Requirements Review) y \textbf{PDR}
+(Preliminary Design Review).
+
+\textbf{Duracion CubeSat}: 6--12 meses.
+
+\section{Fase B: Diseño detallado}
+
+\textbf{Que hace}: diseño detallado de cada subsistema, prototipos.
+
+\textbf{Output}: planos, esquematicos, codigo prototipo, BOM completo.
+
+\textbf{Hito}: \textbf{CDR} (Critical Design Review).
+
+\textbf{Duracion}: 12 meses.
+
+\section{Fase C: Fabricacion}
+
+\textbf{Que hace}: construir el modelo de ingenieria (EM) y modelo de
+vuelo (FM).
+
+\textbf{Output}: hardware ensamblado, software completo.
+
+\textbf{Hito}: \textbf{TRR} (Test Readiness Review).
+
+\textbf{Duracion}: 6--12 meses.
+
+\section{Fase D: Integracion y test}
+
+\textbf{Que hace}: integrar subsistemas, hacer todo el test campaign.
+
+\textbf{Output}: satelite testeado contra todos los estandares
+ambientales.
+
+\textbf{Hito}: \textbf{FRR} (Flight Readiness Review).
+
+\textbf{Duracion}: 6 meses.
+
+\section{Fase E: Operaciones}
+
+\textbf{Que hace}: el satelite vuela y se opera desde tierra.
+
+\textbf{Output}: datos de mision, descubrimientos cientificos.
+
+\textbf{Duracion}: 1--5 años para CubeSat.
+
+\section{Fase F: Disposicion}
+
+\textbf{Que hace}: deorbit (CubeSat se quema en re-entrada) o passivacion.
+
+\textbf{Output}: cierre de la mision.
+
+\textbf{Duracion}: gradual, automatica por drag atmosferico.
+
+\section{Donde estas hoy en el INTISAT}
+
+\begin{payload}
+Probable estado actual del INTISAT (a confirmar con el lider de proyecto):
+\begin{itemize}[leftmargin=1em]
+  \item Fase A casi cerrada (arquitectura definida).
+  \item Fase B en curso (diseño detallado de subsistemas).
+  \item Tu payload de microscopia esta en transicion de Fase B (diseño)
+        a Fase C (fabricacion / bring-up).
+\end{itemize}
+\end{payload}
+
+% =====================================================================
+\chapter{Como llega al espacio}
+\label{ch:lanzamiento}
+
+\section{Rideshare --- el modelo CubeSat}
+
+Los CubeSats NO se lanzan solos. Comparten lanzamiento con un satelite
+grande (\emph{rideshare}). El lanzador principal lleva su carga primaria a
+una orbita objetivo y los CubeSats se despliegan en orbitas adyacentes.
+
+\textbf{Costo tipico}: USD 50,000 -- 200,000 para llevar un 3U a LEO.
+Servicios:
+\begin{itemize}[leftmargin=2em]
+  \item NanoRacks (USA): el lider, desplegador desde la ISS.
+  \item SpaceX Transporter: rideshare mensual a Sun-Sync.
+  \item Rocket Lab Electron: dedicado a smallsat.
+  \item ISRO PSLV: opcion mas barata, fiabilidad probada.
+  \item Arianespace Vega: alternativa europea.
+\end{itemize}
+
+\section{Despliegue desde el lanzador}
+
+El CubeSat va comprimido en un \textbf{deployer} (caja con resorte). El
+deployer mas comun es el \textbf{P-POD} (Poly Picosatellite Orbital
+Deployer):
+
+\begin{itemize}[leftmargin=2em]
+  \item Caja de aluminio que mantiene el CubeSat sujeto durante el
+        lanzamiento.
+  \item Cuando el lanzador llega a la orbita objetivo, el P-POD se abre.
+  \item Un resorte empuja al CubeSat hacia afuera con velocidad relativa
+        de $\sim 1.5$ m/s.
+  \item Los rails del CubeSat deslizan en las guias del P-POD.
+\end{itemize}
+
+\section{Despliegue desde la ISS}
+
+Tambien se puede subir el CubeSat como carga a la ISS y desplegarlo desde
+ahi:
+\begin{itemize}[leftmargin=2em]
+  \item La carga llega a la ISS via Dragon (SpaceX), Cygnus o HTV.
+  \item Astronautas lo cargan en el deployer NanoRacks dentro del modulo
+        Kibo (japones).
+  \item Brazo robotico extrae el deployer al exterior.
+  \item Se dispara automaticamente.
+\end{itemize}
+
+\textbf{Ventaja}: el lanzamiento ya esta financiado por la NASA / ISS;
+solo se paga el deploy ($\sim$ USD 50,000 / kg).
+
+\textbf{Desventaja}: orbita fija ($\sim$ 400 km, 51.6° de inclinacion).
+
+\section{Que pasa durante el lanzamiento}
+
+\textbf{Cargas mecanicas}:
+\begin{itemize}[leftmargin=2em]
+  \item Aceleracion estatica: hasta 8 g.
+  \item Vibracion aleatoria: 6--14 g RMS, 20-2000 Hz.
+  \item Shock al deployment: hasta 1500 g.
+\end{itemize}
+
+\textbf{Cargas termicas}:
+\begin{itemize}[leftmargin=2em]
+  \item Temperatura del fairing: -100 a +120 °C.
+  \item Vacio: $10^{-6}$ Torr.
+\end{itemize}
+
+Por eso el test campaign pre-vuelo es tan exhaustivo.
+
+% =====================================================================
+\chapter{Orbita LEO 101}
+\label{ch:orbita}
+
+\section{Definicion de LEO}
+
+\textbf{LEO} = Low Earth Orbit. Altura entre 200 y 2000 km. La mayoria de
+los CubeSats vuelan en LEO porque:
+\begin{itemize}[leftmargin=2em]
+  \item Mas barato llegar (menos energia).
+  \item Buena resolucion para EO.
+  \item Comms con ground station factibles.
+  \item Vida util limitada (drag atmosferico genera deorbit natural).
+\end{itemize}
+
+\section{Parametros orbitales}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Parametro} & \textbf{Tipico} & \textbf{Que mide} \\
+\midrule
+Altura (h)              & 400--600 km   & distancia a la superficie \\
+Periodo orbital         & 90--96 min    & tiempo de una vuelta \\
+Inclinacion             & 51.6° (ISS) o 97° (SSO) & angulo respecto al ecuador \\
+Eccentricity            & $\sim 0$ (circular) & forma del ovalo \\
+Velocidad               & 7.7 km/s     & velocidad lineal \\
+RAAN                    & 0--360°       & posicion del nodo ascendente \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Sun-Synchronous Orbit (SSO)}
+
+La orbita preferida para Earth Observation: el satelite pasa siempre
+sobre el mismo punto a la misma hora local del dia. Garantiza
+iluminacion solar constante.
+
+Inclinacion tipica: 97°-98° (casi polar pero retrograda).
+
+\section{Eclipses}
+
+En LEO, el satelite entra al \textbf{cono de sombra} de la Tierra
+aproximadamente \textbf{$\sim 35$\%} del tiempo (orbita iluminada $\sim 65$\%).
+
+\begin{calculo}
+Para una orbita a 500 km con periodo de 94 min:
+\begin{itemize}[leftmargin=1em]
+  \item Tiempo iluminado: $\sim 61$ min.
+  \item Tiempo en eclipse: $\sim 33$ min.
+  \item Frecuencia: 15--16 eclipses por dia.
+\end{itemize}
+\end{calculo}
+
+\textbf{Implicancia}: la bateria tiene que aguantar 33 min sin generacion
+solar. Eso dimensiona la capacidad de la bateria.
+
+\section{Pases sobre la ground station}
+
+Una ground station fija ve el satelite cuando pasa "cerca" en su orbita:
+\begin{itemize}[leftmargin=2em]
+  \item Pase tipico: $5-15$ minutos.
+  \item Frecuencia: 4-6 pases por dia para una ground station ecuatorial,
+        12+ para una polar.
+  \item Ventana operativa: el tiempo en el que la antena ve al satelite
+        con elevacion $> 10$° sobre el horizonte.
+\end{itemize}
+
+\section{Vida util y deorbit}
+
+El drag atmosferico (aire residual a $400$ km) frena el satelite. Como
+consecuencia:
+\begin{itemize}[leftmargin=2em]
+  \item Altura disminuye gradualmente.
+  \item Cuando llega a $\sim 100$ km, entra en re-entrada destructiva.
+  \item Tiempo total: 2--10 años desde 400--600 km segun el ciclo solar.
+\end{itemize}
+
+\textbf{Es bueno}: cumple la regla del "25 años max" para evitar basura
+espacial.
+
+% =====================================================================
+\chapter{El ecosistema}
+\label{ch:ecosistema}
+
+\section{Agencias espaciales}
+
+\begin{center}
+\begin{tabular}{lp{10cm}}
+\toprule
+\textbf{Agencia} & \textbf{Rol en CubeSat} \\
+\midrule
+NASA (USA)         & Programa CSLI (CubeSat Launch Initiative): lanza
+                     gratis CubeSats educativos. \\
+ESA (Europa)       & Programa Fly Your Satellite + Phi-Lab para AI. \\
+JAXA (Japon)       & Despliega desde la ISS via Kibo. \\
+ISRO (India)       & Lanzador PSLV con CubeSats rideshare. \\
+CONIDA (Peru)      & Agencia espacial nacional. Opera PeruSAT-1. \\
+AEM (Mexico)       & similar. \\
+CONAE (Argentina)  & Mas grande regionalmente. SAOCOM. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Universidades}
+
+Las grandes universidades aeroespaciales tienen sus propios CubeSats:
+
+\begin{itemize}[leftmargin=2em]
+  \item Stanford, MIT, Cal Poly (USA).
+  \item TU Delft, Aalborg, ETH Zurich (Europa).
+  \item NTNU (Noruega) --- HYPSO.
+  \item Tokyo Tech (Japon).
+  \item KAIST (Corea).
+  \item UNI, PUCP (Peru).
+  \item UNLP, ITBA (Argentina).
+\end{itemize}
+
+\section{Empresas comerciales}
+
+\textbf{NewSpace startups} que cambiaron el juego:
+
+\begin{center}
+\begin{tabular}{lp{10cm}}
+\toprule
+\textbf{Empresa} & \textbf{Que hace} \\
+\midrule
+Planet Labs (USA)        & 200+ Doves: imagenes diarias de toda la Tierra. \\
+Spire Global (USA)       & Constelacion para meteorologia y AIS. \\
+Satellogic (Argentina)   & EO de alta resolucion. \\
+ICEYE (Finlandia)        & SAR (radar) en CubeSats. \\
+Innova Space (Argentina) & IoT desde el espacio. \\
+GomSpace (Dinamarca)     & Componentes y satellites para terceros. \\
+ISIS (Holanda)           & Lider en componentes de CubeSat. \\
+EnduroSat (Bulgaria)     & Componentes y misiones. \\
+AAC Clyde Space (UK)     & Servicios end-to-end. \\
+KP Labs (Polonia)        & AI on-board (Intuition-1). \\
+Aiko Space (Italia)      & Software AI para misiones. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Lanzadores}
+
+\begin{center}
+\begin{tabular}{lp{8cm}p{2cm}}
+\toprule
+\textbf{Lanzador} & \textbf{Servicio} & \textbf{Costo} \\
+\midrule
+SpaceX Falcon 9 (Transporter) & rideshare mensual a SSO          & $\sim$ 6 k\$/kg \\
+Rocket Lab Electron            & smallsat dedicado                & $\sim$ 25 k\$/kg \\
+ISRO PSLV                      & rideshare desde India            & $\sim$ 10 k\$/kg \\
+Arianespace Vega-C             & rideshare europeo                & $\sim$ 15 k\$/kg \\
+NASA CSLI                       & GRATIS para misiones educativas  & 0 \\
+NanoRacks (desde ISS)           & deploy desde la ISS              & $\sim$ 50 k\$/kg \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Coordinacion regulatoria}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{ITU} (UIT): coordina espectro radioelectrico a nivel
+        internacional.
+  \item \textbf{IARU}: coordinacion para CubeSats en banda amateur (UHF).
+  \item Autoridades nacionales: ANATEL (Brasil), MITC (Peru), AGESIC
+        (Uruguay), etc.
+  \item \textbf{ITU-R} registrar frecuencias.
+\end{itemize}
+
+% =====================================================================
+\chapter{Estandares clave}
+\label{ch:estandares}
+
+\section{CalPoly CubeSat Design Specification (CDS)}
+
+\textbf{El} estandar fundacional. Define:
+\begin{itemize}[leftmargin=2em]
+  \item Dimensiones mecanicas (1U, 3U, 6U, etc.).
+  \item Masa maxima.
+  \item Materiales aceptables.
+  \item Interfaz con el deployer.
+  \item Requisitos de testing pre-deployment.
+\end{itemize}
+
+URL: \url{https://www.cubesat.org/cds-announcement}
+
+Version actual: \textbf{Rev 14} (2022).
+
+\section{ECSS --- European Cooperation for Space Standardization}
+
+Conjunto de estandares europeos. Los relevantes para CubeSat:
+\begin{itemize}[leftmargin=2em]
+  \item ECSS-E-ST-10-03C --- Verification \& Testing.
+  \item ECSS-Q-ST-30C --- Dependability.
+  \item ECSS-Q-ST-60C --- Electrical, Electronic, Electromechanical.
+  \item ECSS-E-ST-70-11C --- Operability.
+\end{itemize}
+
+\section{NASA GEVS --- GSFC-STD-7000}
+
+General Environmental Verification Standard de Goddard Space Flight
+Center. Define tests ambientales:
+\begin{itemize}[leftmargin=2em]
+  \item Vibracion (sine sweep, random, shock).
+  \item Termico vacuum (TVAC).
+  \item EMC/EMI.
+  \item Magnetic.
+\end{itemize}
+
+\section{MIL-STD-810}
+
+Estandar militar de tests ambientales. Mas estricto que GEVS en muchos
+aspectos. Usado por CubeSats militares.
+
+\section{CCSDS --- Consultative Committee for Space Data Systems}
+
+Estandares de comunicacion y datos espaciales:
+\begin{itemize}[leftmargin=2em]
+  \item CCSDS Space Packet: empaquetado de telemetria.
+  \item CCSDS File Delivery Protocol (CFDP): transferencia de archivos.
+  \item CCSDS Encapsulation Service.
+\end{itemize}
+
+% =====================================================================
+\chapter{Vocabulario --- glosario completo}
+\label{ch:glosario}
+
+Lista de las siglas y conceptos que vas a encontrar todo el tiempo:
+
+\section*{A}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{ADCS}: Attitude Determination and Control System. El que
+        controla la orientacion del satelite.
+  \item \textbf{AIT}: Assembly, Integration and Test. La fase de
+        construir, integrar y probar.
+  \item \textbf{AGN}: Anomaly Generation Note. Reporte de anomalia operativa.
+  \item \textbf{AOCS}: Attitude and Orbit Control System (sinonimo de ADCS).
+  \item \textbf{AOS / LOS}: Acquisition of Signal / Loss of Signal. Inicio
+        y fin de un pase.
+\end{itemize}
+
+\section*{B--C}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{BOL / EOL}: Beginning / End of Life. Inicio y fin de
+        mision.
+  \item \textbf{CAN bus}: Controller Area Network. Bus serial robusto.
+  \item \textbf{cFS}: Core Flight System. Framework de flight software de NASA.
+  \item \textbf{CCSDS}: Consultative Committee for Space Data Systems.
+  \item \textbf{CDR}: Critical Design Review.
+  \item \textbf{CDS}: CubeSat Design Specification.
+  \item \textbf{CG}: Centro de Gravedad.
+  \item \textbf{COTS}: Commercial Off-The-Shelf. Componentes comerciales no
+        certificados para vuelo.
+  \item \textbf{CSP}: CubeSat Space Protocol. Stack de comunicacion de
+        GomSpace.
+  \item \textbf{CSLI}: CubeSat Launch Initiative (NASA).
+\end{itemize}
+
+\section*{D--E}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{DCS / SCADA}: estandares industriales (no aeroespaciales,
+        pero similares).
+  \item \textbf{DoD}: Depth of Discharge de bateria.
+  \item \textbf{DPC}: Differential Phase Contrast (microscopia).
+  \item \textbf{Downlink}: comunicacion del satelite hacia la tierra.
+  \item \textbf{Deorbit}: re-entrada controlada o natural a la atmosfera.
+  \item \textbf{EPS}: Electrical Power System.
+\end{itemize}
+
+\section*{F--G}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{FCC}: Federal Communications Commission (USA).
+  \item \textbf{FDIR}: Fault Detection, Isolation, Recovery.
+  \item \textbf{FOV}: Field of View.
+  \item \textbf{FPM}: Fourier Ptychographic Microscopy.
+  \item \textbf{FPR}: Flight Readiness Review.
+  \item \textbf{FSW}: Flight Software.
+  \item \textbf{GEO}: Geostationary Earth Orbit (35 786 km).
+  \item \textbf{GEVS}: General Environmental Verification Standard.
+  \item \textbf{GMAT}: General Mission Analysis Tool (NASA).
+  \item \textbf{GPS}: Global Positioning System.
+  \item \textbf{Ground segment / station}: la parte terrestre del sistema.
+\end{itemize}
+
+\section*{H--L}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{HK}: Housekeeping. Telemetria de estado.
+  \item \textbf{I2C / SPI / UART}: protocolos seriales.
+  \item \textbf{IARU}: International Amateur Radio Union.
+  \item \textbf{ITU}: International Telecommunication Union.
+  \item \textbf{LEO}: Low Earth Orbit (200-2000 km).
+  \item \textbf{LDO}: Low Dropout regulator.
+  \item \textbf{LoS}: Line of Sight.
+\end{itemize}
+
+\section*{M--O}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{MEO}: Medium Earth Orbit (2000-35 786 km).
+  \item \textbf{MIL-STD-810}: estandar militar de tests ambientales.
+  \item \textbf{MPPT}: Maximum Power Point Tracker (para paneles solares).
+  \item \textbf{NA}: Numerical Aperture (optica).
+  \item \textbf{OBC}: On-Board Computer.
+  \item \textbf{OBDH}: On-Board Data Handling.
+  \item \textbf{Orbit}: orbita.
+  \item \textbf{OTA}: Over The Air (update).
+\end{itemize}
+
+\section*{P--R}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Pass}: pase del satelite sobre la ground station.
+  \item \textbf{Payload}: la carga util cientifica/comercial.
+  \item \textbf{PC-104}: estandar de bus electrico/mecanico para CubeSat.
+  \item \textbf{PDR}: Preliminary Design Review.
+  \item \textbf{PMIC}: Power Management Integrated Circuit.
+  \item \textbf{P-POD}: Poly Picosatellite Orbital Deployer.
+  \item \textbf{PSP}: Platform Support Package (en cFS).
+  \item \textbf{RAAN}: Right Ascension of Ascending Node.
+  \item \textbf{RF}: Radio Frequency.
+\end{itemize}
+
+\section*{S--Z}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{SAA}: South Atlantic Anomaly. Zona de alta radiacion sobre
+        el Atlantico Sur. Los satellites suelen entrar a SAFE\_MODE.
+  \item \textbf{SAR}: Synthetic Aperture Radar.
+  \item \textbf{S-Band}: 2.2-2.4 GHz para comms.
+  \item \textbf{SEU / TID}: Single Event Upset / Total Ionizing Dose
+        (efectos de radiacion).
+  \item \textbf{SoC}: System on Chip.
+  \item \textbf{SSO}: Sun-Synchronous Orbit.
+  \item \textbf{Telemetry}: datos del estado del satelite.
+  \item \textbf{TLE}: Two-Line Element. Formato estandar de elementos
+        orbitales.
+  \item \textbf{TRL}: Technology Readiness Level (NASA 1-9).
+  \item \textbf{TVAC}: Thermal Vacuum.
+  \item \textbf{UHF}: Ultra High Frequency (300 MHz -- 3 GHz).
+  \item \textbf{Uplink}: comunicacion de la tierra hacia el satelite.
+  \item \textbf{V\&V}: Verification \& Validation.
+  \item \textbf{VHF}: Very High Frequency (30-300 MHz).
+  \item \textbf{X-Band}: 8-12 GHz para comms de alto throughput.
+\end{itemize}
+
+% =====================================================================
+\appendix
+\chapter{Apendice --- Misiones de referencia}
+
+\section{PhiSat-1 (ESA, 2020)}
+
+Primer satelite con IA on-board. Detecta nubes con CNN en Intel Movidius
+Myriad 2 antes de bajar las imagenes. Tu INTISAT esta en la misma linea
+metodologica.
+
+\textbf{Lecciones aprendidas}:
+\begin{itemize}[leftmargin=2em]
+  \item Filtrar antes de bajar ahorra bitrate.
+  \item Modelo pre-entrenado en GPUs grandes y desplegado en hardware
+        embebido funciona.
+  \item Validacion previa en TVAC es critica.
+\end{itemize}
+
+\section{HYPSO-1 (NTNU Noruega, 2022)}
+
+CubeSat 6U con hiperspectral y RPi CM4 + IA on-board. \textbf{El hardware mas
+cercano al INTISAT en mision real}.
+
+\textbf{Lecciones}:
+\begin{itemize}[leftmargin=2em]
+  \item RPi CM4 sobrevive bien en LEO.
+  \item eMMC es mas confiable que SD para vuelo.
+  \item El downlink es el cuello de botella, no el procesado.
+\end{itemize}
+
+\section{GeneSat-1 (NASA Ames, 2006)}
+
+Primer CubeSat de biologia. Levo E. coli para experimentos biologicos en
+microgravedad. Demuestra que microscopia biologica en CubeSat es viable.
+
+\section{PerúSAT-1 (CONIDA, 2016)}
+
+Satelite peruano de observacion de la Tierra. No es CubeSat (430 kg) pero
+es el referente nacional. Construido por Airbus, operado por CONIDA.
+
+\chapter{Apendice --- Recursos para profundizar}
+
+\section{Libros}
+
+\begin{itemize}[leftmargin=2em]
+  \item \emph{Space Mission Analysis and Design} (Wertz \& Larson) ---
+        el clasico. USD 200.
+  \item \emph{CubeSat Engineering Notebook} (Aalborg Univ). Gratis online.
+  \item \emph{CubeSat Handbook} (Cappelletti et al). Academic Press.
+\end{itemize}
+
+\section{Cursos online (gratis)}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Coursera} -- "Spacecraft Dynamics and Control"
+        (University of Colorado).
+  \item \textbf{edX} -- "Small Satellite Engineering" (TU Delft).
+  \item \textbf{NASA CubeSat 101} -- introduccion gratis en NASA.gov.
+  \item \textbf{Cal Poly CubeSat Workshop} -- videos en YouTube.
+\end{itemize}
+
+\section{Comunidades}
+
+\begin{itemize}[leftmargin=2em]
+  \item Cal Poly CubeSat Workshop (anual).
+  \item Small Satellite Conference USU (anual, todas las papers gratis).
+  \item ESA Fly Your Satellite Programme.
+  \item r/CubeSat en Reddit.
+  \item Discord servers academicos.
+\end{itemize}
+
+\chapter{Apendice --- Hoja de ruta de aprendizaje}
+
+\section{Plan de 3 meses para un junior en CubeSat}
+
+\textbf{Mes 1}: este manual M0 completo + Manual de Electronica Practica.
+
+\textbf{Mes 2}: Manual M2 (EPS) + Manual M5 (Flight Software).
+
+\textbf{Mes 3}: Manual M7 (Testing) + especializacion en el subsistema de
+interes.
+
+\section{Plan de 1 año para construir un CubeSat completo}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{T+0 a T+3 meses}: Fase A. Concepto, requirements.
+  \item \textbf{T+3 a T+8 meses}: Fase B. Diseño detallado, prototipos.
+  \item \textbf{T+8 a T+11 meses}: Fase C-D. Fabricacion e integracion.
+  \item \textbf{T+11 a T+12 meses}: Testing y FRR.
+  \item \textbf{T+12}: lanzamiento.
+\end{itemize}
+
+\textbf{En la practica}: para un equipo academico de 8-10 personas, son
+2-3 años reales. Los CubeSats academicos siempre subestiman tiempo.
+
+\backmatter
+
+\chapter*{Bibliografia}
+\addcontentsline{toc}{chapter}{Bibliografia}
+
+\begin{enumerate}[leftmargin=2em]
+\item Cal Poly. \emph{CubeSat Design Specification Rev 14}.
+  \url{https://www.cubesat.org}, 2022.
+\item Wertz J, Everett D, Puschell J. \emph{Space Mission Engineering: The
+  New SMAD}. Microcosm Press, 2011.
+\item Bouwmeester J, Guo J. State of the art of CubeSats. \emph{Acta
+  Astronautica}, 67(7-8), 854-862, 2010.
+\item Swartwout M. The first one hundred CubeSats. \emph{Journal of Small
+  Satellites}, 2013.
+\item NASA. \emph{CubeSat 101 - Basic Concepts and Processes for
+  First-Time CubeSat Developers}. NASA Headquarters, 2017.
+\item ESA. \emph{Fly Your Satellite! Programme Documentation}.
+  \url{https://www.esa.int/Education/CubeSats}, 2022.
+\item Furano G, et al. AI in Space: Opportunities and Challenges.
+  \emph{ESA Advanced Concepts Team Report}, 2020.
+\item Marcuccio S, et al. Lessons from PhiSat-1. \emph{IEEE Aerospace
+  Conference}, 2021.
+\end{enumerate}
+
+\end{document}
