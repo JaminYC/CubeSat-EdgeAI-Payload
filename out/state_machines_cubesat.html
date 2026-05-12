@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<title>Maquinas de estado del CubeSat INTISAT</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#1A365D',
+      primaryTextColor: '#fff',
+      primaryBorderColor: '#1A365D',
+      lineColor: '#5a6470',
+      fontFamily: 'Inter, system-ui, sans-serif',
+      fontSize: '14px'
+    },
+    flowchart: { htmlLabels: true, curve: 'basis', padding: 20 }
+  });
+</script>
+<style>
+  :root {
+    --intisat:    #1A365D;
+    --accent:     #C58F00;
+    --ok:         #2F855A;
+    --warn:       #C53030;
+    --info:       #2C5282;
+    --safe:       #718096;
+    --ai:         #805AD5;
+    --active:     #319795;
+    --bg:         #F7FAFC;
+    --text:       #2D3748;
+    --muted:      #718096;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: white;
+    font-family: 'Inter', system-ui, 'Segoe UI', sans-serif; color: var(--text); }
+  header {
+    background: linear-gradient(135deg, var(--intisat), #3b5bdb);
+    color: white; padding: 32px 48px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  }
+  header h1 { margin: 0 0 8px; font-size: 28px; font-weight: 700; }
+  header p  { margin: 0; opacity: .9; font-size: 14px; }
+  nav { background: #fff; border-bottom: 1px solid #e1e4e8;
+    padding: 12px 48px; position: sticky; top: 0; z-index: 10;
+    box-shadow: 0 1px 4px rgba(0,0,0,.04); }
+  nav a { color: var(--intisat); text-decoration: none;
+    margin-right: 18px; font-size: 13px; font-weight: 500; }
+  nav a:hover { text-decoration: underline; color: var(--accent); }
+  main { max-width: 1400px; margin: 0 auto; padding: 32px 48px; }
+  section { background: white; border: 1px solid #e1e4e8;
+    border-radius: 12px; padding: 32px; margin-bottom: 32px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+  section h2 { margin: 0 0 8px; color: var(--intisat); font-size: 22px;
+    border-bottom: 2px solid #e8f0fe; padding-bottom: 8px; }
+  section h2 .num { color: var(--accent); margin-right: 12px;
+    font-family: ui-monospace, monospace; }
+  section > p.desc { color: #555; margin: 8px 0 24px; font-size: 15px; }
+  .diagram { background: #fcfdff; border: 1px dashed #c9d1d9;
+    border-radius: 8px; padding: 24px; overflow-x: auto; text-align: center;
+    margin: 16px 0; }
+  .notes { margin-top: 20px; padding: 16px 20px; background: #fffbea;
+    border-left: 4px solid var(--accent); border-radius: 4px; font-size: 14px; }
+  .notes b { color: #7a5c00; }
+  .compare-box { display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    margin: 20px 0; }
+  .compare-box > div { padding: 16px 20px; border-radius: 8px;
+    border: 1px solid #e1e4e8; }
+  .compare-box .have { background: #ecfdf5; border-color: var(--ok); }
+  .compare-box .missing { background: #fef2f2; border-color: var(--warn); }
+  .compare-box h3 { margin: 0 0 12px; font-size: 16px; }
+  .compare-box .have h3 { color: var(--ok); }
+  .compare-box .missing h3 { color: var(--warn); }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; margin: 16px 0; }
+  th, td { border: 1px solid #e1e4e8; padding: 8px 12px; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; font-weight: 600; color: var(--intisat); }
+  tr:nth-child(even) td { background: #fafbfc; }
+  .mode-cell { font-weight: 600; }
+  code { background: #f6f8fa; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+  .tag { display: inline-block; background: #e8f0fe; color: var(--intisat);
+    padding: 2px 10px; border-radius: 12px; font-size: 11px;
+    margin-left: 8px; font-weight: 500; }
+  footer { text-align: center; color: var(--muted); padding: 24px; font-size: 13px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; margin: 16px 0;
+    padding: 16px; background: var(--bg); border-radius: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .swatch { width: 16px; height: 16px; border-radius: 3px; }
+  .status-bar { display: flex; gap: 4px; margin: 4px 0; }
+  .status-bar .seg { height: 10px; flex: 1; border-radius: 2px; }
+  .ref-list { list-style: none; padding: 0; }
+  .ref-list li { padding: 10px 14px; margin: 6px 0; background: #f7fafc;
+    border-left: 3px solid var(--intisat); border-radius: 4px; }
+  .ref-list strong { color: var(--intisat); }
+  .ref-list a { color: var(--accent); font-family: ui-monospace, monospace;
+    font-size: 13px; }
+  @media print {
+    header, nav, footer { display: none; }
+    section { page-break-inside: avoid; box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Maquinas de estado del CubeSat INTISAT</h1>
+  <p>Mision completa, subsistemas, matriz operacional y comparacion contra lo que ya tenemos</p>
+</header>
+
+<nav>
+  <a href="#intro">Introduccion</a>
+  <a href="#mision">Mision</a>
+  <a href="#matriz">Matriz</a>
+  <a href="#obc">OBC</a>
+  <a href="#eps">EPS</a>
+  <a href="#adcs">ADCS</a>
+  <a href="#comms">COMMS</a>
+  <a href="#payload">Payload</a>
+  <a href="#comparacion">Comparacion INTISAT</a>
+  <a href="#refs">Referencias</a>
+  <a href="javascript:window.print()" style="float:right">Imprimir / PDF</a>
+</nav>
+
+<main>
+
+<section id="intro">
+  <h2><span class="num">01</span>Introduccion: 3 niveles de jerarquia</h2>
+  <p class="desc">Una maquina de estados de CubeSat tiene 3 capas. Cuando el satelite esta en un modo de mision, internamente cada subsistema esta en su propio estado.</p>
+
+  <div class="diagram">
+  <div class="mermaid">
+flowchart TB
+    M[Nivel 1 — MISION<br/>el satelite completo<br/>LAUNCH / NOMINAL / COMMS_PASS / SAFE]:::nivel1
+    M --> OBC[OBC<br/>BOOT / NOMINAL / SAFE_HOLD / FAULT]:::nivel2
+    M --> EPS[EPS<br/>CHARGING / DISCHARGING / BATTERY_LOW]:::nivel2
+    M --> ADCS[ADCS<br/>DETUMBLE / SUN_POINT / NADIR / SAFE]:::nivel2
+    M --> COM[COMMS<br/>IDLE / BEACON / RX / TX]:::nivel2
+    M --> PL[PAYLOAD<br/>IDLE / CAPTURING / PROCESSING / DOWNLINK]:::nivel2
+
+    OBC --> OBC_C[Nivel 3 — componentes<br/>watchdog timer<br/>memory health<br/>I2C bus health]:::nivel3
+    PL --> PL_C[Nivel 3 — componentes<br/>OV5647 sensor<br/>OLED SSD1351<br/>INA219]:::nivel3
+
+    classDef nivel1 fill:#1A365D,stroke:#1A365D,color:#fff,font-weight:bold
+    classDef nivel2 fill:#319795,stroke:#319795,color:#fff
+    classDef nivel3 fill:#A0AEC0,stroke:#A0AEC0,color:#fff,font-size:11px
+  </div>
+  </div>
+
+  <div class="notes">
+    <b>La regla:</b> cada subsistema tiene su FSM propia. La FSM de mision NO controla detalles; solo dice
+    "estamos en NOMINAL". Cada subsistema interpreta NOMINAL en su contexto local.
+  </div>
+</section>
+
+<section id="mision">
+  <h2><span class="num">02</span>Maquina de estados de MISION (nivel 1)</h2>
+  <p class="desc">El satelite completo. Estos son los 8 modos operacionales que ve el operador de tierra.</p>
+
+  <div class="diagram">
+  <div class="mermaid">
+stateDiagram-v2
+    [*] --> LAUNCH: separation
+    LAUNCH --> DETUMBLE: deployer ejection
+    DETUMBLE --> COMMISSIONING: rates &lt; 1 deg/s
+    COMMISSIONING --> NOMINAL: all subsystems OK
+    NOMINAL --> COMMS_PASS: ground station LOS
+    COMMS_PASS --> NOMINAL: pass complete
+    NOMINAL --> PAYLOAD_OP: CMD_START_PAYLOAD
+    PAYLOAD_OP --> NOMINAL: scan complete
+    NOMINAL --> ECLIPSE: sun &lt; threshold
+    ECLIPSE --> NOMINAL: sun &gt; threshold
+    NOMINAL --> SAFE: anomaly / low_voltage
+    PAYLOAD_OP --> SAFE: critical fault
+    COMMS_PASS --> SAFE: critical fault
+    SAFE --> NOMINAL: ground CMD_RESUME
+    NOMINAL --> EOL: altitude &lt; 200 km
+    EOL --> [*]: reentry
+
+    note right of NOMINAL
+      modo "default":
+      paneles al sol,
+      I2C latente,
+      esperando comandos
+    end note
+
+    note right of SAFE
+      bajo consumo,
+      solo I2C + beacon,
+      ignora comandos
+      no-criticos
+    end note
+  </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="swatch" style="background:var(--info)"></div>Modos nominales</div>
+    <div class="legend-item"><div class="swatch" style="background:var(--active)"></div>Modos activos (consumen mas)</div>
+    <div class="legend-item"><div class="swatch" style="background:var(--safe)"></div>Modo seguro</div>
+    <div class="legend-item"><div class="swatch" style="background:var(--warn)"></div>Anomalia / fallo</div>
+  </div>
+</section>
+
+<section id="matriz">
+  <h2><span class="num">03</span>Matriz modos × subsistemas (el "rosetta")</h2>
+  <p class="desc">La tabla que coordina la jerarquia. Para cada modo de mision, define que estado interno tiene cada subsistema.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Mission Mode \ Subsistema</th>
+        <th>OBC</th>
+        <th>EPS</th>
+        <th>ADCS</th>
+        <th>COMMS</th>
+        <th>PAYLOAD</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mode-cell">LAUNCH</td>
+        <td>BOOT</td>
+        <td>BATTERY_NOMINAL</td>
+        <td>OFF (no actuator)</td>
+        <td>IDLE</td>
+        <td>OFF</td>
+      </tr>
+      <tr>
+        <td class="mode-cell">DETUMBLE</td>
+        <td>NOMINAL</td>
+        <td>DISCHARGING</td>
+        <td>DETUMBLE</td>
+        <td>BEACON</td>
+        <td>OFF</td>
+      </tr>
+      <tr>
+        <td class="mode-cell">COMMISSIONING</td>
+        <td>NOMINAL</td>
+        <td>CHARGING</td>
+        <td>SUN_POINTING</td>
+        <td>BEACON</td>
+        <td>OFF</td>
+      </tr>
+      <tr>
+        <td class="mode-cell">NOMINAL</td>
+        <td>NOMINAL</td>
+        <td>CHARGING</td>
+        <td>SUN_POINTING</td>
+        <td>IDLE</td>
+        <td>IDLE</td>
+      </tr>
+      <tr>
+        <td class="mode-cell">PAYLOAD_OP</td>
+        <td>NOMINAL</td>
+        <td>DISCHARGING</td>
+        <td>NADIR_POINTING</td>
+        <td>IDLE</td>
+        <td><b>CAPTURING / PROCESSING</b></td>
+      </tr>
+      <tr>
+        <td class="mode-cell">COMMS_PASS</td>
+        <td>NOMINAL</td>
+        <td>DISCHARGING</td>
+        <td>TARGET_POINTING</td>
+        <td><b>TX / RX</b></td>
+        <td>IDLE (or DOWNLINK)</td>
+      </tr>
+      <tr>
+        <td class="mode-cell">ECLIPSE</td>
+        <td>MAINTENANCE</td>
+        <td>DISCHARGING</td>
+        <td>INERTIAL_HOLD</td>
+        <td>IDLE</td>
+        <td>IDLE</td>
+      </tr>
+      <tr>
+        <td class="mode-cell">SAFE</td>
+        <td>SAFE_HOLD</td>
+        <td>BATTERY_CRITICAL</td>
+        <td>DETUMBLE</td>
+        <td>BEACON</td>
+        <td>SAFE_MODE</td>
+      </tr>
+      <tr>
+        <td class="mode-cell">EOL</td>
+        <td>NOMINAL</td>
+        <td>DISCHARGING</td>
+        <td>OFF</td>
+        <td>BEACON</td>
+        <td>OFF</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="notes">
+    <b>Como leerla:</b> cuando el OBC dice "modo NOMINAL", todos los subsistemas saben que tienen que estar en su estado correspondiente. Si EPS detecta BATTERY_CRITICAL, fuerza al satelite entero a SAFE.
+  </div>
+</section>
+
+<section id="obc">
+  <h2><span class="num">04</span>OBC — On-Board Computer</h2>
+  <p class="desc">El "cerebro central" del satelite. Coordina todos los subsistemas.</p>
+
+  <div class="diagram">
+  <div class="mermaid">
+stateDiagram-v2
+    [*] --> BOOT
+    BOOT --> NOMINAL: init complete
+    BOOT --> FAULT: init fail
+    NOMINAL --> MAINTENANCE: scheduled (eclipse window)
+    MAINTENANCE --> NOMINAL: tasks done
+    NOMINAL --> FAULT: watchdog timeout / SEU
+    NOMINAL --> SAFE_HOLD: ground CMD_SAFE_OBC
+    SAFE_HOLD --> NOMINAL: ground CMD_RESUME
+    FAULT --> NOMINAL: auto-reboot OK
+    FAULT --> SAFE_HOLD: 3 reboots failed
+  </div>
+  </div>
+
+  <table>
+    <tr><th>Estado</th><th>Que hace</th><th>Consumo</th></tr>
+    <tr><td>BOOT</td><td>kernel + servicios systemd</td><td>~3 W</td></tr>
+    <tr><td>NOMINAL</td><td>schedule activo, comandos atendidos</td><td>~1.5 W</td></tr>
+    <tr><td>MAINTENANCE</td><td>limpieza de logs, defrag de SD/eMMC</td><td>~2 W</td></tr>
+    <tr><td>SAFE_HOLD</td><td>solo comandos basicos</td><td>~1 W</td></tr>
+    <tr><td>FAULT</td><td>esperando reboot</td><td>varia</td></tr>
+  </table>
+</section>
+
+<section id="eps">
+  <h2><span class="num">05</span>EPS — Sistema de potencia</h2>
+  <p class="desc">El corazon energetico. Si EPS entra en BATTERY_CRITICAL, fuerza SAFE en todo el satelite.</p>
+
+  <div class="diagram">
+  <div class="mermaid">
+stateDiagram-v2
+    [*] --> BOOT
+    BOOT --> BATTERY_NOMINAL: SoC &gt; 70%
+    BOOT --> BATTERY_LOW: 30% &lt; SoC &lt; 70%
+    BOOT --> BATTERY_CRITICAL: SoC &lt; 30%
+
+    BATTERY_NOMINAL --> CHARGING: sun &amp; SoC &lt; 100%
+    BATTERY_NOMINAL --> DISCHARGING: eclipse
+    CHARGING --> BATTERY_NOMINAL: SoC &gt; 90%
+    DISCHARGING --> BATTERY_LOW: SoC &lt; 70%
+    BATTERY_LOW --> BATTERY_NOMINAL: SoC &gt; 80%
+    BATTERY_LOW --> BATTERY_CRITICAL: SoC &lt; 30%
+    BATTERY_CRITICAL --> BATTERY_LOW: SoC &gt; 40%
+    BATTERY_CRITICAL --> FAULT: SoC &lt; 10%
+
+    FAULT --> [*]: BMS shutdown (irrecoverable)
+
+    note right of BATTERY_CRITICAL
+      fuerza el bus a SAFE,
+      apaga rails no esenciales
+    end note
+  </div>
+  </div>
+</section>
+
+<section id="adcs">
+  <h2><span class="num">06</span>ADCS — Control de actitud</h2>
+  <p class="desc">Controla hacia donde apunta el satelite. El ADCS tipico tiene 5 modos principales.</p>
+
+  <div class="diagram">
+  <div class="mermaid">
+stateDiagram-v2
+    [*] --> OFF
+    OFF --> DETUMBLE: post-deployment
+    DETUMBLE --> SUN_ACQUISITION: rates &lt; 1 deg/s
+    SUN_ACQUISITION --> SUN_POINTING: sun vector found
+    SUN_POINTING --> NADIR_POINTING: CMD nadir
+    SUN_POINTING --> TARGET_POINTING: CMD target (lat,lon)
+    NADIR_POINTING --> SUN_POINTING: CMD sun
+    TARGET_POINTING --> SUN_POINTING: target done
+    SUN_POINTING --> INERTIAL_HOLD: eclipse start
+    INERTIAL_HOLD --> SUN_POINTING: eclipse end
+
+    SUN_POINTING --> SAFE: gyro fault
+    NADIR_POINTING --> SAFE: gyro fault
+    TARGET_POINTING --> SAFE: gyro fault
+    SAFE --> DETUMBLE: ground CMD_RESUME
+  </div>
+  </div>
+</section>
+
+<section id="comms">
+  <h2><span class="num">07</span>COMMS — Comunicaciones</h2>
+  <p class="desc">Manejo del radio (UHF para uplink/downlink basico, S-Band para datos).</p>
+
+  <div class="diagram">
+  <div class="mermaid">
+stateDiagram-v2
+    [*] --> IDLE
+    IDLE --> BEACON: timer (cada 30s)
+    BEACON --> IDLE: beacon sent
+    IDLE --> RX: carrier detected
+    RX --> COMMAND_PROCESSING: valid frame
+    COMMAND_PROCESSING --> TX_ACK: cmd valid
+    COMMAND_PROCESSING --> RX: cmd invalid (drop)
+    TX_ACK --> IDLE: ack sent
+    IDLE --> TX: CMD_DOWNLINK (telemetria queued)
+    TX --> IDLE: queue empty
+    IDLE --> FAULT: radio temp &gt; 85 C
+    FAULT --> IDLE: temp normalized
+  </div>
+  </div>
+</section>
+
+<section id="payload">
+  <h2><span class="num">08</span>PAYLOAD — el de tu INTISAT (microscopia)</h2>
+  <p class="desc">Este es el que ya tenes implementado en <code>cubesat/daemon.py</code>. Lo replicamos aqui para completitud.</p>
+
+  <div class="diagram">
+  <div class="mermaid">
+stateDiagram-v2
+    [*] --> BOOT
+    BOOT --> IDLE: services up
+    BOOT --> ERROR: init fail
+    IDLE --> CAPTURING: CMD_START_CAPTURE
+    CAPTURING --> PROCESSING: 25 frames OK
+    PROCESSING --> EXPORTING: IA OK
+    EXPORTING --> DOWNLINK: files written
+    DOWNLINK --> IDLE: transmission complete
+    CAPTURING --> ERROR: sensor fail
+    PROCESSING --> ERROR: IA fail
+    EXPORTING --> ERROR: disk full
+    ERROR --> IDLE: CMD_RESUME
+    IDLE --> SAFE_MODE: CMD_SAFE
+    SAFE_MODE --> IDLE: CMD_RESUME
+    IDLE --> OTA: CMD_OTA_COMMIT
+    OTA --> IDLE: checkout OK
+    OTA --> ERROR: rollback
+  </div>
+  </div>
+</section>
+
+<section id="comparacion">
+  <h2><span class="num">09</span>Comparacion contra el INTISAT actual</h2>
+  <p class="desc">Donde estamos, donde nos falta. Esto te dice exactamente que documentar / diseñar a continuacion.</p>
+
+  <div class="compare-box">
+    <div class="have">
+      <h3>✓ Lo que ya tenemos</h3>
+      <ul>
+        <li><b>Payload FSM completa</b> en <code>cubesat/commands.py:STATE_*</code></li>
+        <li><b>Diagrama Mermaid del payload</b> en <code>cubesat/ARCHITECTURE.md</code></li>
+        <li><b>HTML interactivo del payload</b> en <code>out/modos_operacion.html</code></li>
+        <li><b>Watchdog systemd</b> en cubesat-pipeline.service</li>
+        <li><b>FDIR basico</b>: estados ERROR + CMD_RESUME</li>
+        <li><b>OTA con rollback</b> implementado</li>
+      </ul>
+    </div>
+    <div class="missing">
+      <h3>✗ Lo que falta</h3>
+      <ul>
+        <li><b>FSM del OBC central</b> (este HTML lo propone, hay que implementarlo)</li>
+        <li><b>FSM del EPS</b> (depende del EPS comercial elegido)</li>
+        <li><b>FSM del ADCS</b> (depende del equipo de control)</li>
+        <li><b>FSM del COMMS</b> (depende del equipo de RF)</li>
+        <li><b>FSM de MISION</b> (capa coordinadora top-level)</li>
+        <li><b>Matriz modos × subsistemas validada</b> con los lideres tecnicos</li>
+        <li><b>Tabla de transiciones</b> con triggers, pre y post-condiciones</li>
+        <li><b>Procedimientos de operacion</b> por modo</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 style="margin-top: 24px; color: var(--intisat);">Progreso por subsistema</h3>
+  <table>
+    <tr><th>Subsistema</th><th>Estado del diseño FSM</th><th>Quien lidera</th><th>Progreso</th></tr>
+    <tr><td>OBC</td><td>propuesta inicial en este HTML</td><td>(pendiente asignar)</td>
+      <td><div class="status-bar">
+        <div class="seg" style="background:var(--ok)"></div>
+        <div class="seg" style="background:#e2e8f0"></div>
+        <div class="seg" style="background:#e2e8f0"></div>
+        <div class="seg" style="background:#e2e8f0"></div>
+        <div class="seg" style="background:#e2e8f0"></div>
+      </div> 20%</td></tr>
+    <tr><td>EPS</td><td>propuesta inicial</td><td>(pendiente)</td>
+      <td><div class="status-bar">
+        <div class="seg" style="background:var(--ok)"></div>
+        <div class="seg" style="background:#e2e8f0"></div>
+        <div class="seg" style="background:#e2e8f0"></div>
+        <div class="seg" style="background:#e2e8f0"></div>
+        <div class="seg" style="background:#e2e8f0"></div>
+      </div> 20%</td></tr>
+    <tr><td>ADCS</td><td>propuesta inicial</td><td>(pendiente)</td>
+      <td><div class="status-bar">
+        <div class="seg" style="background:var(--ok)"></div>
+        <div class="seg" style="background:#e2e8f0"></div>
+        <div class="seg" style="background:#e2e8f0"></div>
+        <div class="seg" style="background:#e2e8f0"></div>
+        <div class="seg" style="background:#e2e8f0"></div>
+      </div> 20%</td></tr>
+    <tr><td>COMMS</td><td>propuesta inicial</td><td>(pendiente)</td>
+      <td><div class="status-bar">
+        <div class="seg" style="background:var(--ok)"></div>
+        <div class="seg" style="background:#e2e8f0"></div>
+        <div class="seg" style="background:#e2e8f0"></div>
+        <div class="seg" style="background:#e2e8f0"></div>
+        <div class="seg" style="background:#e2e8f0"></div>
+      </div> 20%</td></tr>
+    <tr><td>PAYLOAD</td><td>FSM completa, codigo, docs, HTML</td><td>tu equipo</td>
+      <td><div class="status-bar">
+        <div class="seg" style="background:var(--ok)"></div>
+        <div class="seg" style="background:var(--ok)"></div>
+        <div class="seg" style="background:var(--ok)"></div>
+        <div class="seg" style="background:var(--ok)"></div>
+        <div class="seg" style="background:#e2e8f0"></div>
+      </div> 80%</td></tr>
+    <tr><td>MISION</td><td>propuesta inicial</td><td>lider del proyecto</td>
+      <td><div class="status-bar">
+        <div class="seg" style="background:var(--ok)"></div>
+        <div class="seg" style="background:#e2e8f0"></div>
+        <div class="seg" style="background:#e2e8f0"></div>
+        <div class="seg" style="background:#e2e8f0"></div>
+        <div class="seg" style="background:#e2e8f0"></div>
+      </div> 20%</td></tr>
+  </table>
+
+  <div class="notes">
+    <b>Plan sugerido:</b> con este HTML como base, reunion del equipo (2 hs). Cada lider de subsistema revisa
+    la FSM propuesta y la completa con detalles especificos de su area. Luego se valida la matriz del seccion 3.
+    Al final, queda una version 1.0 de la FSM completa del INTISAT.
+  </div>
+</section>
+
+<section id="refs">
+  <h2><span class="num">10</span>Referencias para validar</h2>
+  <p class="desc">CubeSats con FSM publicada que podes mirar como benchmark.</p>
+
+  <ul class="ref-list">
+    <li>
+      <strong>OreSat (PSU)</strong> — CubeSat 100% open con FSM completa en Python.
+      <br/><a href="https://github.com/oresat">github.com/oresat</a>
+      <br/><span style="color: var(--muted); font-size: 12px;">El mas cercano a tu caso: academico, RPi/MCUs, comms por CAN.</span>
+    </li>
+    <li>
+      <strong>UPSat (Libre Space Foundation)</strong> — Primer CubeSat 100% open en orbita (2017).
+      <br/><a href="https://gitlab.com/librespacefoundation/upsat">gitlab.com/librespacefoundation/upsat</a>
+    </li>
+    <li>
+      <strong>AAUSAT-3/4 (Aalborg)</strong> — La documentacion academica mas detallada del mundo.
+      <br/><a href="https://www.space.aau.dk">space.aau.dk</a>
+      <br/><span style="color: var(--muted); font-size: 12px;">Buscar "AAUSAT-3 Operations Concept" — 50+ paginas.</span>
+    </li>
+    <li>
+      <strong>NASA cFS Limit Checker</strong> — Plantilla de referencia para FDIR.
+      <br/><a href="https://github.com/nasa/lc">github.com/nasa/lc</a>
+    </li>
+    <li>
+      <strong>NASA F' (FPrime)</strong> — Genera FSM ejecutable desde XML. Usado en MarCO e Ingenuity.
+      <br/><a href="https://nasa.github.io/fprime/Tutorials/">nasa.github.io/fprime</a>
+    </li>
+    <li>
+      <strong>ECSS-E-ST-70-11C</strong> — Estandar ESA para "Space segment operability".
+      <br/><a href="https://ecss.nl/standard/ecss-e-st-70-11c/">ecss.nl/ecss-e-st-70-11c</a>
+    </li>
+    <li>
+      <strong>OPS-SAT operational concept</strong> — Satelite ESA experimental con docs publicos.
+      <br/><a href="https://www.esa.int/Enabling_Support/Operations/OPS-SAT">esa.int/OPS-SAT</a>
+    </li>
+  </ul>
+</section>
+
+</main>
+
+<footer>
+  Maquinas de estado del CubeSat INTISAT — diagramas Mermaid, datos del repositorio
+  <br/><a href="https://github.com/JaminYC/CubeSat-EdgeAI-Payload">github.com/JaminYC/CubeSat-EdgeAI-Payload</a>
+</footer>
+
+</body>
+</html>
