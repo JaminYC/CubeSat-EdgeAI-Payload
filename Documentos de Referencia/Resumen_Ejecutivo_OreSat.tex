@@ -1,0 +1,540 @@
+\documentclass[11pt,a4paper,oneside]{report}
+\usepackage[spanish,activeacute,es-noshorthands]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{geometry}
+\geometry{margin=2.4cm, headheight=14pt}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\usepackage{caption}
+\captionsetup{font=small, labelfont=bf}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true, linkcolor=NavyBlue, citecolor=ForestGreen, urlcolor=BrickRed,
+  pdftitle={Resumen ejecutivo OreSat para INTISAT},
+  pdfauthor={INTISAT}
+}
+
+\definecolor{intisat}{RGB}{26, 54, 93}
+\definecolor{intisataccent}{RGB}{197, 143, 0}
+\definecolor{ok}{RGB}{47, 133, 90}
+\definecolor{warn}{RGB}{197, 60, 60}
+
+\titleformat{\chapter}[hang]
+  {\normalfont\Huge\bfseries\color{intisat}}
+  {\thechapter.}{0.6em}{}
+\titlespacing*{\chapter}{0pt}{-20pt}{20pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\nouppercase{\leftmark}}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\newtcolorbox{leccion}[1][]{
+  colback=blue!4, colframe=intisat,
+  fonttitle=\bfseries, title=Leccion aplicable al INTISAT,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{recomendacion}[1][]{
+  colback=yellow!7, colframe=intisataccent,
+  fonttitle=\bfseries, title=Recomendacion,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{caveat}[1][]{
+  colback=red!4, colframe=warn,
+  fonttitle=\bfseries, title=Cuidado / verificar,
+  breakable, sharp corners=south, #1
+}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+\vspace*{1cm}
+{\color{intisat}\rule{\textwidth}{2pt}}
+\vspace{0.6cm}
+
+{\Huge\bfseries\color{intisat} OreSat}\\[0.4em]
+{\LARGE\bfseries Resumen ejecutivo para el equipo INTISAT}
+
+\vspace{0.7cm}
+{\Large\itshape Que es, como esta construido, y que podemos\\
+robar de su arquitectura}
+
+\vspace{1cm}
+{\color{intisataccent}\rule{0.6\textwidth}{1pt}}
+
+\vspace{2cm}
+
+\begin{tabular}{rl}
+\textbf{Origen:} & Portland State Aerospace Society (PSAS) \\
+\textbf{Universidad:} & Portland State University, Oregon, USA \\
+\textbf{Filosofia:} & 100\% open-source (HW + FW + SW + GS) \\
+\textbf{GitHub:} & \url{https://github.com/oresat} \\
+\textbf{Audiencia:} & Lideres tecnicos del proyecto INTISAT \\
+\textbf{Documento:} & v1.0 \\
+\textbf{Fecha:} & \today
+\end{tabular}
+
+\vfill
+
+\begin{minipage}{0.85\textwidth}
+\textbf{Resumen.}\quad
+OreSat es uno de los CubeSats academicos mas documentados y abiertos
+del mundo. Construido por estudiantes de Portland State University, su
+arquitectura modular por \emph{cards} comunicadas via CAN bus, su
+documentacion publica, y su iteracion entre misiones (OreSat0, 0.5, 1)
+lo hacen un caso de estudio ideal para el INTISAT. Este resumen identifica
+las practicas mas valiosas que el equipo deberia adoptar, los repositorios
+mas relevantes para revisar, y la comparacion directa contra el estado
+actual del INTISAT.
+\end{minipage}
+
+\vspace{1.2cm}
+{\color{intisat}\rule{\textwidth}{2pt}}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+% =====================================================================
+\chapter{Que es OreSat}
+
+\section{Origen y mision}
+
+OreSat es el programa de CubeSats de \textbf{Portland State Aerospace
+Society (PSAS)}, un grupo estudiantil de Portland State University
+(Oregon, EEUU). El programa nacio en 2017 con un proposito doble:
+
+\begin{itemize}[leftmargin=2em]
+  \item Hacer ciencia espacial real (mediciones climaticas en LEO).
+  \item Educar a estudiantes en ingenieria aeroespacial.
+\end{itemize}
+
+\section{La filosofia del open source}
+
+Lo que diferencia a OreSat de otros CubeSats academicos:
+
+\begin{itemize}[leftmargin=2em]
+  \item Todo el \textbf{hardware} (esquematicos, layouts, BOMs) en GitHub.
+  \item Todo el \textbf{firmware} (codigo de cada subsistema) en GitHub.
+  \item Todo el \textbf{flight software} (OBC + apps) en GitHub.
+  \item Todo el \textbf{ground station} (software, hardware, antenas) en GitHub.
+  \item \textbf{Documentacion exhaustiva}: design reviews, lessons learned,
+        test procedures.
+\end{itemize}
+
+Esto es raro. La mayoria de los CubeSats academicos liberan al menos
+algunos componentes propietarios. OreSat libera \emph{todo}, en el
+espiritu de la \emph{Libre Space Foundation} con la que tienen alianza
+tecnica.
+
+\section{Numeros del programa}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Atributo} & \textbf{Valor} \\
+\midrule
+Año de inicio                  & 2017 \\
+Misiones lanzadas              & OreSat0 (2022) \\
+Misiones en desarrollo         & OreSat0.5, OreSat1 \\
+Tamaño del equipo              & 30-50 estudiantes activos \\
+Tiempo de vuelo OreSat0        & 14 meses (deorbit enero 2024) \\
+Repos en GitHub                & ~30 activos \\
+Estandares aplicados           & CalPoly CDS, ISO 9001 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =====================================================================
+\chapter{Las misiones}
+
+\section{OreSat0 (2022): el primer vuelo}
+
+Mision \textbf{1U} (un cubo de 10 cm) lanzada en mayo 2022 desde la ISS
+via Nanoracks deployer. Objetivos:
+
+\begin{itemize}[leftmargin=2em]
+  \item Validar la arquitectura por cards en orbita real.
+  \item Probar el OBC con Linux.
+  \item Probar las comms UHF.
+  \item Demostrar autonomia operativa.
+\end{itemize}
+
+\textbf{Resultado}: el satelite funciono nominalmente durante 14 meses
+antes de quemarse en reentrada (enero 2024). Confirmo la viabilidad del
+diseño.
+
+\section{OreSat0.5: iteracion intermedia}
+
+Version mejorada del OreSat0 con correcciones aprendidas. En desarrollo
+al momento de redactar este documento. Mismo tamaño 1U.
+
+\section{OreSat1: la mision cientifica}
+
+CubeSat \textbf{2U} con payload cientifico principal: un imager de
+\textbf{cirros (nubes altas)} para climatologia. Tambien lleva DXWiFi
+(downlink de imagenes via WiFi modificado) y un livestream payload.
+
+\begin{leccion}
+OreSat siguio el patron \emph{primero validacion tecnica, despues mision
+cientifica}. INTISAT podria adoptar el mismo: una mision corta validatoria,
+seguida de la mision con payload de microscopia.
+\end{leccion}
+
+% =====================================================================
+\chapter{Arquitectura modular --- las "cards"}
+
+\section{El concepto de card}
+
+OreSat se construye apilando \textbf{cards} (placas PCB) en formato
+PC-104. Cada card es un subsistema independiente con:
+
+\begin{itemize}[leftmargin=2em]
+  \item Su propio microcontrolador.
+  \item Su propio firmware.
+  \item Su propio conector al backplane CAN.
+\end{itemize}
+
+\section{Las cards tipicas}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{8cm}p{2cm}}
+\toprule
+\textbf{Card} & \textbf{Funcion} & \textbf{MCU} \\
+\midrule
+C3 (Command, Control, Comms) & OBC principal, Linux, comms UHF & ARM A9 \\
+Solar                        & generacion solar + MPPT          & STM32 \\
+Battery                      & gestion de bateria               & STM32 \\
+Power                        & distribucion + reguladores       & STM32 \\
+ADCS                         & control de actitud               & STM32 \\
+Imager                       & camara payload                   & STM32 \\
+DXWiFi                       & downlink por WiFi modificado     & STM32 \\
+StarTracker                  & determinacion fina de actitud    & STM32 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{La interconexion: CAN bus}
+
+Todas las cards se comunican por un bus \textbf{CAN} compartido en el
+backplane PC-104. Usan el protocolo \textbf{CANopen}, estandar industrial.
+
+\begin{leccion}
+Tu INTISAT usa I2C primario hacia el OBC. Si en el futuro tenes mas
+cards (multiples sensores, subsystem propio para FPM), CAN+CANopen es
+el camino que OreSat ya valido. Ahorras tiempo y errores tipicos.
+\end{leccion}
+
+\section{Por que esta arquitectura es buena}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Cards intercambiables}: si falla la Battery card, se
+        reemplaza sin afectar al resto.
+  \item \textbf{Desarrollo paralelo}: cada equipo trabaja en su card
+        independientemente.
+  \item \textbf{Testing aislado}: cada card se testea sola en banco
+        antes de integrar.
+  \item \textbf{Reusabilidad entre misiones}: la Solar card de OreSat0
+        se reuso en OreSat1.
+  \item \textbf{Tolerancia a fallos}: una card en falla no contamina el
+        bus CAN gracias a CANopen.
+\end{itemize}
+
+% =====================================================================
+\chapter{Stack de software}
+
+\section{Tres niveles}
+
+OreSat tiene 3 capas de software:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Firmware de cards}: bare-metal C o ChibiOS RTOS en STM32.
+        Hace lo basico (sensar, actuar, hablar CAN).
+  \item \textbf{Flight software del OBC (C3)}: Linux con servicios en
+        Python. Coordina las cards, maneja comms, ejecuta logica de mision.
+  \item \textbf{Ground station}: Python (oresat-gs), procesa telemetria y
+        envia comandos.
+\end{itemize}
+
+\section{El C3 (Command, Control, Communications)}
+
+Es el OBC principal de OreSat. Caracteristicas:
+
+\begin{itemize}[leftmargin=2em]
+  \item Linux Debian custom.
+  \item Servicios Python: \texttt{oresat\_c3\_software}.
+  \item Comunicacion con cards via socketCAN.
+  \item Comms con tierra via UHF (modulo Si4463).
+  \item Almacenamiento: eMMC.
+\end{itemize}
+
+\begin{leccion}
+\textbf{Es exactamente lo que tu \texttt{cubesat/daemon.py} es para el
+payload}, pero a escala de satelite completo. Vale leer el codigo del C3
+para ver como organizan los servicios Python en un OBC operativo.
+\end{leccion}
+
+\section{Variantes con NASA cFS}
+
+OreSat tambien explora la integracion con \textbf{NASA cFS} (Core Flight
+System) en el repo \texttt{oresat0-cfs}. Esto es valioso para entender
+como adaptar el framework profesional de NASA al hardware academico.
+
+% =====================================================================
+\chapter{Estructura de repositorios en GitHub}
+
+Los 30+ repos de OreSat estan en \url{https://github.com/oresat}.
+Los mas valiosos para revisar (por orden de prioridad):
+
+\section{Prioridad alta para INTISAT}
+
+\begin{itemize}[leftmargin=2em]
+  \item \texttt{oresat-c3-software}: el flight software del OBC. \\
+        \emph{Por que mirarlo}: tu daemon hace algo similar para el payload.
+        Ver como organizan ellos un OBC entero.
+  \item \texttt{oresat-cans}: definiciones del protocolo CAN. \\
+        \emph{Por que}: si en el futuro agregas CAN como backup, esta es
+        la plantilla.
+  \item \texttt{oresat-firmware}: firmware de cada card. \\
+        \emph{Por que}: ejemplos de como estructurar firmware embebido
+        portable y testeable.
+  \item \texttt{oresat-mainboard}: PCB del backplane. \\
+        \emph{Por que}: como hacer un backplane PC-104 con CAN.
+\end{itemize}
+
+\section{Prioridad media}
+
+\begin{itemize}[leftmargin=2em]
+  \item \texttt{oresat-configs}: configuraciones de mision.
+  \item \texttt{oresat-launch-services}: software ground station.
+  \item \texttt{oresat0-imager}: payload de camara (similar concepto al
+        del INTISAT pero EO en vez de microscopia).
+  \item \texttt{oresat0-cfs}: integracion con NASA cFS.
+\end{itemize}
+
+\section{Prioridad baja (pero interesante)}
+
+\begin{itemize}[leftmargin=2em]
+  \item \texttt{oresat-pre-launch}: documentacion de las reviews.
+  \item \texttt{oresat0-dxwifi}: downlink de imagenes via WiFi modificado
+        (curioso pero no aplica directo).
+  \item \texttt{oresat-livestream}: video downlink en orbita.
+\end{itemize}
+
+\begin{caveat}
+La lista de repos puede haber cambiado desde la redaccion de este
+documento. Verificar en \url{https://github.com/oresat} para el listado
+actualizado.
+\end{caveat}
+
+% =====================================================================
+\chapter{Lecciones aplicables al INTISAT}
+
+Las practicas que mas vale la pena copiar:
+
+\section{1. Documentacion como first-class deliverable}
+
+OreSat publica TODO. Cada decision de diseño, cada lesson learned, cada
+review tecnica. Eso les permite:
+
+\begin{itemize}[leftmargin=2em]
+  \item Onboardear miembros nuevos rapido.
+  \item Recibir contribuciones externas.
+  \item Justificar decisiones ante revisores.
+  \item Reusar conocimiento entre misiones.
+\end{itemize}
+
+\textbf{Que adoptar}: tu \texttt{Documentos de Referencia/} esta bien
+encaminado. Falta capturar las \emph{decisiones de diseño} (por que
+elegimos X y no Y) y las \emph{lessons learned} (que aprendimos cuando
+fallo Z).
+
+\section{2. Arquitectura modular por cards}
+
+Cada subsistema es independiente. Esto reduce la complejidad y permite
+desarrollo paralelo.
+
+\textbf{Que adoptar}: en el INTISAT, separar claramente los subsistemas
+del payload. Tu payload ya esta bien aislado (carpeta \texttt{cubesat/}
+con interfaz I2C clara). Mantener esa separacion estricta.
+
+\section{3. CAN bus + CANopen para comunicacion entre cards}
+
+OreSat eligio CAN porque es robusto, estandarizado, y soporta multi-master
+naturalmente.
+
+\textbf{Que adoptar}: cuando el INTISAT pase de OBC simple a multi-subsystem,
+considerar CAN como bus primario (no I2C). I2C es mas simple pero menos
+robusto a EMI.
+
+\section{4. Iteracion entre misiones}
+
+OreSat0 valida $\to$ OreSat0.5 mejora $\to$ OreSat1 hace ciencia. Cada
+mision aprende de la anterior.
+
+\textbf{Que adoptar}: planear el INTISAT como una serie, no como mision
+unica. Primera mision: validar payload de microscopia con muestra simple.
+Segunda mision: agregar funcionalidades (FPM completo, mas patrones de
+OLED).
+
+\section{5. Open source desde el dia 0}
+
+OreSat NO empezo cerrado y luego abrio. Empezo abierto. Esto es una
+disciplina dificil pero rinde:
+
+\begin{itemize}[leftmargin=2em]
+  \item Codigo mas limpio (saben que lo veran extraños).
+  \item Pull requests externos.
+  \item Visibilidad academica.
+  \item Reproducibilidad.
+\end{itemize}
+
+\textbf{Que adoptar}: tu repo \texttt{CubeSat-EdgeAI-Payload} ya es publico.
+Falta agregar:
+
+\begin{itemize}[leftmargin=2em]
+  \item Un \texttt{LICENSE} explicito (MIT o Apache 2.0).
+  \item Un \texttt{CONTRIBUTING.md} con guidelines.
+  \item Issues activos para que externos puedan contribuir.
+  \item Codigo de conducta.
+\end{itemize}
+
+\section{6. Test-driven development para hardware embebido}
+
+OreSat tiene tests automatizados de firmware (unit + integration). Esto
+es raro en CubeSat academico pero crucial para confianza.
+
+\textbf{Que adoptar}: tu daemon en Python deberia tener tests con pytest.
+Especialmente para el dispatcher del I2C slave y para el OTA.
+
+\section{7. Ground station propia y simple}
+
+OreSat tiene su ground station en Portland. No depende de servicios de
+terceros. Software Python facil de modificar.
+
+\textbf{Que adoptar}: planear desde temprano una ground station academica
+(antena UHF + SDR + Python con SatNOGS). No esperar al ultimo momento.
+
+% =====================================================================
+\chapter{Comparacion directa: OreSat vs INTISAT}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{4.5cm}p{4.5cm}}
+\toprule
+\textbf{Aspecto} & \textbf{OreSat} & \textbf{INTISAT (actual)} \\
+\midrule
+Tamaño                   & 1U (OreSat0), 2U (OreSat1)     & 3U (planeado) \\
+Filosofia                & 100\% open source               & open en GitHub, no formalizado \\
+OBC                      & C3 card con Linux Debian        & Pi 5 (CM5 vuelo) con Pi OS \\
+Buses internos           & CAN + CANopen                   & I2C (CAN como backup futuro) \\
+Payload                  & Imager EO cirrus               & Microscopia FPM lensless \\
+Cards                    & 7-8 cards independientes        & 1 card del payload + OBC central (separados) \\
+Ground station           & propia, Python, en Portland     & no implementada aun \\
+Misiones planeadas       & OreSat0/0.5/1, iterativo        & INTISAT (1 mision por ahora) \\
+Documentacion publica    & exhaustiva, en GitHub           & creciendo, en \texttt{Documentos de Referencia/} \\
+NASA cFS                 & explorado en \texttt{oresat0-cfs} & no usado (custom daemon) \\
+Equipo                   & 30-50 estudiantes               & 4 personas \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Donde estamos mejor que OreSat}
+
+Pocas cosas, pero existen:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Payload diferenciado}: microscopia biologica lensless es
+        un nicho menos explotado que EO de cirros.
+  \item \textbf{IA on-board}: usamos StarDist y Cellpose para procesar a
+        bordo. OreSat solo captura.
+  \item \textbf{Pipeline completo}: tenemos preprocesado, mejora con IA,
+        segmentacion y exportacion en un solo daemon.
+\end{itemize}
+
+\section{Donde estamos atrasados}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Tamaño del equipo}: ellos tienen 30-50, nosotros 4.
+  \item \textbf{Misiones lanzadas}: ellos ya volaron 1, nosotros 0.
+  \item \textbf{Modularidad}: ellos tienen 7 cards, nosotros 1.
+  \item \textbf{Ground station}: ellos tienen, nosotros no.
+  \item \textbf{Test coverage}: ellos automatizan, nosotros no.
+\end{itemize}
+
+% =====================================================================
+\chapter{Plan de exploracion sugerido}
+
+Para el equipo del INTISAT (4 personas), proponemos dividir la
+investigacion de OreSat en 1 semana:
+
+\begin{center}
+\begin{tabular}{p{1.2cm}p{5.5cm}p{7cm}}
+\toprule
+\textbf{Dia} & \textbf{Repo / tema} & \textbf{Que extraer} \\
+\midrule
+1 & \texttt{oresat-c3-software} & arquitectura del OBC con Linux: como dividen servicios, como manejan estados \\
+2 & \texttt{oresat-cans} + \texttt{oresat-firmware} & como definen CAN messages y los mapean a firmware \\
+3 & \texttt{oresat0-imager} & comparar con tu payload de microscopia: que es comun, que es distinto \\
+4 & \texttt{oresat-launch-services} & inspiracion para tu ground station \\
+5 & Documentacion publica (wiki / docs) & lessons learned \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Output esperado al final de la semana}
+
+\begin{itemize}[leftmargin=2em]
+  \item Lista de 5-10 practicas concretas que adoptar en INTISAT.
+  \item Lista de 3-5 cosas a NO copiar (porque no aplican).
+  \item Borrador de una arquitectura modular para INTISAT v2.
+\end{itemize}
+
+% =====================================================================
+\chapter{Conclusion y proximos pasos}
+
+OreSat es probablemente el \textbf{mejor caso de estudio publico}
+para un CubeSat academico operativo. Vale la pena que el equipo de
+INTISAT lo revise en profundidad.
+
+\begin{recomendacion}
+\textbf{Tres acciones concretas para esta semana}:
+
+\begin{enumerate}[leftmargin=2em]
+  \item Cada miembro del equipo clona un repo de OreSat segun la tabla
+        del Capitulo 7 y lo explora 2 horas.
+  \item Reunion del equipo (1 hr) para sintetizar: que adoptar, que no.
+  \item Agregar \texttt{LICENSE} y \texttt{CONTRIBUTING.md} al
+        repositorio del INTISAT (1 hora).
+\end{enumerate}
+\end{recomendacion}
+
+\begin{caveat}
+Este resumen ejecutivo se basa en informacion publica de OreSat al
+momento de redaccion. Para detalles tecnicos especificos (nombres exactos
+de repos, version de los protocolos, etc.) verificar siempre contra
+\url{https://github.com/oresat} y \url{https://oresat.org}.
+\end{caveat}
+
+\section{Enlaces principales}
+
+\begin{itemize}[leftmargin=2em]
+  \item Organizacion GitHub: \url{https://github.com/oresat}
+  \item Sitio web: \url{https://oresat.org}
+  \item Portland State Aerospace Society: \url{https://psas.pdx.edu}
+  \item Libre Space Foundation (aliados): \url{https://libre.space}
+\end{itemize}
+
+\end{document}
