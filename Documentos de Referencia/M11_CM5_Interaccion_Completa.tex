@@ -5,6 +5,7 @@
 \usepackage{lmodern}
 \usepackage{amsmath, amssymb, amsthm}
 \usepackage{graphicx}
+\graphicspath{{figuras/}}
 \usepackage[dvipsnames]{xcolor}
 \usepackage{tikz}
 \usepackage{listings}
@@ -174,33 +175,7 @@ en una caja" a "subsistema integrado en un satelite".
 \section{La forma fisica del sandwich}
 
 \begin{center}
-\begin{tikzpicture}[scale=0.9]
-% CM5
-\draw[fill=blue!20, thick] (0,2) rectangle (6,3);
-\node at (3, 2.5) {\textbf{Compute Module 5} ($55 \times 40$ mm)};
-% Mezzanine
-\draw[fill=gray!40] (0.3, 1.8) rectangle (2.8, 2.0);
-\draw[fill=gray!40] (3.2, 1.8) rectangle (5.7, 2.0);
-\node[font=\tiny] at (1.55, 1.9) {DF40C-100DS J1};
-\node[font=\tiny] at (4.45, 1.9) {DF40C-100DS J2};
-% Carrier
-\draw[fill=green!10, thick] (-1, 0) rectangle (7, 1.8);
-\node at (3, 0.9) {\textbf{Carrier board} ($\sim 90 \times 90$ mm)};
-% Conectores carrier
-\draw[fill=yellow!30] (0, -0.3) rectangle (1.2, 0);
-\node[font=\tiny] at (0.6, -0.15) {PC-104 H1};
-\draw[fill=yellow!30] (1.5, -0.3) rectangle (2.7, 0);
-\node[font=\tiny] at (2.1, -0.15) {PC-104 H2};
-\draw[fill=yellow!30] (3, -0.3) rectangle (4, 0);
-\node[font=\tiny] at (3.5, -0.15) {FFC CSI-2};
-\draw[fill=yellow!30] (4.3, -0.3) rectangle (5, 0);
-\node[font=\tiny] at (4.65, -0.15) {SPI OLED};
-\draw[fill=yellow!30] (5.3, -0.3) rectangle (5.9, 0);
-\node[font=\tiny] at (5.6, -0.15) {Debug};
-% Cotas
-\draw[<->] (-1.3, 1.8) -- (-1.3, 3);
-\node[rotate=90, font=\tiny] at (-1.5, 2.4) {1.5 mm stack};
-\end{tikzpicture}
+\includegraphics[width=0.92\linewidth]{fig01_sandwich.png}
 \end{center}
 
 El CM5 se enchufa hacia abajo en los dos conectores hembra DF40 montados
@@ -389,28 +364,7 @@ Desde los paneles solares del INTISAT hasta los nucleos del CM5, la
 energia atraviesa 7 etapas:
 
 \begin{center}
-\begin{tikzpicture}[scale=0.85, node distance=0.5cm, every node/.style={font=\small}]
-\node[draw, fill=yellow!20] (sol) {Paneles solares};
-\node[draw, fill=yellow!20, right=of sol] (mppt) {MPPT};
-\node[draw, fill=yellow!20, right=of mppt] (bat) {Bateria Li-ion};
-\node[draw, fill=blue!10, below=of bat] (rail) {Rail 5V\_PAYLOAD};
-\node[draw, fill=red!10, left=of rail] (fuse) {Fusible PTC};
-\node[draw, fill=red!10, left=of fuse] (diodo) {Diodo Schottky};
-\node[draw, fill=red!10, left=of diodo] (ldo) {LDO 5V/6A};
-\node[draw, fill=green!10, below=of ldo] (ina) {INA219};
-\node[draw, fill=green!10, right=of ina] (cm5) {CM5 5V IN};
-\node[draw, fill=green!10, right=of cm5] (pmic) {PMIC interna};
-
-\draw[->] (sol) -- (mppt);
-\draw[->] (mppt) -- (bat);
-\draw[->] (bat) -- (rail);
-\draw[->] (rail) -- (fuse);
-\draw[->] (fuse) -- (diodo);
-\draw[->] (diodo) -- (ldo);
-\draw[->] (ldo) -- (ina);
-\draw[->] (ina) -- (cm5);
-\draw[->] (cm5) -- (pmic);
-\end{tikzpicture}
+\includegraphics[width=\linewidth]{fig02_energia.png}
 \end{center}
 
 Tu carrier toma el rail 5V\_PAYLOAD del PC-104 y, antes de pasar al CM5,
@@ -602,15 +556,7 @@ Precio               & USD 1 \\
 \subsection{Conexion en el carrier}
 
 \begin{center}
-\begin{tikzpicture}[scale=0.9, every node/.style={font=\small}]
-\node[draw, fill=blue!10] (cm5) at (0, 1) {CM5 GPIO2/3 @ 3.3V};
-\node[draw, fill=gray!10] (txs) at (4, 1) {TXS0108E};
-\node[draw, fill=yellow!10] (obc) at (8, 1) {OBC SDA2/SCL2 @ 3.3V o 5V};
-\draw[<->] (cm5) -- node[above] {SDA, SCL} (txs);
-\draw[<->] (txs) -- node[above] {SDA, SCL} (obc);
-\node[font=\tiny] at (2, 0.3) {pull-up 4.7k a 3.3V};
-\node[font=\tiny] at (6, 0.3) {pull-up 4.7k a Vbus};
-\end{tikzpicture}
+\includegraphics[width=\linewidth]{fig03_i2c.png}
 \end{center}
 
 \subsection{Configuracion del enable}
@@ -1005,18 +951,7 @@ Precio (modulo) & USD 5 \\
 \section{Conexion al carrier}
 
 \begin{center}
-\begin{tikzpicture}[scale=0.9, every node/.style={font=\small}]
-\node[draw, fill=yellow!20] (in) at (0, 1) {5V del LTM4631};
-\node[draw, fill=red!10] (rs) at (3, 1) {Shunt 0.1$\Omega$};
-\node[draw, fill=yellow!20] (out) at (6, 1) {5V al CM5};
-\node[draw, fill=blue!10] (ina) at (3, -0.5) {INA219};
-\draw[->] (in) -- (rs);
-\draw[->] (rs) -- (out);
-\draw[->] (in) |- (ina);
-\draw[->] (out) |- (ina);
-\node[font=\tiny] at (3, -1.5) {SDA, SCL al CM5 (I2C bus 2)};
-\draw[->] (ina) -- (3, -2);
-\end{tikzpicture}
+\includegraphics[width=\linewidth]{fig04_ina219.png}
 \end{center}
 
 \section{I2C bus separado}
