@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<title>Modos de operacion: Payload INTISAT y OBC</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<style>
+  :root {
+    --intisat:    #1A365D;
+    --accent:     #C58F00;
+    --idle:       #2C5282;
+    --active:     #319795;
+    --ai:         #805AD5;
+    --output:     #2F855A;
+    --safe:       #718096;
+    --error:      #C53030;
+    --ota:        #B7791F;
+    --bg:         #F7FAFC;
+    --text:       #2D3748;
+    --muted:      #718096;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: white;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    color: var(--text);
+  }
+  header {
+    background: linear-gradient(135deg, var(--intisat), #3b5bdb);
+    color: white;
+    padding: 24px 48px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  }
+  header h1 {
+    margin: 0 0 6px;
+    font-size: 22px;
+    font-weight: 700;
+  }
+  header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 14px;
+  }
+  .toolbar {
+    background: var(--bg);
+    padding: 10px 48px;
+    border-bottom: 1px solid #e1e4e8;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  main {
+    padding: 24px 48px;
+    max-width: 1500px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 24px;
+  }
+  @media (max-width: 1100px) {
+    main { grid-template-columns: 1fr; }
+  }
+  .diagram-container {
+    background: white;
+    border: 1px solid #e1e4e8;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  }
+  svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .state {
+    cursor: pointer;
+    transition: filter 0.15s ease, transform 0.15s ease;
+    transform-origin: center;
+    transform-box: fill-box;
+  }
+  .state:hover {
+    filter: brightness(1.1) drop-shadow(0 4px 8px rgba(0,0,0,.2));
+  }
+  .state.selected ellipse, .state.selected rect {
+    stroke: var(--accent);
+    stroke-width: 4;
+  }
+  .transition-label {
+    font-size: 9px;
+    fill: #555;
+    font-style: italic;
+  }
+
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .panel {
+    background: white;
+    border: 1px solid #e1e4e8;
+    border-radius: 12px;
+    padding: 18px 22px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  }
+  .panel h2 {
+    margin: 0 0 12px;
+    color: var(--intisat);
+    font-size: 16px;
+    font-weight: 700;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--accent);
+  }
+  .legend-grid {
+    display: grid;
+    grid-template-columns: 16px 1fr;
+    gap: 8px 10px;
+    font-size: 13px;
+  }
+  .swatch { width: 16px; height: 16px; border-radius: 3px; margin-top: 3px; }
+
+  .cmd-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 13px;
+  }
+  .cmd-list li {
+    padding: 6px 0;
+    border-bottom: 1px solid #f1f3f5;
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 10px;
+  }
+  .cmd-list li:last-child { border-bottom: none; }
+  .cmd-code {
+    font-family: 'Consolas', 'Monaco', monospace;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  #state-info {
+    min-height: 120px;
+  }
+  #state-info .info-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  #state-info .info-meta {
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  #state-info .info-desc {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  #state-info .info-list {
+    margin: 8px 0 0;
+    padding-left: 18px;
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    padding: 24px;
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Modos de operacion del payload INTISAT y dialogo con el OBC</h1>
+  <p>Maquina de estados del daemon · transiciones disparadas por comandos I2C o eventos internos</p>
+</header>
+
+<div class="toolbar">
+  Click sobre un estado para ver su descripcion. El OBC controla las transiciones desde la columna derecha.
+</div>
+
+<main>
+
+  <!-- ─── Diagrama de estados ─── -->
+  <div class="diagram-container">
+    <svg id="diagram" viewBox="0 0 900 700" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+          <polygon points="0 0, 10 3, 0 6" fill="#444"/>
+        </marker>
+        <marker id="arrow-error" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+          <polygon points="0 0, 10 3, 0 6" fill="#C53030"/>
+        </marker>
+        <marker id="arrow-recover" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+          <polygon points="0 0, 10 3, 0 6" fill="#2F855A"/>
+        </marker>
+      </defs>
+
+      <!-- Titulo -->
+      <text x="450" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#1A365D">
+        Maquina de estados del daemon
+      </text>
+
+      <!-- Estado inicial: punto -->
+      <circle cx="100" cy="100" r="6" fill="#1A365D"/>
+      <text x="80" y="105" text-anchor="end" font-size="10" fill="#666">[start]</text>
+
+      <!-- BOOT -->
+      <g class="state" data-state="BOOT" onclick="selectState('BOOT')">
+        <ellipse cx="200" cy="100" rx="60" ry="32" fill="#A0AEC0"/>
+        <text x="200" y="98" text-anchor="middle" fill="white" font-size="14" font-weight="700">BOOT</text>
+        <text x="200" y="113" text-anchor="middle" fill="white" font-size="9">arranque sistema</text>
+      </g>
+
+      <!-- IDLE -->
+      <g class="state" data-state="IDLE" onclick="selectState('IDLE')">
+        <ellipse cx="450" cy="200" rx="65" ry="35" fill="#2C5282"/>
+        <text x="450" y="198" text-anchor="middle" fill="white" font-size="15" font-weight="700">IDLE</text>
+        <text x="450" y="215" text-anchor="middle" fill="white" font-size="9">espera comando</text>
+      </g>
+
+      <!-- CAPTURING -->
+      <g class="state" data-state="CAPTURING" onclick="selectState('CAPTURING')">
+        <ellipse cx="650" cy="120" rx="65" ry="32" fill="#319795"/>
+        <text x="650" y="118" text-anchor="middle" fill="white" font-size="14" font-weight="700">CAPTURING</text>
+        <text x="650" y="133" text-anchor="middle" fill="white" font-size="9">25 frames OLED</text>
+      </g>
+
+      <!-- PROCESSING -->
+      <g class="state" data-state="PROCESSING" onclick="selectState('PROCESSING')">
+        <ellipse cx="780" cy="240" rx="65" ry="32" fill="#805AD5"/>
+        <text x="780" y="238" text-anchor="middle" fill="white" font-size="14" font-weight="700">PROCESSING</text>
+        <text x="780" y="253" text-anchor="middle" fill="white" font-size="9">pipeline IA</text>
+      </g>
+
+      <!-- EXPORTING -->
+      <g class="state" data-state="EXPORTING" onclick="selectState('EXPORTING')">
+        <ellipse cx="780" cy="360" rx="65" ry="32" fill="#2F855A"/>
+        <text x="780" y="358" text-anchor="middle" fill="white" font-size="14" font-weight="700">EXPORTING</text>
+        <text x="780" y="373" text-anchor="middle" fill="white" font-size="9">escribe results</text>
+      </g>
+
+      <!-- DOWNLINK -->
+      <g class="state" data-state="DOWNLINK" onclick="selectState('DOWNLINK')">
+        <ellipse cx="600" cy="450" rx="65" ry="32" fill="#2F855A"/>
+        <text x="600" y="448" text-anchor="middle" fill="white" font-size="14" font-weight="700">DOWNLINK</text>
+        <text x="600" y="463" text-anchor="middle" fill="white" font-size="9">chunked I2C</text>
+      </g>
+
+      <!-- SAFE_MODE -->
+      <g class="state" data-state="SAFE_MODE" onclick="selectState('SAFE_MODE')">
+        <ellipse cx="180" cy="350" rx="65" ry="32" fill="#718096"/>
+        <text x="180" y="348" text-anchor="middle" fill="white" font-size="14" font-weight="700">SAFE_MODE</text>
+        <text x="180" y="363" text-anchor="middle" fill="white" font-size="9">apagado parcial</text>
+      </g>
+
+      <!-- ERROR -->
+      <g class="state" data-state="ERROR" onclick="selectState('ERROR')">
+        <ellipse cx="180" cy="540" rx="65" ry="32" fill="#C53030"/>
+        <text x="180" y="538" text-anchor="middle" fill="white" font-size="14" font-weight="700">ERROR</text>
+        <text x="180" y="553" text-anchor="middle" fill="white" font-size="9">falla detectada</text>
+      </g>
+
+      <!-- OTA -->
+      <g class="state" data-state="OTA" onclick="selectState('OTA')">
+        <ellipse cx="450" cy="580" rx="65" ry="32" fill="#B7791F"/>
+        <text x="450" y="578" text-anchor="middle" fill="white" font-size="14" font-weight="700">OTA</text>
+        <text x="450" y="593" text-anchor="middle" fill="white" font-size="9">update firmware</text>
+      </g>
+
+      <!-- ─── Transiciones ─── -->
+
+      <!-- start → BOOT -->
+      <line x1="106" y1="100" x2="140" y2="100" stroke="#444" stroke-width="2" marker-end="url(#arrow)"/>
+
+      <!-- BOOT → IDLE -->
+      <path d="M 245 120 Q 320 175 388 195" fill="none" stroke="#444" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="305" y="155" class="transition-label">boot OK</text>
+
+      <!-- BOOT → ERROR (init fail) -->
+      <path d="M 175 132 Q 130 280 165 510" fill="none" stroke="#C53030" stroke-width="2"
+            stroke-dasharray="5,3" marker-end="url(#arrow-error)"/>
+      <text x="100" y="320" class="transition-label" fill="#C53030">fallo init</text>
+
+      <!-- IDLE → CAPTURING -->
+      <path d="M 510 185 Q 580 145 590 130" fill="none" stroke="#444" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="540" y="148" class="transition-label">CMD_START_CAPTURE</text>
+
+      <!-- CAPTURING → PROCESSING -->
+      <path d="M 695 145 Q 760 175 765 210" fill="none" stroke="#444" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="735" y="172" class="transition-label">25 frames OK</text>
+
+      <!-- PROCESSING → EXPORTING -->
+      <line x1="780" y1="272" x2="780" y2="328" stroke="#444" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="785" y="305" class="transition-label">IA OK</text>
+
+      <!-- EXPORTING → DOWNLINK -->
+      <path d="M 738 386 Q 680 430 660 440" fill="none" stroke="#444" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="700" y="425" class="transition-label">files listos</text>
+
+      <!-- DOWNLINK → IDLE -->
+      <path d="M 540 440 Q 470 350 470 235" fill="none" stroke="#2F855A" stroke-width="2" marker-end="url(#arrow-recover)"/>
+      <text x="430" y="335" class="transition-label" fill="#2F855A">downlink OK</text>
+
+      <!-- IDLE → SAFE_MODE -->
+      <path d="M 388 220 Q 280 270 235 330" fill="none" stroke="#444" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="280" y="270" class="transition-label">CMD_SAFE_MODE</text>
+
+      <!-- SAFE_MODE → IDLE -->
+      <path d="M 230 325 Q 320 245 388 215" fill="none" stroke="#2F855A" stroke-width="2" marker-end="url(#arrow-recover)"/>
+      <text x="295" y="245" class="transition-label" fill="#2F855A">CMD_RESUME</text>
+
+      <!-- CAPTURING/PROCESSING/EXPORTING → ERROR (3 lineas) -->
+      <path d="M 590 130 Q 350 280 230 510" fill="none" stroke="#C53030" stroke-width="1.5"
+            stroke-dasharray="4,3" marker-end="url(#arrow-error)"/>
+      <text x="370" y="345" class="transition-label" fill="#C53030">fallo sensor</text>
+
+      <path d="M 720 250 Q 470 380 240 535" fill="none" stroke="#C53030" stroke-width="1.5"
+            stroke-dasharray="4,3" marker-end="url(#arrow-error)"/>
+      <text x="500" y="445" class="transition-label" fill="#C53030">fallo IA</text>
+
+      <!-- ERROR → IDLE -->
+      <path d="M 240 525 Q 350 380 410 220" fill="none" stroke="#2F855A" stroke-width="2" marker-end="url(#arrow-recover)"/>
+      <text x="320" y="430" class="transition-label" fill="#2F855A">CMD_RESUME</text>
+
+      <!-- IDLE → OTA -->
+      <path d="M 450 235 Q 450 400 450 548" fill="none" stroke="#444" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="455" y="395" class="transition-label">CMD_OTA_COMMIT</text>
+
+      <!-- OTA → IDLE -->
+      <path d="M 460 548 Q 530 400 470 235" fill="none" stroke="#2F855A" stroke-width="2" marker-end="url(#arrow-recover)"/>
+      <text x="510" y="395" class="transition-label" fill="#2F855A">checkout OK</text>
+
+      <!-- OTA → ERROR (rollback) -->
+      <path d="M 390 590 Q 280 580 220 570" fill="none" stroke="#C53030" stroke-width="2"
+            stroke-dasharray="5,3" marker-end="url(#arrow-error)"/>
+      <text x="290" y="600" class="transition-label" fill="#C53030">rollback</text>
+
+      <!-- Watchdog (auto-loop) sobre PROCESSING -->
+      <path d="M 845 235 Q 880 245 870 270 Q 855 290 845 270" fill="none" stroke="#666" stroke-width="1.5"
+            stroke-dasharray="3,2"/>
+      <text x="880" y="255" class="transition-label" fill="#666">WDT 600s</text>
+
+    </svg>
+  </div>
+
+  <!-- ─── Sidebar ─── -->
+  <div class="sidebar">
+
+    <div class="panel" id="state-info">
+      <div class="info-title" style="color: var(--idle)">IDLE</div>
+      <div class="info-meta">Estado por defecto · espera comando</div>
+      <div class="info-desc">
+        El daemon esta vivo pero sin trabajo activo. Mantiene el watchdog systemd
+        latiendo, lee la cola de comandos cada 100 ms, y permite que telemetry siga
+        publicando snapshots cada 30 s.
+      </div>
+      <ul class="info-list">
+        <li><b>Potencia tipica:</b> ~ 3 W</li>
+        <li><b>CPU:</b> 1.5 GHz, ~ 5% promedio</li>
+        <li><b>Tiempo en orbita:</b> ~ 90% del total</li>
+        <li><b>Sale por:</b> CMD_START_CAPTURE, CMD_SAFE_MODE, CMD_OTA_COMMIT</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>Comandos del OBC (I2C 0x42)</h2>
+      <ul class="cmd-list">
+        <li><span class="cmd-code">0x01</span><span>CMD_GET_STATUS — pide estado actual</span></li>
+        <li><span class="cmd-code">0x02</span><span>CMD_START_CAPTURE — dispara scan</span></li>
+        <li><span class="cmd-code">0x03</span><span>CMD_STOP — cancela scan en curso</span></li>
+        <li><span class="cmd-code">0x04</span><span>CMD_GET_LAST_SUMMARY — chunked</span></li>
+        <li><span class="cmd-code">0x05</span><span>CMD_GET_TELEMETRY — chunked</span></li>
+        <li><span class="cmd-code">0x06</span><span>CMD_GET_THUMBNAIL — chunked 100 KB</span></li>
+        <li><span class="cmd-code">0x07</span><span>CMD_GET_DATA_CSV — chunked on-demand</span></li>
+        <li><span class="cmd-code">0x08</span><span>CMD_LIST_RESULTS — scans disponibles</span></li>
+        <li><span class="cmd-code">0x10</span><span>CMD_SAFE_MODE — apagado parcial</span></li>
+        <li><span class="cmd-code">0x11</span><span>CMD_RESUME — sale de safe</span></li>
+        <li><span class="cmd-code">0x20</span><span>CMD_OTA_PREPARE — verifica hash</span></li>
+        <li><span class="cmd-code">0x21</span><span>CMD_OTA_COMMIT — aplica update</span></li>
+        <li><span class="cmd-code">0x30</span><span>CMD_REBOOT — reinicio suave</span></li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>Leyenda de colores</h2>
+      <div class="legend-grid">
+        <div class="swatch" style="background:#A0AEC0"></div><div>BOOT — arranque inicial</div>
+        <div class="swatch" style="background:#2C5282"></div><div>IDLE — espera comandos</div>
+        <div class="swatch" style="background:#319795"></div><div>CAPTURING — sensor + OLED</div>
+        <div class="swatch" style="background:#805AD5"></div><div>PROCESSING — IA</div>
+        <div class="swatch" style="background:#2F855A"></div><div>EXPORT/DOWNLINK — output</div>
+        <div class="swatch" style="background:#718096"></div><div>SAFE_MODE — bajo consumo</div>
+        <div class="swatch" style="background:#C53030"></div><div>ERROR — falla</div>
+        <div class="swatch" style="background:#B7791F"></div><div>OTA — update en curso</div>
+      </div>
+      <p style="margin: 14px 0 0; font-size: 12px; color: var(--muted); line-height: 1.5;">
+        <b>Lineas continuas</b> = transiciones nominales.<br/>
+        <b>Lineas punteadas rojas</b> = errores.<br/>
+        <b>Lineas verdes</b> = recuperacion.
+      </p>
+    </div>
+
+  </div>
+
+</main>
+
+<footer>
+  Diagrama de estados del daemon cubesat/daemon.py · INTISAT · github.com/JaminYC/CubeSat-EdgeAI-Payload
+</footer>
+
+<script>
+  const stateData = {
+    BOOT: {
+      color: '#A0AEC0',
+      title: 'BOOT',
+      meta: 'Arranque · ~5–10 s',
+      desc: 'Systemd levanta los 3 servicios (pigpiod, i2c-slave, pipeline). Se inicializa el sensor OV5647, se conecta el OLED, se carga la configuracion. No responde I2C todavia.',
+      list: [
+        '<b>Potencia:</b> ~ 5 W (boot transient hasta 8 W)',
+        '<b>Duracion:</b> 30 a 60 s tipicos',
+        '<b>Watchdog:</b> ya activo (RPi rebootea si se cuelga)',
+        '<b>Salida:</b> automatic a IDLE cuando todo OK'
+      ]
+    },
+    IDLE: {
+      color: '#2C5282',
+      title: 'IDLE',
+      meta: 'Estado por defecto · espera comando',
+      desc: 'El daemon esta vivo pero sin trabajo activo. Mantiene el watchdog systemd latiendo, lee la cola de comandos cada 100 ms, y permite que telemetry siga publicando snapshots cada 30 s.',
+      list: [
+        '<b>Potencia tipica:</b> ~ 3 W',
+        '<b>CPU:</b> 1.5 GHz, ~ 5% promedio',
+        '<b>Tiempo en orbita:</b> ~ 90% del total',
+        '<b>Sale por:</b> CMD_START_CAPTURE, CMD_SAFE_MODE, CMD_OTA_COMMIT'
+      ]
+    },
+    CAPTURING: {
+      color: '#319795',
+      title: 'CAPTURING',
+      meta: '25 frames OLED + sensor · ~ 8–10 s',
+      desc: 'El daemon enciende el OLED en cada uno de los 25 angulos (5x5) y dispara una captura de la OV5647 por cada uno. Cada captura se guarda como cap_NN.jpg con escritura atomica (.tmp → rename).',
+      list: [
+        '<b>Potencia:</b> ~ 5.9 W',
+        '<b>Duracion:</b> 8–10 s para 25 frames',
+        '<b>Datos generados:</b> 24 MB raw',
+        '<b>Salida nominal:</b> a PROCESSING al completar',
+        '<b>Salida error:</b> a ERROR si falla sensor / OLED'
+      ]
+    },
+    PROCESSING: {
+      color: '#805AD5',
+      title: 'PROCESSING',
+      meta: 'Pipeline IA · ~ 30–45 s',
+      desc: 'Corre el pipeline IA completo sobre los 25 frames: preprocesamiento (CLAHE + denoise), mejora opcional (N2V/CARE), segmentacion (StarDist/Cellpose), medicion (areas + perimetros).',
+      list: [
+        '<b>Potencia:</b> ~ 7.5 W (CPU al 90–100%)',
+        '<b>Duracion:</b> 30 s en modo single, 44 s en FPM',
+        '<b>Watchdog:</b> WatchdogSec=600 (sd_notify cada 10 s)',
+        '<b>Salida nominal:</b> a EXPORTING',
+        '<b>Riesgo:</b> throttling termico si CPU > 80°C'
+      ]
+    },
+    EXPORTING: {
+      color: '#2F855A',
+      title: 'EXPORTING',
+      meta: 'Escritura de outputs · < 1 s',
+      desc: 'Genera y escribe en /var/cubesat/results/scan_UTC/: overlay.png (con bordes celulares), mask.png (binaria), data.csv (metricas por celula), summary.json (resumen estadistico).',
+      list: [
+        '<b>Potencia:</b> ~ 4 W',
+        '<b>Duracion:</b> < 1 s',
+        '<b>Tamaño tipico:</b> 3–5 MB outputs',
+        '<b>Atomicidad:</b> escribe .tmp y renombra al final',
+        '<b>Salida:</b> a DOWNLINK para empaquetar thumbnail'
+      ]
+    },
+    DOWNLINK: {
+      color: '#2F855A',
+      title: 'DOWNLINK',
+      meta: 'Empaqueta y transmite · 10–60 s',
+      desc: 'Genera thumbnail JPEG 640x480 (~100 KB) y lo deja en /var/cubesat/downlink/. Cuando el OBC pide CMD_GET_THUMBNAIL, lo manda chunked en frames de 30 bytes via I2C.',
+      list: [
+        '<b>Potencia:</b> ~ 4 W',
+        '<b>Duracion:</b> 10 s a 100 kHz I2C',
+        '<b>Datos:</b> 100 KB thumbnail (3814x compresion vs raw)',
+        '<b>Salida:</b> a IDLE al terminar la transmision',
+        '<b>OBC tambien puede pedir:</b> summary.json, data.csv, telemetry'
+      ]
+    },
+    SAFE_MODE: {
+      color: '#718096',
+      title: 'SAFE_MODE',
+      meta: 'Apagado parcial · indefinido',
+      desc: 'OBC pidio reducir consumo (eclipse, anomalia EPS, paso por SAA). El daemon apaga OLED, suspende captura y procesamiento, mantiene solo el I2C slave y telemetry minimal. No responde a CMD_START_CAPTURE.',
+      list: [
+        '<b>Potencia:</b> ~ 1 W (objetivo)',
+        '<b>Duracion:</b> hasta que OBC envie CMD_RESUME',
+        '<b>Que sigue activo:</b> I2C slave, telemetry cada 60 s',
+        '<b>Que se apaga:</b> OLED, sensor, pipeline IA',
+        '<b>Salida:</b> CMD_RESUME → IDLE'
+      ]
+    },
+    ERROR: {
+      color: '#C53030',
+      title: 'ERROR',
+      meta: 'Falla detectada · esperando intervencion',
+      desc: 'Algo fallo durante la operacion: sensor no responde, OLED desconectado, pipeline IA crasheo, disco lleno, OTA fallo. El daemon publica el codigo de error en status.json y espera CMD_RESUME del OBC para volver a IDLE.',
+      list: [
+        '<b>Potencia:</b> ~ 3 W (similar a IDLE)',
+        '<b>Que hace:</b> registra error en /run/cubesat/status.json',
+        '<b>OBC ve el error con:</b> CMD_GET_STATUS',
+        '<b>Recuperacion automatica:</b> watchdog systemd reinicia el daemon',
+        '<b>Salida manual:</b> CMD_RESUME → IDLE'
+      ]
+    },
+    OTA: {
+      color: '#B7791F',
+      title: 'OTA',
+      meta: 'Update de firmware · ~ 30–90 s',
+      desc: 'El OBC envio el hash del nuevo commit y CMD_OTA_COMMIT. El daemon hace git checkout, pip install requirements, reinicia los servicios. Si el health check post-update falla, hace rollback automatico al commit anterior.',
+      list: [
+        '<b>Potencia:</b> ~ 5 W',
+        '<b>Duracion:</b> 30 a 90 s',
+        '<b>Validacion:</b> health check (status.json OK en 30 s)',
+        '<b>Rollback:</b> automatico si falla el check',
+        '<b>Salida nominal:</b> IDLE con codigo nuevo',
+        '<b>Salida error:</b> ERROR con rollback al commit anterior'
+      ]
+    }
+  };
+
+  function selectState(name) {
+    document.querySelectorAll('.state').forEach(g => g.classList.remove('selected'));
+    const target = document.querySelector(`.state[data-state="${name}"]`);
+    if (target) target.classList.add('selected');
+
+    const data = stateData[name];
+    if (!data) return;
+
+    const el = document.getElementById('state-info');
+    el.innerHTML = `
+      <div class="info-title" style="color: ${data.color}">${data.title}</div>
+      <div class="info-meta">${data.meta}</div>
+      <div class="info-desc">${data.desc}</div>
+      <ul class="info-list">${data.list.map(x => `<li>${x}</li>`).join('')}</ul>
+    `;
+  }
+
+  // Inicial
+  selectState('IDLE');
+</script>
+
+</body>
+</html>

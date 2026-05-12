@@ -70,9 +70,23 @@ Planes y guias para el equipo.
 
 **Total**: 47+ paginas
 
+### 06_Diagramas_Interactivos/
+
+Documentos HTML interactivos con diagramas Mermaid/SVG. Se abren en
+cualquier navegador con doble click, sin software adicional.
+
+| Archivo | Tema |
+|---|---|
+| `state_machines_cubesat.html` | maquinas de estado completas (mision + 5 subsistemas) + matriz operacional + comparacion contra INTISAT |
+| `architecture.html` | 6 diagramas Mermaid de la arquitectura del payload (HW, SW, scan lifecycle, I2C, estados, OTA) |
+| `pipeline_general.html` | flujo del pipeline IA en 5 fases (recepcion, captura, procesamiento, storage, downlink) |
+| `modos_operacion.html` | modos de operacion del payload con click interactivo en cada estado |
+
+**Total**: 4 HTMLs interactivos. Todos con boton de "Imprimir / PDF" si necesitan version impresa.
+
 ## Resumen
 
-**15 PDFs**, **~380 paginas** de material tecnico.
+**15 PDFs + 4 HTMLs**, **~380 paginas + diagramas interactivos** de material tecnico.
 
 ## Como usar
 
