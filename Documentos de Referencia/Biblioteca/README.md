@@ -20,10 +20,11 @@ electronicas.
 | `M2_Sistemas_Potencia_EPS.pdf` | 13 | EPS, paneles solares, bateria |
 | `M5_Flight_Software.pdf` | 17 | software de a bordo |
 | `M10_CM5_Carrier_INTISAT.pdf` | 27 | diseño del carrier para CM5 |
+| `M11_CM5_Interaccion_Completa.pdf` | 38 | interaccion CM5 con todo el payload (pines, buses, boot, flujo de datos) |
 | `Manual_Electronica_Practica.pdf` | 44 | electronica desde cero |
 | `Raspberry_Pi_5_Profundo.pdf` | 25 | deep dive del Pi 5 |
 
-**Total**: 155 paginas
+**Total**: 193 paginas
 
 ### 02_Libros_y_Cursos/
 
@@ -86,7 +87,7 @@ cualquier navegador con doble click, sin software adicional.
 
 ## Resumen
 
-**15 PDFs + 4 HTMLs**, **~380 paginas + diagramas interactivos** de material tecnico.
+**16 PDFs + 4 HTMLs**, **~418 paginas + diagramas interactivos** de material tecnico.
 
 ## Como usar
 

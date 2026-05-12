@@ -1,0 +1,1547 @@
+\documentclass[11pt,a4paper,oneside,openright]{book}
+\usepackage[spanish,activeacute,es-noshorthands]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{geometry}
+\geometry{margin=2.5cm, headheight=14pt}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\usepackage{caption}
+\captionsetup{font=small, labelfont=bf}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true, linkcolor=NavyBlue, citecolor=ForestGreen, urlcolor=BrickRed,
+  pdftitle={M11 --- CM5 + carrier: interaccion completa},
+  pdfauthor={INTISAT}
+}
+
+\newtheorem{definicion}{Definicion}[chapter]
+\newtheorem*{nota}{Nota}
+
+\definecolor{codebg}{RGB}{248, 249, 250}
+\definecolor{codekey}{RGB}{86, 156, 214}
+\definecolor{codecomment}{RGB}{106, 153, 85}
+\definecolor{codestr}{RGB}{206, 145, 120}
+
+\lstdefinestyle{python}{
+  language=Python,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{codekey}\bfseries,
+  commentstyle=\color{codecomment}\itshape,
+  stringstyle=\color{codestr},
+  numberstyle=\tiny\color{gray},
+  numbers=left, numbersep=8pt,
+  frame=single, rulecolor=\color{gray!30},
+  framesep=4pt,
+  backgroundcolor=\color{codebg},
+  showstringspaces=false, breaklines=true, breakatwhitespace=true,
+  tabsize=2, captionpos=b,
+  literate={a}{{a}}1 {e}{{e}}1 {i}{{i}}1 {o}{{o}}1 {u}{{u}}1 {n}{{n}}1
+}
+\lstdefinestyle{shell}{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{codebg},
+  frame=single, rulecolor=\color{gray!30},
+  framesep=4pt, breaklines=true,
+  showstringspaces=false,
+  literate={a}{{a}}1 {e}{{e}}1 {i}{{i}}1 {o}{{o}}1 {u}{{u}}1 {n}{{n}}1
+}
+\lstset{style=python}
+
+\newtcolorbox{intuibox}[1][]{
+  colback=green!5, colframe=green!40!black,
+  fonttitle=\bfseries, title=Intuicion,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{calculo}[1][]{
+  colback=gray!4, colframe=gray!55,
+  fonttitle=\bfseries, title=Calculo,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{payload}[1][]{
+  colback=blue!4, colframe=blue!50!black,
+  fonttitle=\bfseries, title=Conexion con INTISAT,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{cuidado}[1][]{
+  colback=red!5, colframe=red!50!black,
+  fonttitle=\bfseries, title=Cuidado,
+  breakable, sharp corners=south, #1
+}
+\newtcolorbox{ejercicio}[1][]{
+  colback=orange!5, colframe=orange!60!black,
+  fonttitle=\bfseries, title=Ejercicios,
+  breakable, sharp corners=south, #1
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[RE]{\nouppercase{\leftmark}}
+\fancyhead[LO]{\nouppercase{\rightmark}}
+
+\title{\Huge\bfseries M11 --- Compute Module 5\\[0.4em]
+\Large Interaccion completa con el resto del payload INTISAT\\[0.6em]
+\large Manual de la coleccion CubeSat (M11 / 11)}
+\author{Coleccion CubeSat para el proyecto INTISAT}
+\date{\today}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+
+\chapter*{Prefacio}
+\addcontentsline{toc}{chapter}{Prefacio}
+
+Este manual responde una pregunta concreta: \emph{cuando reemplacemos el
+Raspberry Pi 5 de desarrollo por el Compute Module 5 montado en un carrier
+custom, exactamente como interactua con el resto del payload INTISAT?}
+
+No es un manual de PCB design (eso esta en \texttt{M10\_CM5\_Carrier\_INTISAT.pdf}).
+No es un manual de electronica basica (eso esta en
+\texttt{Manual\_Electronica\_Practica.pdf}). No es un curso de Linux
+(eso esta en \texttt{Raspberry\_Pi\_5\_Profundo.pdf}). Este manual cubre las
+\textbf{interacciones entre el CM5 y todo lo que lo rodea}: alimentacion,
+comunicacion con el OBC, control del sensor de imagen, control del OLED,
+monitoreo de potencia y boot sequence. Lo justo que necesitas saber para
+entender el sistema completo en funcionamiento.
+
+\section*{Audiencia}
+
+\begin{itemize}[leftmargin=2em]
+  \item Ingenieros del payload que vienen del prototipo Pi 5 y quieren
+        migrar al CM5.
+  \item Cualquier miembro del equipo que pregunte "como anda eso".
+  \item Operadores que tienen que diagnosticar problemas remotos.
+  \item Lideres tecnicos que deben validar el diseño.
+\end{itemize}
+
+\section*{Prerequisitos}
+
+\begin{itemize}[leftmargin=2em]
+  \item \texttt{Manual\_Electronica\_Practica.pdf} (capitulos 1--12).
+  \item \texttt{Raspberry\_Pi\_5\_Profundo.pdf} (capitulos 1--7).
+  \item \texttt{M10\_CM5\_Carrier\_INTISAT.pdf} (al menos el cap. 1).
+  \item Familiaridad con Python intermedio y Linux command line basico.
+\end{itemize}
+
+\section*{Como leer}
+
+El manual son 12 capitulos mas 3 apendices. Total $\sim 35$ paginas.
+Lectura completa: 1 dia laboral. Lectura selectiva: capitulos sueltos
+segun necesidad.
+
+\textbf{Cajas de color}:
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Verde} (Intuicion): analogias.
+  \item \textbf{Gris} (Calculo): formulas y derivaciones.
+  \item \textbf{Azul} (Conexion con INTISAT): como aplica a tu codigo.
+  \item \textbf{Rojo} (Cuidado): errores comunes.
+  \item \textbf{Naranja} (Ejercicios): preguntas para verificar.
+\end{itemize}
+
+\tableofcontents
+
+\mainmatter
+
+% =====================================================================
+\chapter{Vision general del sandwich CM5 + carrier}
+\label{ch:vision}
+
+\section{Por que importa entender esto}
+
+El Raspberry Pi 5 retail es un sistema \emph{cerrado}: vos enchufas el
+USB-C y todo funciona. El \textbf{CM5 es un sistema abierto}: viene en
+formato modulo, sin alimentacion propia, sin conectores externos. Es
+\textbf{tu trabajo} diseñar la PCB que provea todo eso: el \emph{carrier
+board}.
+
+Entender la interaccion CM5 + carrier es entender como pasa de "computadora
+en una caja" a "subsistema integrado en un satelite".
+
+\section{La forma fisica del sandwich}
+
+\begin{center}
+\begin{tikzpicture}[scale=0.9]
+% CM5
+\draw[fill=blue!20, thick] (0,2) rectangle (6,3);
+\node at (3, 2.5) {\textbf{Compute Module 5} ($55 \times 40$ mm)};
+% Mezzanine
+\draw[fill=gray!40] (0.3, 1.8) rectangle (2.8, 2.0);
+\draw[fill=gray!40] (3.2, 1.8) rectangle (5.7, 2.0);
+\node[font=\tiny] at (1.55, 1.9) {DF40C-100DS J1};
+\node[font=\tiny] at (4.45, 1.9) {DF40C-100DS J2};
+% Carrier
+\draw[fill=green!10, thick] (-1, 0) rectangle (7, 1.8);
+\node at (3, 0.9) {\textbf{Carrier board} ($\sim 90 \times 90$ mm)};
+% Conectores carrier
+\draw[fill=yellow!30] (0, -0.3) rectangle (1.2, 0);
+\node[font=\tiny] at (0.6, -0.15) {PC-104 H1};
+\draw[fill=yellow!30] (1.5, -0.3) rectangle (2.7, 0);
+\node[font=\tiny] at (2.1, -0.15) {PC-104 H2};
+\draw[fill=yellow!30] (3, -0.3) rectangle (4, 0);
+\node[font=\tiny] at (3.5, -0.15) {FFC CSI-2};
+\draw[fill=yellow!30] (4.3, -0.3) rectangle (5, 0);
+\node[font=\tiny] at (4.65, -0.15) {SPI OLED};
+\draw[fill=yellow!30] (5.3, -0.3) rectangle (5.9, 0);
+\node[font=\tiny] at (5.6, -0.15) {Debug};
+% Cotas
+\draw[<->] (-1.3, 1.8) -- (-1.3, 3);
+\node[rotate=90, font=\tiny] at (-1.5, 2.4) {1.5 mm stack};
+\end{tikzpicture}
+\end{center}
+
+El CM5 se enchufa hacia abajo en los dos conectores hembra DF40 montados
+en el carrier. Quedan a 1.5 mm de separacion (stack height nominal del
+DF40C-100DS-0.4V).
+
+\begin{intuibox}
+Pensa el CM5 como un \emph{modulo SO-DIMM} de una notebook. Vos no diseñas
+la SO-DIMM, la enchufas en la motherboard. La motherboard es el carrier.
+Vos diseñas la motherboard.
+\end{intuibox}
+
+\section{Las 5 funciones del carrier}
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Recibir alimentacion} del rail 5V\_PAYLOAD del INTISAT
+        (via conector PC-104).
+  \item \textbf{Regular esa alimentacion} y proteger al CM5 (LDO, fusible,
+        diodo Schottky).
+  \item \textbf{Conectar el CM5 a los buses externos}: I2C al OBC, CSI-2 al
+        sensor, SPI al OLED.
+  \item \textbf{Monitorear el consumo} con un sensor INA219.
+  \item \textbf{Proveer debug y boot}: UART exposed, boton de boot, LED de
+        status.
+\end{enumerate}
+
+\section{El stack PC-104 del INTISAT}
+
+El INTISAT es un CubeSat 3U. Internamente tiene un stack de PCBs apiladas
+con el estandar PC-104:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Posicion en el stack} & \textbf{Funcion} \\
+\midrule
+Top      & Payload (microscopia) --- tu carrier con CM5 \\
+Middle 1 & ADCS (control de actitud) \\
+Middle 2 & OBC central + COMMS \\
+Bottom   & EPS (paneles, bateria, distribucion) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Los 104 pines del PC-104 distribuyen todos los rails (5V, 3.3V, GND) y
+los buses (I2C\_1, I2C\_2, CAN, UART) entre todas las cards del stack.
+
+% =====================================================================
+\chapter{Los 200 pines del mezzanine}
+\label{ch:mezzanine}
+
+\section{El conector DF40 de Hirose}
+
+El CM5 expone toda su conectividad via 2 conectores hembra
+\textbf{Hirose DF40C-100DS-0.4V}:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Parametro} & \textbf{Valor} \\
+\midrule
+Pines              & 100 por conector $\times$ 2 = 200 totales \\
+Paso               & 0.4 mm \\
+Stack height       & 1.5 mm (nominal) \\
+Corriente max      & 0.5 A por pin \\
+Voltaje max        & 30 V \\
+Ciclos de mate     & 50 (no apto para conectores frecuentes) \\
+Encapsulado        & SMD, soldar con horno por reflow \\
+Precio             & USD 4 cada uno \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Donde comprarlos}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Mouser}: 855-DF40C-100DS-0.4V(81), USD 4.13.
+  \item \textbf{Digikey}: H125185CT-ND, USD 4.07.
+  \item \textbf{Arrow}: stock variable.
+\end{itemize}
+
+\begin{cuidado}
+Si soldas el DF40 al reves (rotado 180°), el CM5 NO encaja. Marca la
+orientacion en el silkscreen y verifica antes de soldar.
+\end{cuidado}
+
+\section{Categorias de pines}
+
+Los 200 pines del CM5 se dividen funcionalmente:
+
+\begin{center}
+\begin{tabular}{p{4cm}p{2cm}p{8cm}}
+\toprule
+\textbf{Categoria} & \textbf{Cantidad} & \textbf{Que llevan} \\
+\midrule
+Power IN              & 4   & 5V de entrada principal \\
+Power OUT             & 4   & 3V3 y 1V8 (que el CM5 te da para perifericos) \\
+GND                   & 30  & tierra, multiples para baja impedancia \\
+GPIO general          & 28  & los pines del header de la Pi 5 (BCM 0-27) \\
+USB                   & 16  & 4 puertos USB (2 USB 3.0 + 2 USB 2.0) \\
+Ethernet              & 8   & PHY signals (no incluye magnetics) \\
+HDMI                  & 19  & video out (TMDS, I2C, hot plug) \\
+DSI (display)         & 18  & 2 puertos para LCD/OLED grande \\
+CSI (camera)          & 18  & 2 puertos camera (4 lanes c/u) \\
+PCIe Gen 2            & 11  & 1 lane diferencial + clk + reset \\
+SDIO                  & 8   & para SD externa (no usado en CM5 con eMMC) \\
+RTC                   & 2   & VBAT + I2C del RTC \\
+Control               & 6   & nRUN (reset), nPOWER\_BTN, EEPROM\_nDIS, LED, etc. \\
+Reservado / NC        & 8   & no conectar \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Cuales uso y cuales no para el INTISAT}
+
+\begin{center}
+\small
+\begin{tabular}{p{3.5cm}p{1cm}p{1cm}p{7cm}}
+\toprule
+\textbf{Funcion} & \textbf{Uso?} & \textbf{Pines} & \textbf{Justificacion} \\
+\midrule
+5V IN               & Si   & 4   & alimentacion principal del CM5 \\
+GND                 & Si   & todos & tierra de retorno \\
+3V3 OUT             & Si   & 2-3 & alimentar TXS0108E, INA219, OLED \\
+I2C1 (GPIO 2/3)     & Si   & 2   & primario, hacia OBC \\
+SPI0 (GPIO 8-11)    & Si   & 4   & control del OLED SSD1351 \\
+GPIO 18, 24         & Si   & 2   & DC y RST del OLED \\
+CSI-2 (4 lanes)     & Si   & 18  & camara OV5647 \\
+USB                 & No   & 16  & innecesario en orbita \\
+HDMI                & No   & 19  & innecesario en orbita \\
+Ethernet            & No   & 8   & innecesario en orbita \\
+DSI                 & No   & 18  & no necesitamos display \\
+PCIe                & No   & 11  & no necesitamos SSD NVMe \\
+SDIO                & No   & 8   & usamos eMMC interna \\
+nRUN (reset)        & Si   & 1   & para reset hardware desde el carrier \\
+RTC VBAT            & Si   & 1   & opcional, mantener hora con bateria de boton \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{payload}
+Lo importante: \textbf{de los 200 pines, solo usas $\sim 50$}. Los otros 150
+quedan no-conectados en tu carrier. Esto te da flexibilidad para diseñar
+una PCB chica.
+\end{payload}
+
+\section{El pinout completo (extracto)}
+
+Los siguientes son los pines mas usados para tu carrier. Pinout completo:
+\url{https://datasheets.raspberrypi.com/cm5/cm5-datasheet.pdf}.
+
+\begin{center}
+\small
+\begin{tabular}{llll}
+\toprule
+\textbf{Pin J1} & \textbf{Funcion} & \textbf{Pin J2} & \textbf{Funcion} \\
+\midrule
+1   & GND               & 1   & GND \\
+3,5 & 5V\_IN            & 3,5 & 5V\_IN \\
+7,9 & 3V3\_OUT          & 7,9 & 3V3\_OUT \\
+22  & GPIO2 (I2C1 SDA)  & --- & --- \\
+24  & GPIO3 (I2C1 SCL)  & --- & --- \\
+26  & GPIO8 (SPI0 CE0)  & --- & --- \\
+28  & GPIO9 (SPI0 MISO) & --- & --- \\
+30  & GPIO10 (SPI0 MOSI)& --- & --- \\
+32  & GPIO11 (SPI0 SCLK)& --- & --- \\
+50  & GPIO18 (PWM/DC)   & --- & --- \\
+54  & GPIO24            & --- & --- \\
+--- & ---               & 71-89 & CSI-2 cam0 (4 lanes + clk) \\
+99,100 & nRUN, GLOBAL\_EN & --- & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Importante}: estos son los pines tipicos. La asignacion exacta
+varia con la version del firmware del CM5. \emph{Verificar siempre contra
+el datasheet oficial}.
+
+% =====================================================================
+\chapter{Bloque de potencia detallado}
+\label{ch:potencia}
+
+\section{El camino completo de la energia}
+
+Desde los paneles solares del INTISAT hasta los nucleos del CM5, la
+energia atraviesa 7 etapas:
+
+\begin{center}
+\begin{tikzpicture}[scale=0.85, node distance=0.5cm, every node/.style={font=\small}]
+\node[draw, fill=yellow!20] (sol) {Paneles solares};
+\node[draw, fill=yellow!20, right=of sol] (mppt) {MPPT};
+\node[draw, fill=yellow!20, right=of mppt] (bat) {Bateria Li-ion};
+\node[draw, fill=blue!10, below=of bat] (rail) {Rail 5V\_PAYLOAD};
+\node[draw, fill=red!10, left=of rail] (fuse) {Fusible PTC};
+\node[draw, fill=red!10, left=of fuse] (diodo) {Diodo Schottky};
+\node[draw, fill=red!10, left=of diodo] (ldo) {LDO 5V/6A};
+\node[draw, fill=green!10, below=of ldo] (ina) {INA219};
+\node[draw, fill=green!10, right=of ina] (cm5) {CM5 5V IN};
+\node[draw, fill=green!10, right=of cm5] (pmic) {PMIC interna};
+
+\draw[->] (sol) -- (mppt);
+\draw[->] (mppt) -- (bat);
+\draw[->] (bat) -- (rail);
+\draw[->] (rail) -- (fuse);
+\draw[->] (fuse) -- (diodo);
+\draw[->] (diodo) -- (ldo);
+\draw[->] (ldo) -- (ina);
+\draw[->] (ina) -- (cm5);
+\draw[->] (cm5) -- (pmic);
+\end{tikzpicture}
+\end{center}
+
+Tu carrier toma el rail 5V\_PAYLOAD del PC-104 y, antes de pasar al CM5,
+le aplica 3 elementos de proteccion + 1 de medicion.
+
+\section{Etapa 1: Fusible PTC reseteable}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Funcion}: si hay un corto en el CM5 o en algo aguas abajo,
+        este fusible se "abre" (alta resistencia) y corta la corriente.
+  \item \textbf{Tipo}: PTC (Positive Temperature Coefficient), reseteable.
+        No se quema; se calienta y se enfria.
+  \item \textbf{Eleccion}: \texttt{MF-MSMF050-2} de Bourns, 5 A hold,
+        10 A trip. Cuesta USD 1.
+  \item \textbf{Comportamiento}: a corriente nominal su resistencia es
+        $\sim 0.02\,\Omega$ (negligible). En falla, $> 100\,\Omega$.
+\end{itemize}
+
+\begin{calculo}
+Con 5 V y un corto que demanda 20 A, el PTC sube su resistencia a $0.25\,\Omega$:
+\[
+V_{\text{PTC}} = I \cdot R = 20 \cdot 0.25 = 5\;\text{V}
+\]
+Toda la tension cae sobre el PTC, la carga aguas abajo ve 0 V (apagada
+hasta que el PTC se enfrie).
+\end{calculo}
+
+\section{Etapa 2: Diodo Schottky de proteccion polaridad inversa}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Funcion}: si alguien conecta la fuente al reves, este
+        diodo bloquea. Sin el, el CM5 se quema.
+  \item \textbf{Tipo}: Schottky (bajo dropout, $\sim 0.3$ V vs $0.7$ V de
+        Si normal).
+  \item \textbf{Eleccion}: \texttt{1N5824} (3 A) o \texttt{SS54} (5 A).
+        Cuesta USD 0.50.
+  \item \textbf{Caida}: $V_F \approx 0.3$ V a 1 A. Disipacion: $0.3$ W.
+\end{itemize}
+
+\section{Etapa 3: LDO 5V o $\mu$Module}
+
+Despues del diodo entran $\sim 4.7$ V (5 V - 0.3 V del diodo). El CM5
+acepta $5.0$ V $\pm 5\%$, asi que necesitamos volver a $5.0$ V con poca
+ripple.
+
+\subsection{Opcion A: LDO}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Chip}: \texttt{LT1086CT-5}, 1.5 A, dropout 1.3 V (no sirve
+        a 4.7 V de entrada).
+  \item \textbf{Mejor}: \texttt{TPS7A47}, ultra-low-noise, dropout
+        $\sim 0.5$ V (apenas alcanza).
+  \item \textbf{Problema}: pierde la diferencia entre $V_{in}$ y $V_{out}$
+        como calor.
+\end{itemize}
+
+\subsection{Opcion B: $\mu$Module (recomendada)}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Chip}: \texttt{LTM4631} de Analog Devices.
+  \item \textbf{Tipo}: buck-boost (sube si entra bajo, baja si entra alto).
+  \item \textbf{Entrada}: 2.7 V a 17 V.
+  \item \textbf{Salida}: 5 V $@$ 6 A.
+  \item \textbf{Eficiencia}: $94\%$ tipica.
+  \item \textbf{Tamaño}: $9 \times 9 \times 4.92$ mm BGA.
+  \item \textbf{Precio}: USD 25.
+\end{itemize}
+
+\begin{calculo}
+Con LTM4631 a $94\%$ y CM5 consumiendo $4$ W:
+\[
+P_{\text{disipada}} = P_{\text{out}} \cdot \frac{1 - \eta}{\eta} = 4 \cdot \frac{0.06}{0.94} = 0.26\;\text{W}
+\]
+Con LDO equivalente, disiparia (4.7 - 5.0) $\cdot$ 0.8 A pero como no
+puede subir voltaje, falla. Por eso el $\mu$Module gana.
+\end{calculo}
+
+\section{Etapa 4: INA219 monitor de potencia}
+
+Ver \autoref{ch:ina219} para detalles. Resumen: mide voltaje, corriente y
+potencia del rail 5V que entra al CM5, comunicada por I2C secundario.
+
+\section{Etapa 5: Pin 5V\_IN del CM5}
+
+Los 4 pines de 5V\_IN del CM5 (J1 pin 3, 5 y J2 pin 3, 5) tienen que
+recibir la alimentacion regulada. Capacitor de bulk de $10\,\mu$F y
+decoupling de $100$ nF en cada uno.
+
+\section{Etapa 6: PMIC interna del CM5}
+
+El CM5 tiene una PMIC (Power Management IC) que genera todos los rails
+internos:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Rail} & \textbf{Voltaje} & \textbf{Para que} \\
+\midrule
+$V_{\text{CORE}}$  & 0.85--0.9 V & nucleos del CPU (DVFS variable) \\
+$V_{\text{GPU}}$   & 0.9 V       & GPU VideoCore VII \\
+$V_{\text{DDR}}$   & 1.1 V       & RAM LPDDR4X \\
+$V_{\text{IO\_18}}$& 1.8 V       & buses internos del SoC \\
+$V_{\text{IO\_33}}$& 3.3 V       & GPIO + perifericos externos \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Estos rails internos NO son accesibles desde el carrier (excepto el 3V3
+que se expone via mezzanine pin 7, 9). Son uso exclusivo del CM5.
+
+\section{Capacitores de decoupling}
+
+\textbf{Regla universal}: cada chip con voltaje propio necesita un
+capacitor de $100$ nF lo mas cerca posible.
+
+En tu carrier:
+\begin{itemize}[leftmargin=2em]
+  \item $100$ nF en cada pin 5V\_IN del CM5 (4 unidades).
+  \item $100$ nF en cada pin 3V3 que use perifericos (TXS, INA219, OLED).
+  \item Bulk $10\,\mu$F al inicio del rail 5V (despues del LTM4631).
+  \item Bulk $10\,\mu$F al inicio del rail 3V3 (lo que provee el CM5).
+\end{itemize}
+
+\begin{cuidado}
+Sin decoupling, los chips fallan intermitentemente bajo carga rapida.
+Es la regla numero uno de PCB design y se viola facilmente cuando uno
+empieza. Verificar en el layout antes de mandar a fabricar.
+\end{cuidado}
+
+\section{Power-on sequence}
+
+Cuando se aplica 5V al carrier:
+
+\begin{enumerate}[leftmargin=2em]
+  \item $t = 0$: rail 5V estable en el carrier.
+  \item $t = 1$ ms: PMIC del CM5 genera $V_{\text{DDR}}$ (1.1 V).
+  \item $t = 5$ ms: PMIC genera $V_{\text{CORE}}$ y $V_{\text{IO}}$.
+  \item $t = 10$ ms: el SoC sale de reset.
+  \item $t = 100$ ms: el bootloader EEPROM empieza.
+  \item $t = 1$ s: bootloader carga \texttt{start.elf}.
+  \item $t = 5$ s: kernel Linux empieza a cargar.
+  \item $t = 30$ s: systemd termina de levantar servicios.
+  \item $t = 31$ s: tu daemon esta listo, I2C slave en 0x42.
+\end{enumerate}
+
+\begin{ejercicio}
+1) Calcular la potencia disipada por el LTM4631 cuando el CM5 esta en
+PROCESSING (7.5 W). 2) Si el rail 5V\_PAYLOAD del INTISAT entrega
+solo 4.5 V (caida en cables), verifica que el LTM4631 sigue dando
+5.0 V regulados.
+\end{ejercicio}
+
+% =====================================================================
+\chapter{Bus I2C con el OBC del INTISAT}
+\label{ch:i2c}
+
+\section{Concepto y nivel logico}
+
+El OBC central del INTISAT y el CM5 hablan por I2C. Pero pueden estar
+operando a distintos voltajes:
+
+\begin{itemize}[leftmargin=2em]
+  \item OBC: tipicamente 3.3 V o 5 V (depende del fabricante).
+  \item CM5: 3.3 V en GPIO (no tolera 5 V directo).
+\end{itemize}
+
+Para conectarlos sin daño, se usa un \textbf{level shifter bidireccional}.
+
+\section{TXS0108E: el level shifter elegido}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Parametro} & \textbf{Valor} \\
+\midrule
+Fabricante           & Texas Instruments \\
+Canales              & 8 (usamos 2: SDA y SCL) \\
+Voltaje lado A       & 1.2 V a 3.6 V \\
+Voltaje lado B       & 1.65 V a 5.5 V \\
+Direccion            & Auto (no necesita pin de control) \\
+Velocidad max        & 110 Mbps \\
+Encapsulado          & TSSOP-20 o WQFN-20 \\
+Part number          & TXS0108EPWR \\
+Precio               & USD 1 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Conexion en el carrier}
+
+\begin{center}
+\begin{tikzpicture}[scale=0.9, every node/.style={font=\small}]
+\node[draw, fill=blue!10] (cm5) at (0, 1) {CM5 GPIO2/3 @ 3.3V};
+\node[draw, fill=gray!10] (txs) at (4, 1) {TXS0108E};
+\node[draw, fill=yellow!10] (obc) at (8, 1) {OBC SDA2/SCL2 @ 3.3V o 5V};
+\draw[<->] (cm5) -- node[above] {SDA, SCL} (txs);
+\draw[<->] (txs) -- node[above] {SDA, SCL} (obc);
+\node[font=\tiny] at (2, 0.3) {pull-up 4.7k a 3.3V};
+\node[font=\tiny] at (6, 0.3) {pull-up 4.7k a Vbus};
+\end{tikzpicture}
+\end{center}
+
+\subsection{Configuracion del enable}
+
+El TXS0108E tiene un pin \texttt{OE} (Output Enable). Ata a 3V3 con un
+resistor de $10$ k$\Omega$ y un capacitor de $1\,\mu$F a GND para
+soft-start. Sin este RC, el shifter puede dar glitches al power-on.
+
+\section{Direccion I2C del payload}
+
+El I2C slave del CM5 responde en \texttt{0x42} (decimal 66). Esta direccion
+se eligio porque:
+
+\begin{itemize}[leftmargin=2em]
+  \item NO esta reservada por el estandar I2C.
+  \item NO la usa ningun chip estandar (sensores comunes usan 0x40-0x4F,
+        0x68-0x6F, etc.).
+  \item Es facil de recordar.
+\end{itemize}
+
+\textbf{Verificacion}: ejecutar \texttt{i2cdetect -y 1} en el CM5 NO debe
+mostrar 0x42 (es slave, no master). Pero en el OBC, su \texttt{i2cdetect}
+si debe verlo.
+
+\section{El BSC: I2C slave en el Pi}
+
+El I2C estandar de Linux solo soporta master mode. Para hacer slave, el
+Pi 5 / CM5 tiene un periferico especial llamado \textbf{BSC} (Broadcom
+Serial Controller), accesible solo via \texttt{pigpio}.
+
+\subsection{Codigo del slave (cubesat/i2c\_slave.py)}
+
+\begin{lstlisting}
+import pigpio
+import time
+from cubesat.commands import CMD_GET_STATUS, CMD_START_CAPTURE
+from cubesat.commands import encode_status
+
+I2C_ADDR = 0x42
+
+def main():
+    pi = pigpio.pi()
+    if not pi.connected:
+        print("ERROR: pigpiod not running")
+        return
+
+    # Configurar BSC en modo slave
+    pi.bsc_i2c(I2C_ADDR)
+
+    while True:
+        # Lee bytes recibidos del master (OBC)
+        status, byte_count, data = pi.bsc_i2c(I2C_ADDR)
+
+        if byte_count > 0:
+            cmd = data[0]
+            payload = data[1:byte_count]
+
+            # Despachar segun comando
+            if cmd == CMD_GET_STATUS:
+                response = encode_status(...)
+                pi.bsc_i2c(I2C_ADDR, response)
+            elif cmd == CMD_START_CAPTURE:
+                # Encolar comando en /run/cubesat/commands/
+                pass
+            # ... mas comandos
+
+        time.sleep(0.01)  # poll cada 10 ms
+
+if __name__ == "__main__":
+    main()
+\end{lstlisting}
+
+\section{Pull-up resistors}
+
+I2C requiere pull-up resistors en SDA y SCL porque ambos son
+\textbf{open-drain}: los chips solo pueden tirar la linea a 0 V; nadie
+puede ponerla a $V_{cc}$.
+
+\textbf{Valor tipico}: 4.7 k$\Omega$ a $V_{cc}$ (3.3 V en el lado A del
+TXS, $V_{bus}$ en el lado B).
+
+\begin{calculo}
+Con 4.7 k$\Omega$ y 3.3 V:
+\[
+I_{\text{pullup}} = \frac{3.3}{4700} = 0.7\;\text{mA}
+\]
+A 100 kHz I2C, la capacitancia parasitica es $\sim 50$ pF. El tiempo de
+subida tipico es $R \cdot C = 235$ ns, ok para 100 kHz (periodo $10\,\mu$s).
+\end{calculo}
+
+\section{Velocidad de operacion}
+
+El I2C estandar opera a:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{100 kHz} (Standard mode) --- lo que usamos por defecto.
+  \item \textbf{400 kHz} (Fast mode) --- si el OBC lo soporta y los cables
+        son cortos.
+  \item \textbf{1 MHz} (Fast mode plus) --- raro, requiere drivers
+        especiales.
+\end{itemize}
+
+A 100 kHz: cada bit toma 10 $\mu$s. Un byte (9 bits con ACK) toma 90 $\mu$s.
+Un thumbnail de 100 KB toma $\sim 10$ segundos a transmitir.
+
+\section{Codigo del master en el OBC simulado}
+
+Para probar desde tu laptop o desde otra Pi:
+
+\begin{lstlisting}
+import smbus2
+import time
+
+I2C_ADDR = 0x42
+CMD_GET_STATUS = 0x01
+
+bus = smbus2.SMBus(1)
+
+# Enviar CMD_GET_STATUS
+bus.write_byte(I2C_ADDR, CMD_GET_STATUS)
+time.sleep(0.01)
+
+# Leer respuesta (18 bytes: STATUS_OK + len + 16 bytes de status struct)
+data = bus.read_i2c_block_data(I2C_ADDR, 0, 18)
+print("Status:", data[0])
+print("Length:", data[1])
+print("Payload:", data[2:18])
+\end{lstlisting}
+
+\begin{payload}
+Este codigo es el que vas a usar para validar el bring-up del carrier
+antes de integrarlo al INTISAT. Lo corres desde otra Pi conectada a tu
+carrier via SDA/SCL y verifica que el daemon responde.
+\end{payload}
+
+% =====================================================================
+\chapter{Interfaz CSI-2 al sensor OV5647}
+\label{ch:csi}
+
+\section{Que es CSI-2}
+
+\textbf{CSI-2} = Camera Serial Interface 2. Es el estandar de MIPI
+Alliance para conectar camaras a procesadores. Lo usan todos los
+smartphones y todas las camaras de Raspberry Pi.
+
+\section{Caracteristicas electricas}
+
+\begin{itemize}[leftmargin=2em]
+  \item Hasta 4 lanes diferenciales de datos.
+  \item 1 lane diferencial de clock.
+  \item Voltaje: 200 mV pico a pico (D-PHY).
+  \item Velocidad: 1.5 Gbps por lane.
+  \item Impedancia: $90\,\Omega$ diferencial (con tolerancia $\pm 10\%$).
+\end{itemize}
+
+Para el OV5647 (2 lanes + 1 clock):
+\begin{itemize}[leftmargin=2em]
+  \item DAT0+, DAT0-
+  \item DAT1+, DAT1-
+  \item CLK+, CLK-
+  \item Mas: I2C control (\texttt{CAM\_SDA}, \texttt{CAM\_SCL})
+  \item Mas: poder ($V_{ANA}$, $V_{IO}$, $V_{DIG}$)
+  \item Mas: nRESET, PWDN, LED\_CTRL
+\end{itemize}
+
+Total $\sim 15$ lineas.
+
+\section{El cable FFC}
+
+OV5647 se conecta al carrier por un cable plano flexible (FFC, Flat
+Flexible Cable):
+
+\begin{itemize}[leftmargin=2em]
+  \item Estandar: 15-pin FFC, paso 1 mm.
+  \item Longitud tipica: 15 cm.
+  \item En el carrier: conector FFC vertical de 15 pines (\texttt{Molex 5025810-15}).
+\end{itemize}
+
+\begin{cuidado}
+El conector FFC tiene polaridad. Los contactos pueden estar arriba o
+abajo. La OV5647 v1.3 tiene los contactos abajo. Tu carrier debe tener
+el conector con los contactos arriba para que el cable conecte correcto.
+Si te equivocas, no daña pero no funciona.
+\end{cuidado}
+
+\section{Routing en el carrier}
+
+Las lineas CSI-2 son criticas:
+
+\begin{itemize}[leftmargin=2em]
+  \item Cada par (DAT0+, DAT0-) debe rutearse \textbf{adyacente} y de la
+        misma longitud.
+  \item Match de longitud entre los dos pares: $\leq 1$ mm.
+  \item Impedancia diferencial: $90\,\Omega$ (configurar en el stackup).
+  \item Layer cercana al ground plane.
+  \item Sin vias en el medio del par si es posible.
+\end{itemize}
+
+\textbf{Distancia maxima del CM5 al conector FFC en el carrier}: $\leq 100$ mm
+(idealmente $\leq 50$ mm).
+
+\section{Configuracion en Raspberry Pi OS}
+
+En \texttt{/boot/firmware/config.txt}:
+
+\begin{lstlisting}
+# Habilitar camara
+camera_auto_detect=1
+dtoverlay=ov5647
+
+# Opcional: I2C de la camara en bus distinto al primario
+dtparam=i2c_vc=on
+\end{lstlisting}
+
+Despues del boot:
+
+\begin{lstlisting}
+libcamera-hello --list-cameras
+# Debe mostrar: 0 : ov5647 [...]
+\end{lstlisting}
+
+\section{Codigo de captura (Python)}
+
+Usando \texttt{Picamera2}:
+
+\begin{lstlisting}
+from picamera2 import Picamera2
+import numpy as np
+
+cam = Picamera2()
+
+# Configuracion para microscopia (sin auto-correcciones)
+config = cam.create_still_configuration(
+    main={"size": (2592, 1944), "format": "RGB888"},
+    raw={"size": (2592, 1944)}
+)
+cam.configure(config)
+
+# Desactivar ISP para data cruda
+cam.set_controls({
+    "AwbEnable": False,           # auto white balance OFF
+    "AeEnable": False,             # auto exposure OFF
+    "ExposureTime": 50000,         # 50 ms
+    "AnalogueGain": 1.0,           # sin amplificacion
+    "ColourGains": (1.0, 1.0),     # ganancia R/B = 1
+})
+cam.start()
+
+# Capturar
+img = cam.capture_array("main")    # numpy array (H, W, 3)
+print(f"Shape: {img.shape}, dtype: {img.dtype}")
+\end{lstlisting}
+
+\begin{payload}
+En tu daemon \texttt{cubesat/capture.py}, esto se llama 25 veces por scan
+FPM, una por cada angulo de iluminacion del OLED.
+\end{payload}
+
+% =====================================================================
+\chapter{SPI al OLED SSD1351}
+\label{ch:spi}
+
+\section{SPI: 4 lineas + 2 de control}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{SCLK}: Serial Clock (GPIO11).
+  \item \textbf{MOSI}: Master Out, Slave In (GPIO10). Datos del CM5 al OLED.
+  \item \textbf{MISO}: Master In, Slave Out (GPIO9). \textit{No usado} en OLED.
+  \item \textbf{CE0}: Chip Enable (GPIO8). El OLED escucha solo cuando CE0 baja.
+  \item \textbf{DC}: Data/Command (GPIO18). 0 = comando, 1 = data.
+  \item \textbf{RST}: Reset (GPIO24). Activo bajo.
+\end{itemize}
+
+\section{Conector en el carrier}
+
+Header de 9 pines en el carrier (paso 2.54 mm) hacia el OLED:
+
+\begin{center}
+\begin{tabular}{cll}
+\toprule
+\textbf{Pin} & \textbf{Señal} & \textbf{Tension} \\
+\midrule
+1 & 3V3       & 3.3 V \\
+2 & GND       & 0 V \\
+3 & MOSI      & 3.3 V logic \\
+4 & SCLK      & 3.3 V logic \\
+5 & CE0       & 3.3 V logic \\
+6 & DC        & 3.3 V logic \\
+7 & RST       & 3.3 V logic \\
+8 & V\_OLED   & 3.3 V de alimentacion del panel (puede requerir 12 V boost interno) \\
+9 & GND       & 0 V \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Configuracion en config.txt}
+
+\begin{lstlisting}
+# Habilitar SPI0
+dtparam=spi=on
+\end{lstlisting}
+
+Despues:
+
+\begin{lstlisting}
+ls /dev/spidev*
+# /dev/spidev0.0
+\end{lstlisting}
+
+\section{Codigo de control (Python)}
+
+Usando \texttt{luma.oled}:
+
+\begin{lstlisting}
+from luma.core.interface.serial import spi
+from luma.oled.device import ssd1351
+from PIL import Image
+
+# Setup SPI
+serial = spi(port=0, device=0, gpio_DC=18, gpio_RST=24)
+oled = ssd1351(serial, width=128, height=128)
+
+# Crear imagen de iluminacion (un patron 5x5 con un pixel encendido)
+img = Image.new("RGB", (128, 128), "black")
+img.putpixel((64, 64), (255, 255, 255))    # pixel central encendido
+
+# Mostrar
+oled.display(img)
+\end{lstlisting}
+
+\begin{payload}
+En FPM, se enciende uno solo de los 25 puntos posibles del 5x5 antes de
+cada captura. Eso genera una "linterna" en diferente angulo. Tu codigo en
+\texttt{cubesat/capture.py} ejecuta este loop 25 veces.
+\end{payload}
+
+\section{Velocidad de SPI}
+
+El SPI0 puede operar de 0.5 MHz a 50 MHz. Para el OLED, 1 MHz es
+suficiente y reduce EMI.
+
+\section{Timing del Display}
+
+El SSD1351 tarda $\sim 100$ ms en actualizar la pantalla completa
+$128 \times 128$. Para FPM, encender un solo pixel toma menos: $\sim 10$ ms.
+
+% =====================================================================
+\chapter{Monitor INA219}
+\label{ch:ina219}
+
+\section{Que mide y por que importa}
+
+El INA219 monitorea el rail 5V que alimenta al CM5. Provee:
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Voltaje del bus}: cuanto voltaje recibe el CM5.
+  \item \textbf{Voltaje del shunt}: caida sobre el shunt de 0.1 $\Omega$.
+  \item \textbf{Corriente}: calculada como $V_{\text{shunt}} / R_{\text{shunt}}$.
+  \item \textbf{Potencia}: $V_{\text{bus}} \cdot I$.
+\end{itemize}
+
+\textbf{Aplicaciones}:
+
+\begin{itemize}[leftmargin=2em]
+  \item Telemetria: registrar consumo en cada modo (IDLE, CAPTURING, etc.).
+  \item FDIR: detectar consumo anomalo (corto, regulador roto).
+  \item Validacion: comparar consumo real vs estimado del datasheet.
+\end{itemize}
+
+\section{Especificaciones}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Parametro} & \textbf{Valor} \\
+\midrule
+Bus voltage max & 26 V \\
+Shunt voltage max & $\pm 320$ mV \\
+Corriente max & $\pm 3.2$ A (con shunt 0.1 $\Omega$) \\
+Resolucion bus & 4 mV \\
+Resolucion shunt & 10 $\mu$V \\
+Resolucion corriente & 0.1 mA \\
+Frecuencia conversion & hasta 1880 Hz \\
+Comunicacion & I2C (4 address selectables) \\
+Address default & 0x40 \\
+Encapsulado & SOT-23-8 (chip) o modulo Adafruit \\
+Precio (modulo) & USD 5 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Conexion al carrier}
+
+\begin{center}
+\begin{tikzpicture}[scale=0.9, every node/.style={font=\small}]
+\node[draw, fill=yellow!20] (in) at (0, 1) {5V del LTM4631};
+\node[draw, fill=red!10] (rs) at (3, 1) {Shunt 0.1$\Omega$};
+\node[draw, fill=yellow!20] (out) at (6, 1) {5V al CM5};
+\node[draw, fill=blue!10] (ina) at (3, -0.5) {INA219};
+\draw[->] (in) -- (rs);
+\draw[->] (rs) -- (out);
+\draw[->] (in) |- (ina);
+\draw[->] (out) |- (ina);
+\node[font=\tiny] at (3, -1.5) {SDA, SCL al CM5 (I2C bus 2)};
+\draw[->] (ina) -- (3, -2);
+\end{tikzpicture}
+\end{center}
+
+\section{I2C bus separado}
+
+El INA219 NO va en el mismo bus que el OBC. Razon: si el bus primario
+se cae (por colision con master remoto, glitch electrico), el daemon
+debe poder seguir leyendo telemetria.
+
+Usar \textbf{I2C secundario} del CM5 (GPIO22/23 con dtoverlay
+\texttt{i2c-gpio}):
+
+\begin{lstlisting}
+# en /boot/firmware/config.txt
+dtoverlay=i2c-gpio,bus=2,i2c_gpio_sda=22,i2c_gpio_scl=23
+\end{lstlisting}
+
+\section{Codigo de lectura}
+
+\begin{lstlisting}
+from adafruit_ina219 import INA219
+import board
+import busio
+
+i2c = busio.I2C(board.SCL, board.SDA)
+ina = INA219(i2c)
+
+while True:
+    voltage = ina.bus_voltage + ina.shunt_voltage   # V real
+    current = ina.current / 1000                     # convertir mA a A
+    power = voltage * current                        # W
+
+    print(f"V={voltage:.3f}V  I={current*1000:.1f}mA  P={power:.3f}W")
+    time.sleep(0.5)
+\end{lstlisting}
+
+\section{Calibracion}
+
+El INA219 tiene un registro de calibracion que define el factor de
+escala para la corriente. Por defecto viene calibrado para shunt
+$0.1\,\Omega$ y rango $\pm 3.2$ A. Si usas otro shunt, hay que reprogramar.
+
+\begin{payload}
+Tu \texttt{tools/power\_profiler.py} lee el INA219 cada 100 ms y guarda
+el log en CSV durante un scan. Es lo que vamos a usar para validar el
+presupuesto energetico real del payload.
+\end{payload}
+
+% =====================================================================
+\chapter{Boot sequence}
+\label{ch:boot}
+
+\section{De power-on a daemon corriendo}
+
+Cuando el INTISAT enciende el rail 5V\_PAYLOAD, el CM5 ejecuta esta
+secuencia:
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{0--10 ms}: PMIC interna estabiliza rails.
+  \item \textbf{10--100 ms}: bootloader EEPROM (ROM interno) inicializa
+        el SoC.
+  \item \textbf{100--500 ms}: bootloader carga el firmware del GPU desde
+        la eMMC.
+  \item \textbf{500 ms--2 s}: GPU inicializa LPDDR4X, lee \texttt{config.txt}
+        y \texttt{cmdline.txt}.
+  \item \textbf{2--5 s}: carga el kernel Linux desde la eMMC.
+  \item \textbf{5--20 s}: kernel descomprime, descubre hardware, monta
+        rootfs.
+  \item \textbf{20--30 s}: systemd levanta servicios (pigpiod, networking,
+        cubesat-*).
+  \item \textbf{30--40 s}: tu daemon esta listo, I2C slave responde.
+\end{enumerate}
+
+\textbf{Total}: $\sim 30$ a $40$ segundos.
+
+\section{Flashear la eMMC por primera vez}
+
+Para programar el sistema operativo en la eMMC del CM5:
+
+\begin{enumerate}[leftmargin=2em]
+  \item Conectar el carrier por USB-C a una PC Linux.
+  \item Mantener pulsado el boton de \texttt{nBOOT} del carrier mientras
+        se aplica alimentacion.
+  \item En la PC: \texttt{sudo rpiboot} (instalar previamente).
+  \item La eMMC aparece como \texttt{/dev/sda} en la PC.
+  \item Usar Raspberry Pi Imager para flashear Raspberry Pi OS Lite.
+  \item Configurar usuario, SSH, WiFi (este ultimo se desactivara despues).
+\end{enumerate}
+
+\section{Debug por UART}
+
+El CM5 expone una consola serial debug en GPIO14 (TX) y GPIO15 (RX).
+Para usar:
+
+\begin{enumerate}[leftmargin=2em]
+  \item Conectar un adaptador USB-Serial (3.3 V) al header del carrier.
+  \item Abrir \texttt{screen /dev/ttyUSB0 115200}.
+  \item Ver los logs del boot en tiempo real.
+\end{enumerate}
+
+Esto es \textbf{crucial} en bring-up porque permite ver mensajes de error
+antes que el sistema termine de arrancar.
+
+% =====================================================================
+\chapter{Flujo de datos durante un scan completo}
+\label{ch:flujo}
+
+\section{Timeline detallado}
+
+Asumiendo que el OBC del INTISAT envia \texttt{CMD\_START\_CAPTURE} (modo
+single):
+
+\begin{center}
+\small
+\begin{tabular}{rp{12cm}}
+\toprule
+\textbf{Tiempo (ms)} & \textbf{Que pasa} \\
+\midrule
+0     & OBC inicia transmision I2C: \texttt{[START][0x42][0x02][0x00]} \\
+2     & TXS0108E shifter traduce voltajes 5V $\to$ 3V3 \\
+3     & CM5 GPIO2/3 reciben los bits \\
+5     & pigpiod detecta byte recibido en BSC \\
+10    & cubesat-i2c-slave service lee el comando \\
+12    & escribe \texttt{cmd\_20260507\_101030.json} en \texttt{/run/cubesat/commands/} \\
+15    & responde al OBC: \texttt{[STATUS\_OK]} \\
+20    & cubesat-pipeline service detecta nuevo archivo (inotify) \\
+30    & daemon cambia estado a CAPTURING \\
+50    & enciende OLED en posicion (64, 64) via SPI \\
+200   & OV5647 captura frame (50 ms exposicion + 150 ms processing) \\
+250   & CM5 escribe \texttt{cap\_00.tiff} en \texttt{/var/cubesat/incoming/} \\
+300   & atomic rename \texttt{cap\_00.tiff.tmp} $\to$ \texttt{cap\_00.tiff} \\
+350   & daemon cambia estado a PROCESSING \\
+400   & carga modelo StarDist en memoria \\
+1500  & primera inferencia: segmenta el frame \\
+2000  & calcula metricas (areas, perimeters) \\
+2500  & escribe \texttt{summary.json}, \texttt{data.csv}, \texttt{overlay.png} \\
+2800  & daemon cambia estado a EXPORTING \\
+2900  & genera thumbnail 640x480 JPEG (\texttt{thumbnail.jpg}) \\
+3000  & atomic write \texttt{downlink/thumbnail.jpg} \\
+3050  & daemon vuelve a IDLE \\
+3060  & telemetry service publica el evento en \texttt{/run/cubesat/telemetry.json} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Total: $\sim 3$ segundos en modo single. Comparado con $\sim 60$ s en modo FPM.
+
+\section{Datos generados}
+
+Por cada scan single:
+
+\begin{itemize}[leftmargin=2em]
+  \item 1 frame raw TIFF: $\sim 5$ MB
+  \item overlay.png: $\sim 500$ KB
+  \item mask.png: $\sim 10$ KB
+  \item data.csv: $\sim 5$ KB
+  \item summary.json: $\sim 2$ KB
+  \item thumbnail.jpg: $\sim 100$ KB
+\end{itemize}
+
+Total disco: $\sim 5.6$ MB por scan single.
+
+\section{Downlink}
+
+Cuando el OBC pide \texttt{CMD\_GET\_THUMBNAIL}:
+
+\begin{enumerate}[leftmargin=2em]
+  \item OBC: \texttt{write [0x42][0x06]}
+  \item Daemon: lee thumbnail.jpg, lo trocea en chunks de 30 bytes.
+  \item Daemon: responde con frames \texttt{[OK][30][more=1][chunk\_0..29]}
+  \item OBC: lee 32 bytes por vez, acumula.
+  \item Total: $\sim 3300$ frames para 100 KB.
+  \item Tiempo total a 100 kHz: $\sim 10$ segundos.
+\end{enumerate}
+
+% =====================================================================
+\chapter{Diferencias practicas Pi 5 retail vs CM5}
+\label{ch:diferencias}
+
+\section{Que cambia, que NO cambia}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{5cm}p{5cm}}
+\toprule
+\textbf{Aspecto} & \textbf{Pi 5 retail} & \textbf{CM5 + carrier} \\
+\midrule
+Sistema operativo     & Raspberry Pi OS Lite Bookworm & idem \\
+Kernel                & 6.6 + rpi & idem \\
+Numeracion BCM        & GPIO 2, 3, etc. & idem \\
+Codigo del daemon     & funciona & funciona (sin cambios) \\
+Comandos shell        & funcionan & funcionan \\
+Conectores fisicos    & USB-C + 4 USB-A + HDMI + Ethernet + header & via mezzanine al carrier \\
+Almacenamiento        & SD card & eMMC soldada \\
+Como entra la energia & USB-C exterior & rail 5V del PC-104 \\
+WiFi/Ethernet         & si, con conectores & desactivados en config \\
+Boot                  & power-on con SD montada & power-on con eMMC \\
+Flashear primera vez  & SD a PC, escribir, insertar & USB-C a PC, rpiboot, flashear \\
+Recovery              & quitar SD, escribir nueva & rpiboot otra vez \\
+Tamaño                & 85$\times$56 mm & 55$\times$40 mm (mas tu carrier) \\
+Peso                  & 46 g & 17 g + tu carrier \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Lo unico que cambia en software}
+
+\begin{enumerate}[leftmargin=2em]
+  \item \texttt{config.txt}: agregar \texttt{dtoverlay=disable-wifi},
+        \texttt{dtoverlay=disable-bt}, configurar HDMI off.
+  \item \texttt{cubesat/install.sh}: detectar eMMC en lugar de SD.
+  \item Documentacion: actualizar guia de flasheo (rpiboot en lugar de
+        Raspberry Pi Imager directo).
+\end{enumerate}
+
+% =====================================================================
+\chapter{Procedimiento de bring-up}
+\label{ch:bringup}
+
+Cuando llega el primer carrier de fabrica:
+
+\section{Step 1: inspeccion visual (15 min)}
+
+\begin{itemize}[leftmargin=2em]
+  \item Microscopio o lupa 10x.
+  \item Verificar todas las soldaduras: sin solder bridges, sin joints frios.
+  \item Verificar componentes en sus footprints correctos.
+  \item Verificar polaridad de capacitores polarizados (tantalio).
+  \item Verificar orientacion de diodos (catodo marca).
+  \item Verificar el silkscreen de los DF40 (matching del CM5).
+\end{itemize}
+
+\section{Step 2: tests electricos sin CM5 (30 min)}
+
+Sin el CM5 montado, con una fuente externa:
+
+\begin{enumerate}[leftmargin=2em]
+  \item Multimetro en modo continuidad: verificar GND continuo en todos
+        los pines GND del carrier.
+  \item Multimetro en modo continuidad: verificar que NO hay corto entre
+        5V y GND, entre 3V3 y GND.
+  \item Alimentar con fuente $5$ V, limite $100$ mA. Verificar el rail
+        5V despues del LTM4631 = 5.00 $\pm$ 0.05 V.
+  \item Verificar que el INA219 responde:
+        \texttt{sudo i2cdetect -y 2}, debe mostrar 0x40.
+  \item Subir el limite a $1$ A, verificar que el rail no cae.
+\end{enumerate}
+
+\section{Step 3: montar el CM5 (15 min)}
+
+\begin{itemize}[leftmargin=2em]
+  \item Verificar orientacion: la flecha del CM5 alineada con la marca
+        del carrier.
+  \item Presionar uniformemente desde el centro hacia los bordes.
+  \item Verificar stack height: 1.5 mm $\pm$ 0.2.
+  \item Atornillar con M3 si el carrier tiene agujeros de fijacion.
+\end{itemize}
+
+\section{Step 4: primer boot via UART (30 min)}
+
+\begin{enumerate}[leftmargin=2em]
+  \item Conectar USB-Serial al header de debug del carrier.
+  \item Abrir \texttt{screen /dev/ttyUSB0 115200}.
+  \item Aplicar alimentacion 5 V.
+  \item Ver los logs en tiempo real.
+  \item Verificar que termina con prompt \texttt{login:}.
+\end{enumerate}
+
+\section{Step 5: validacion de buses (20 min)}
+
+Desde SSH al CM5 (despues de configurar):
+
+\begin{lstlisting}
+# I2C primario (debe ver TXS0108E si tiene un sensor del lado externo)
+sudo i2cdetect -y 1
+
+# I2C secundario (debe ver INA219 en 0x40)
+sudo i2cdetect -y 2
+
+# SPI (lista de dispositivos)
+ls /dev/spidev*
+
+# Camara
+libcamera-hello --list-cameras
+
+# Lectura INA219
+python -c "
+from adafruit_ina219 import INA219
+import board, busio
+i2c = busio.I2C(board.SCL, board.SDA)
+ina = INA219(i2c)
+print(f'V={ina.bus_voltage:.2f} V, I={ina.current:.1f} mA')
+"
+\end{lstlisting}
+
+\section{Step 6: instalar el daemon y validar (30 min)}
+
+\begin{lstlisting}
+cd /opt
+sudo git clone https://github.com/JaminYC/CubeSat-EdgeAI-Payload.git
+cd CubeSat-EdgeAI-Payload
+sudo bash cubesat/install.sh
+
+# Verificar servicios
+systemctl status cubesat-i2c-slave
+systemctl status cubesat-pipeline
+systemctl status cubesat-telemetry
+
+# Probar comando I2C desde otra Pi
+# (desde la otra Pi)
+i2cset -y 1 0x42 0x01
+i2cget -y 1 0x42 0
+\end{lstlisting}
+
+\section{Step 7: test funcional end-to-end (60 min)}
+
+Desde otra Pi (simulando el OBC):
+
+\begin{enumerate}[leftmargin=2em]
+  \item \texttt{CMD\_GET\_STATUS}: verificar respuesta valida.
+  \item \texttt{CMD\_START\_CAPTURE} (modo single): verificar que se crea
+        archivo en \texttt{/var/cubesat/incoming/}.
+  \item Esperar el procesado.
+  \item \texttt{CMD\_GET\_THUMBNAIL}: descargar y verificar que es un
+        JPEG valido.
+  \item Repetir 10 veces para validar repetibilidad.
+\end{enumerate}
+
+\textbf{Si los 7 steps pasan, el carrier esta listo para integrar al stack
+PC-104 del INTISAT.}
+
+% =====================================================================
+\chapter{Troubleshooting comun}
+\label{ch:troubleshooting}
+
+\section{El CM5 no bootea}
+
+\subsection{Sintoma: LED rojo encendido continuo, sin LED verde}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Causa probable}: alimentacion insuficiente.
+  \item \textbf{Verificar}: voltaje en pin 5V\_IN del CM5 con multimetro.
+        Debe ser 5.00 $\pm$ 0.05 V.
+  \item \textbf{Si el voltaje cae al cargar}: el LTM4631 no esta dando
+        suficiente corriente. Verificar el inductor, los capacitores.
+\end{itemize}
+
+\subsection{Sintoma: LED verde parpadea N veces}
+
+Codigos de error documentados en
+\url{https://github.com/raspberrypi/firmware/issues}.
+
+\begin{itemize}[leftmargin=2em]
+  \item 4 parpadeos: no encuentra \texttt{start.elf} en la eMMC.
+  \item 7 parpadeos: kernel image corrupta.
+  \item 8 parpadeos: error de SDRAM.
+\end{itemize}
+
+\section{El I2C no responde}
+
+\subsection{Sintoma: \texttt{i2cdetect} no muestra 0x42}
+
+Recordar: el CM5 es slave, no aparece en su propio \texttt{i2cdetect}.
+Probar desde otra Pi (master).
+
+\subsection{Sintoma: el master ve 0x42 pero los comandos no responden}
+
+\begin{itemize}[leftmargin=2em]
+  \item Verificar que \texttt{pigpiod} esta corriendo:
+        \texttt{systemctl status pigpiod}.
+  \item Verificar que \texttt{cubesat-i2c-slave.service} esta running.
+  \item Ver logs: \texttt{journalctl -u cubesat-i2c-slave -f}.
+\end{itemize}
+
+\section{La camara no se detecta}
+
+\subsection{Sintoma: \texttt{libcamera-hello --list-cameras} no la muestra}
+
+\begin{itemize}[leftmargin=2em]
+  \item Verificar conexion del cable FFC: contactos hacia arriba en el
+        conector del carrier.
+  \item Verificar \texttt{config.txt}: \texttt{dtoverlay=ov5647}.
+  \item Verificar la I2C de la camara:
+        \texttt{sudo i2cdetect -y 10} (bus camera), debe ver 0x36 (OV5647).
+\end{itemize}
+
+\section{El OLED no muestra nada}
+
+\begin{itemize}[leftmargin=2em]
+  \item Verificar alimentacion 3V3 del OLED (multimetro).
+  \item Verificar que el RST esta en alto (no en reset permanente).
+  \item Probar con \texttt{luma.oled} ejemplo basico.
+\end{itemize}
+
+\section{El INA219 lee 0}
+
+\begin{itemize}[leftmargin=2em]
+  \item Verificar shunt 0.1 $\Omega$ presente y sin corto.
+  \item Verificar calibracion del INA219 (registro 0x05).
+  \item Verificar polaridad: IN+ del lado de la fuente, IN- del lado del CM5.
+\end{itemize}
+
+\section{El consumo es mas alto del esperado}
+
+\begin{itemize}[leftmargin=2em]
+  \item ¿WiFi desactivado? Verificar \texttt{rfkill list}.
+  \item ¿BT desactivado? Verificar \texttt{hciconfig}.
+  \item ¿HDMI off? Verificar \texttt{vcgencmd display\_power 0}.
+  \item ¿Throttling? Verificar \texttt{vcgencmd get\_throttled}, no debe ser 0x0.
+\end{itemize}
+
+% =====================================================================
+\appendix
+\chapter{Apendice A --- Pinout completo del mezzanine}
+
+Pines mas usados del CM5 para el INTISAT:
+
+\begin{center}
+\small
+\begin{longtable}{lllll}
+\toprule
+\textbf{Pin J} & \textbf{Numero} & \textbf{Funcion} & \textbf{Tipo} & \textbf{Notas} \\
+\midrule
+\endhead
+J1 & 1, 100      & GND            & power & ref electrica \\
+J1 & 3, 5        & 5V\_IN         & power & alimentacion principal \\
+J1 & 7, 9        & 3V3\_OUT       & power & 3.3 V del CM5 \\
+J1 & 22          & GPIO2 (SDA1)   & I2C   & SDA bus 1 \\
+J1 & 24          & GPIO3 (SCL1)   & I2C   & SCL bus 1 \\
+J1 & 26          & GPIO8          & SPI   & CE0 \\
+J1 & 28          & GPIO9          & SPI   & MISO \\
+J1 & 30          & GPIO10         & SPI   & MOSI \\
+J1 & 32          & GPIO11         & SPI   & SCLK \\
+J1 & 50          & GPIO18         & GPIO  & DC OLED \\
+J1 & 54          & GPIO24         & GPIO  & RST OLED \\
+J1 & 99          & nRUN           & ctrl  & reset hardware (active low) \\
+J1 & 100         & GLOBAL\_EN     & ctrl  & habilitacion global \\
+J2 & 71          & CAM\_DAT0\_P   & CSI-2 & lane 0 positivo \\
+J2 & 72          & CAM\_DAT0\_N   & CSI-2 & lane 0 negativo \\
+J2 & 73          & CAM\_DAT1\_P   & CSI-2 & lane 1 positivo \\
+J2 & 74          & CAM\_DAT1\_N   & CSI-2 & lane 1 negativo \\
+J2 & 75          & CAM\_CLK\_P    & CSI-2 & clock positivo \\
+J2 & 76          & CAM\_CLK\_N    & CSI-2 & clock negativo \\
+J2 & 80          & CAM\_GPIO0     & I2C   & SDA camera \\
+J2 & 82          & CAM\_GPIO1     & I2C   & SCL camera \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\chapter{Apendice B --- BOM del carrier (estimado)}
+
+\begin{center}
+\begin{longtable}{p{4cm}p{4cm}p{2.5cm}p{2cm}}
+\toprule
+\textbf{Componente} & \textbf{Part number} & \textbf{Proveedor} & \textbf{USD} \\
+\midrule
+\endhead
+CM5 (4 GB/32 GB)                  & SC1230                 & RPi Trading & 60 \\
+DF40 mezzanine (2x)                & DF40C-100DS-0.4V       & Hirose      & 8 \\
+$\mu$Module 5V/6A                  & LTM4631                & Analog Dev  & 25 \\
+Diodo Schottky 5A                  & SS54                   & Vishay      & 0.50 \\
+Fusible PTC 5A reseteable          & MF-MSMF050             & Bourns      & 1 \\
+INA219 modulo                      & INA219AIDR             & TI          & 3 \\
+TXS0108E level shifter             & TXS0108EPWR            & TI          & 1 \\
+Cap. ceramico 100 nF (50x)         & GRM188R71H104KA93D     & Murata      & 2.50 \\
+Cap. tantalio 10 uF (10x)          & T491A106K016AT         & Kemet       & 3 \\
+Conector FFC 15-pin                & 5025810-09             & Molex       & 1 \\
+Conector header 7-pin OLED         & estandar 2.54 mm       & varios      & 0.50 \\
+Boton SMD tactile                  & 1825910-6              & TE          & 0.50 \\
+LED bicolor SMD                    & APBA3025               & Kingbright  & 0.50 \\
+Resistor 5.6 ohm 1\%               & varios                 & varios      & 0.05 \\
+Resistor 4.7 k$\Omega$ 1\% (10x)    & varios                 & varios      & 0.10 \\
+PCB 4-layer (10 unidades)          & JLCPCB                 & ---         & 50 \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\textbf{Total para 1 unidad}: $\sim$ USD 156.
+
+\chapter{Apendice C --- Checklist pre-integracion al PC-104}
+
+\begin{itemize}[leftmargin=2em]
+  \item[$\square$] Inspeccion visual: sin solder bridges, todos los chips en footprint correcto.
+  \item[$\square$] Continuidad: GND continuo, sin cortos a rails de alimentacion.
+  \item[$\square$] Test sin CM5: el LTM4631 da 5.00 $\pm$ 0.05 V a vacio y con $1$ A de carga.
+  \item[$\square$] INA219 detectado en I2C bus 2 (0x40).
+  \item[$\square$] CM5 montado correctamente con stack height 1.5 mm.
+  \item[$\square$] Boot por UART completa hasta prompt de login.
+  \item[$\square$] eMMC flasheada con Raspberry Pi OS Lite Bookworm.
+  \item[$\square$] Configuracion aplicada: WiFi/BT/HDMI desactivados.
+  \item[$\square$] Daemon \texttt{cubesat-pipeline} corriendo.
+  \item[$\square$] I2C slave responde en 0x42 desde otra Pi (master).
+  \item[$\square$] Camara OV5647 detectada por \texttt{libcamera-hello}.
+  \item[$\square$] OLED SSD1351 responde a comandos via \texttt{luma.oled}.
+  \item[$\square$] Test funcional: 10 scans en modo single sin error.
+  \item[$\square$] OTA: subir un commit, verificar update + rollback.
+  \item[$\square$] Watchdog systemd: simular cuelgue, verificar reset.
+  \item[$\square$] Burn-in: 168 h corriendo sin reboot.
+  \item[$\square$] Termico: T del SoC $< 70$ °C bajo carga sostenida.
+  \item[$\square$] Documentacion: bring-up log firmado y archivado.
+\end{itemize}
+
+\backmatter
+
+\chapter*{Bibliografia}
+\addcontentsline{toc}{chapter}{Bibliografia}
+
+\begin{enumerate}[leftmargin=2em]
+\item Raspberry Pi Foundation. \emph{Compute Module 5 Datasheet}. \\
+  \url{https://datasheets.raspberrypi.com/cm5/cm5-datasheet.pdf}, 2024.
+\item Raspberry Pi Foundation. \emph{CM5 IO Board Datasheet}. \\
+  \url{https://datasheets.raspberrypi.com/cm5/cm5-ioboard-datasheet.pdf}, 2024.
+\item Hirose Electric. \emph{DF40 Series Catalog}. \\
+  \url{https://www.hirose.com/en/product/series/DF40}.
+\item Analog Devices. \emph{LTM4631 Datasheet}. \\
+  \url{https://www.analog.com/en/products/ltm4631.html}.
+\item Texas Instruments. \emph{TXS0108E Datasheet}. \\
+  \url{https://www.ti.com/product/TXS0108E}.
+\item Texas Instruments. \emph{INA219 Datasheet}. \\
+  \url{https://www.ti.com/product/INA219}.
+\item OmniVision. \emph{OV5647 Datasheet}, 2009.
+\item Solomon Systech. \emph{SSD1351 Datasheet}, 2014.
+\item MIPI Alliance. \emph{D-PHY Specification v2.5}, 2022.
+\item Manual M0 --- CubeSat 101.
+\item Manual M2 --- Sistemas de Potencia EPS.
+\item Manual M5 --- Flight Software.
+\item Manual M10 --- CM5 + Carrier (diseño del PCB).
+\end{enumerate}
+
+\end{document}
