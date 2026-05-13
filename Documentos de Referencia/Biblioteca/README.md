@@ -21,10 +21,11 @@ electronicas.
 | `M5_Flight_Software.pdf` | 17 | software de a bordo |
 | `M10_CM5_Carrier_INTISAT.pdf` | 27 | diseño del carrier para CM5 |
 | `M11_CM5_Interaccion_Completa.pdf` | 38 | interaccion CM5 con todo el payload (pines, buses, boot, flujo de datos) |
+| `M12_Maquinas_Estado_INTISAT.pdf` | 33 | maquinas de estado profundas (mision + 5 subsistemas + matriz + roadmap) |
 | `Manual_Electronica_Practica.pdf` | 44 | electronica desde cero |
 | `Raspberry_Pi_5_Profundo.pdf` | 25 | deep dive del Pi 5 |
 
-**Total**: 193 paginas
+**Total**: 226 paginas
 
 ### 02_Libros_y_Cursos/
 
@@ -87,7 +88,7 @@ cualquier navegador con doble click, sin software adicional.
 
 ## Resumen
 
-**16 PDFs + 4 HTMLs**, **~418 paginas + diagramas interactivos** de material tecnico.
+**17 PDFs + 4 HTMLs**, **~451 paginas + diagramas interactivos** de material tecnico.
 
 ## Como usar
 
