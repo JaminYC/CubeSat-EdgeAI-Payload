@@ -1,0 +1,179 @@
+\chapter{Verificación y Evaluación Experimental}
+\label{ch:verificacion}
+
+Este capítulo describe la estrategia de verificación y las actividades de
+evaluación experimental realizadas para el \textbf{Subsystema de
+Super--Resolución basada en Inteligencia Artificial (SAI)}. La verificación se
+enfoca en comprobar el correcto funcionamiento del pipeline de procesamiento, la
+consistencia de los resultados generados y el cumplimiento de los requerimientos
+definidos en el Capítulo~\ref{ch:requerimientos}.
+
+La evaluación se plantea desde un enfoque cualitativo y comparativo, dado que el
+subsistema SAI se concibe como una herramienta de apoyo visual y no como un
+instrumento de medición científica primaria.
+
+% -------------------------------------------------------------------
+\section{Estrategia general de verificación}
+
+La verificación del SAI se basa en los siguientes principios:
+
+\begin{itemize}
+    \item Uso de imágenes reales adquiridas por el CMOS Microscopy Payload.
+    \item Comparación directa entre imagen original y salida procesada.
+    \item Preservación de trazabilidad entre datos de entrada y salida.
+    \item Evaluación visual y métrica básica sin interpretación metrológica.
+\end{itemize}
+
+No se emplean métricas de resolución absoluta, dado que el procesamiento no
+incrementa la resolución óptica real del sistema.
+
+% -------------------------------------------------------------------
+\section{Conjunto de datos de prueba}
+
+Las pruebas se realizaron utilizando imágenes experimentales capturadas en
+entorno de laboratorio, correspondientes a muestras biológicas planas
+(ej. epidermis de cebolla) adquiridas en configuración de microscopía sin lentes.
+
+Las imágenes utilizadas presentan:
+\begin{itemize}
+    \item Resolución nativa del sensor CMOS.
+    \item Iluminación uniforme controlada.
+    \item Parámetros de captura registrados como metadatos.
+\end{itemize}
+
+Este conjunto de datos representa escenarios reales de operación del sistema.
+
+% -------------------------------------------------------------------
+\section{Procedimiento de verificación funcional}
+
+El procedimiento general de verificación se describe a continuación:
+
+\begin{enumerate}
+    \item Selección de imagen original adquirida por el CMOSM.
+    \item Carga de la imagen en el pipeline SAI.
+    \item Ejecución del preprocesamiento definido.
+    \item Aplicación del modelo de super--resolución seleccionado.
+    \item Generación de la imagen procesada.
+    \item Almacenamiento separado de la imagen original y la imagen procesada.
+    \item Registro de metadatos del procesamiento.
+\end{enumerate}
+
+Cada ejecución se documentó para asegurar repetibilidad del proceso.
+
+% -------------------------------------------------------------------
+\section{Criterios de evaluación}
+
+La evaluación de resultados se realizó considerando los siguientes criterios:
+
+\subsection{Consistencia estructural}
+Se verificó que las estructuras visibles en la imagen original se mantuvieran
+presentes en la imagen procesada, sin desaparición o deformación significativa
+de bordes.
+
+\subsection{Ausencia de artefactos críticos}
+Se inspeccionó visualmente la presencia de:
+\begin{itemize}
+    \item patrones artificiales no presentes en la imagen original,
+    \item halos excesivos alrededor de bordes,
+    \item texturas irreales inducidas por el modelo.
+\end{itemize}
+
+\subsection{Mejora perceptual}
+Se evaluó la mejora subjetiva en términos de:
+\begin{itemize}
+    \item definición de bordes,
+    \item legibilidad de estructuras celulares,
+    \item contraste local.
+\end{itemize}
+
+Esta evaluación se realizó de manera comparativa y cualitativa.
+
+% -------------------------------------------------------------------
+\section{Resultados experimentales}
+
+Los resultados obtenidos muestran que el subsistema SAI:
+
+\begin{itemize}
+    \item mejora la legibilidad visual de estructuras ya presentes en la imagen
+    original,
+    \item no introduce artefactos dominantes cuando se emplean parámetros
+    conservadores,
+    \item preserva la correspondencia espacial con la imagen de entrada.
+\end{itemize}
+
+En particular, se observó una mejora perceptual clara en la visualización de
+paredes celulares en muestras vegetales, facilitando la interpretación visual
+sin modificar la información base adquirida.
+
+La Figura~\ref{fig:resultados_esrgan} presenta ejemplos representativos de los
+resultados experimentales obtenidos mediante la aplicación del modelo ESRGAN x4
+sobre imágenes adquiridas por el CMOSM.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/Comparación SSR 2.png}
+        \caption{Comparación 1: Super-resolución x4 aplicada a tejido vegetal}
+        \label{fig:esrgan_test1}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/Comparación SSR.png}
+        \caption{Comparación 2: Super-resolución x4 mostrando mejora en definición}
+        \label{fig:esrgan_test2}
+    \end{subfigure}
+    \caption{Resultados experimentales de super-resolución mediante ESRGAN x4, demostrando mejora en definición de bordes y legibilidad de estructuras celulares sin introducir artefactos dominantes.}
+    \label{fig:resultados_esrgan}
+\end{figure}
+
+% -------------------------------------------------------------------
+\section{Verificación de requerimientos}
+
+La Tabla~\ref{tab:verificacion-sai} resume el estado de verificación de los
+requerimientos principales del subsistema SAI.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{3cm} p{7cm} p{3cm}}
+\toprule
+\textbf{ID} & \textbf{Requerimiento} & \textbf{Estado} \\
+\midrule
+FR-SAI-01 & Ingesta de imágenes del CMOSM & Verificado \\
+FR-SAI-02 & Aplicación de super--resolución & Verificado \\
+FR-SAI-03 & Preservación de imagen original & Verificado \\
+PR-SAI-04 & Ausencia de artefactos críticos & Parcialmente verificado \\
+IR-SAI-01 & Compatibilidad de formatos & Verificado \\
+\bottomrule
+\end{tabular}
+\caption{Estado de verificación de requerimientos del SAI.}
+\label{tab:verificacion-sai}
+\end{table}
+
+Los requerimientos marcados como parcialmente verificados corresponden a
+criterios perceptuales que requieren mayor número de muestras para validación
+estadística.
+
+% -------------------------------------------------------------------
+\section{Limitaciones de la evaluación}
+
+La evaluación experimental presenta las siguientes limitaciones:
+
+\begin{itemize}
+    \item Tamaño reducido del conjunto de datos.
+    \item Dependencia del modelo entrenado y sus parámetros.
+    \item Evaluación principalmente cualitativa.
+\end{itemize}
+
+Estas limitaciones se consideran aceptables dada la naturaleza exploratoria del
+subsistema SAI.
+
+% -------------------------------------------------------------------
+\section{Resumen}
+
+La verificación realizada demuestra que el subsistema SAI cumple su función como
+herramienta de apoyo visual para la interpretación de imágenes adquiridas por el
+CMOSM. Los resultados obtenidos justifican su integración como módulo
+complementario dentro del proyecto INTISAT, manteniendo un enfoque conservador
+respecto a su uso científico.

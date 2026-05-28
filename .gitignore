@@ -4,6 +4,11 @@ __pycache__/
 *$py.class
 *.so
 
+# Secrets / API keys
+.secrets/
+.env
+*.apikey
+
 # Carpetas pesadas o problemáticas
 Resultados/
 Real-ESRGAN/
@@ -82,3 +87,18 @@ Thumbs.db
 ~$*
 *.tmp.docx
 *.tmp.xlsx
+
+# INTISAT-doc — repo PUCP absorbido como carpeta normal
+# (.venv y archivos LFS >100 MB que GitHub no acepta sin Git LFS)
+INTISAT-doc/.venv/
+*.exe
+INTISAT-doc/4_PhaseC_CriticalDesign/Payload_AI/INTI-C-05.03-SAI-CDR/SuperResolution AI Critical Design Review SAI.pdf
+INTISAT-doc/4_PhaseC_CriticalDesign/Payload_AI/INTI-C-05.03-SAI-CDR/Super-Resolution AI Critical Design Review V3.1.pdf
+# Builds intermedios LaTeX adicionales del CDR
+*.dvi
+*.4as
+*.4tc
+*.xref
+*.lof
+*.lot
+*.fls

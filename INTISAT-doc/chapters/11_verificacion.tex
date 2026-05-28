@@ -1,0 +1,30 @@
+\chapter{Integración, Verificación y Validación (AIT)}
+
+\section{Definición Global de la Campaña AIT}
+La campaña de Ensamblaje, Integración y Pruebas (AIT - \textit{Assembly, Integration and Testing}) determina la batería de requisitos obligatorios experimentales y sistemáticos necesarios antes del dictamen de vuelo (Modelo de Vuelo - Flight Model). Se establece que el equipo en este formato no padecerá alteraciones de diseño (congelamiento de hardware/firmware) posteriormente a estas pruebas críticas para preservar la garantía e integridad. 
+
+\section{Instrucciones de Ensamblaje y FlatSat}
+Antes de la integración física final, se realizarán pruebas clave a nivel de sistema expandido.
+
+\subsection{FlatSat (Pruebas sobre mesa)}
+% Aquí se documentará la configuración FlatSat, la interconexión de las placas fuera del chasis mediante cables puente y el proceso HIL (Hardware-In-the-Loop) para validación lógica y de interfaces continuas antes de la integración mecánica.
+
+\subsection{Procedimiento de Integración Mecánica}
+% Secuencia de pasos con torques estandarizados, ubicación del cableado (harness) interno y ensamblaje físico del chasis desde las placas madre hasta el montaje de los paneles solares.
+
+\section{Plan de pruebas físicas y validación ambiental}
+Las pruebas buscan calificar las propiedades tanto físicas como funcionales, asegurando a cabalidad la supervivencia frente a los entornos acústicos de un cohete estándar. Incluye controles mandatorios como:
+
+\subsection{Pruebas Físico-Mecánicas}
+\begin{itemize}
+    \item \textbf{Verificación de Interfaz Física (Fit Check):} Control estricto de la envolvente externa dimensional, perpendicularidad y compatibilidad limpiando atascos dentro del P-POD inyector satelital.
+    \item \textbf{Masa y Centro de Gravedad (CG):} Verificación del peso máximo por estándar CubeSat y la ubicación tolerada del CG respecto a su eje geométrico.
+    \item \textbf{Pruebas de Esfuerzo Dinámico (Vibration \& Shock Tests):} Calificación dinámica (Random y Sinusoidal) sobre mesas vibratorias simulando el perfil acústico inter-etapas del cohete en los 3 ejes (X, Y, Z).
+\end{itemize}
+
+\subsection{Pruebas de Ambiente Espacial y EMC}
+\begin{itemize}
+    \item \textbf{Ciclos Térmicos (Thermal Cycling):} Sometimiento repetido a transiciones abruptas térmicas ($\Delta T$) representativas de los eclipses e iluminación para detectar fatiga de soldadura.
+    \item \textbf{Prueba en Cámara Termo-Vacío (TVAC \& Bake-Out):} Evaluación térmica profunda LEO simulando alto vacío, desgasificación (outgassing) y verificación térmica a $+60^\circ\text{C}$ durante ciclos alargados.
+    \item \textbf{Compatibilidad Electromagnética (EMC):} Evaluación de intermodulación y ruido de hardware entre etapas para prevenir autointerferencias en el receptor UHF/VHF.
+\end{itemize}

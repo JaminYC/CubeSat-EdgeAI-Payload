@@ -1,0 +1,12 @@
+\begin{longtable}{L{1.5cm}L{6.2cm}L{2cm}L{2cm}L{4cm}}
+\toprule
+\textbf{ID} & \textbf{Description} & \textbf{Likelihood} & \textbf{Severity} & \textbf{Mitigation} \\
+\midrule
+R-01 & OLED vacuum incompatibility / outgassing & High & Critical & Replace OLED with LED matrix \\
+R-02 & BCM2711 SEU during reconstruction & Medium & High & MCU watchdog, scrubbing, safe software \\
+R-03 & OV5647 radiation degradation & High & Medium & In-flight dark-frame updates \\
+R-04 & z-distance thermal drift & Medium & High & Low-CTE spacer + calibration \\
+R-05 & eMMC corruption & Medium & High & Journaling, redundancy, safe writes \\
+R-10 & No hardware design files exist yet & Certain & Critical & Start carrier PCB immediately \\
+\bottomrule
+\end{longtable}

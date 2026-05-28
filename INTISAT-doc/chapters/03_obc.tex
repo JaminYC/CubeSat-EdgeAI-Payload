@@ -1,0 +1,62 @@
+\chapter{OBC – Computadora de a Bordo}
+
+\section{Diseño de Hardware y Arquitectura Central (OBDH)}
+El hardware principal o módulo On-Board Data Handling (OBDH) es el \textit{corazón} de la plataforma INTISAT, concebido de manera específica para coordinar las operaciones vitales, gestión de fallos y comunicaciones.
+
+La arquitectura de procesamiento está basada en un microcontrolador de alto rendimiento \textbf{STM32H7 (144 pines)}, impulsado por osciladores de precisión (Cristal HSE de 24 MHz y LSE de 32.768 kHz). Este núcleo asegura el poder de cómputo necesario para tareas de tiempo real exigidas por las cargas útiles.
+
+\insertfigure{OBC1.jpeg}{0.9}{Diagrama de bloques general de la arquitectura del OBC.}
+
+\subsection{Esquema de Memorias y Almacenamiento}
+Para garantizar la persistencia de datos (Housekeeping y rutinas de Payload) y tolerar fallos inducidos por radiación mitigando eventos Single Event Upset (SEU), la OBC implementa un banco de memorias redundante operando a 3.3V:
+\begin{itemize}
+    \item \textbf{Memorias de Alta Velocidad (x3):} Interconectadas mediante bus QSPI a 133 MHz, priorizando la ejecución rápida y buffers de comunicación.
+    \item \textbf{Memorias de Baja Velocidad (x3):} Interconectadas mediante bus SPI tradicional a 25 MHz para redundancia y almacenamiento profundo no volátil.
+\end{itemize}
+
+\subsection{Monitoreo Interno y Sensores}
+El acondicionamiento físico incluye un banco independiente de \textbf{6 unidades de sensores de temperatura} vinculados directamente al STM32H7 vía bus I2C, lo que permite trazar mapas de calor de la placa madre en tiempo real. 
+
+\section{Capa de Aislamiento e Interfaz de Comunicaciones}
+Teniendo en cuenta el entorno disruptivo del espacio, la placa OBC no se comunica directamente con el bus estándar del satélite (PC/104). Se incorpora un diseño de aislamiento galvánico de señales:
+\begin{itemize}
+    \item Una etapa de \textbf{Banco de Aisladores} protege los puertos expuestos hacia el conector PC/104. Esto involucra puertos críticos de Baja Velocidad (hasta 22 pines GPIO, 2x SPI, 2x I2C y 4x UART utilizados pesadamente por las cargas útiles).
+    \item Se incluye un transceptor dedicado para los 2 canales del \textbf{Bus CAN} (CAN H/L), proporcionando inmunidad al ruido y un protocolo robusto para la telemetría cruzada con subsistemas vitales (como el EPS).
+\end{itemize}
+
+\section{Máquina de Estados y Modos de Operación}
+La computadora de a bordo gestiona todo el ciclo de vida de la misión a través de protocolos internos mediante tres estados principales de operación de software claramente delimitados:
+
+\subsection{Modo Inicio (Deployment y Vuelo Temprano)}
+Al eyectarse del inyector P-POD, el switch de desactivación físico libera la energía proveniente del EPS energizando el satélite. El OBC ingresa en el estado de inicio ejecutando la siguiente rutina estricta:
+\begin{enumerate}
+    \item \textbf{Temporizador de Silencio:} Activación obligatoria de una ventana inactiva de 30 a 40 minutos sin ejecución de hardware crítico, permitiendo el alejamiento del vehículo lanzador.
+    \item \textbf{Checklist de despliegue:} La OBC evalúa los siguientes parámetros:
+    \begin{itemize}
+        \item Consistencia de energía (consulta al EPS si la batería supera el $70\%$ de carga).
+        \item Estabilidad orbital (consulta al ADCS para mitigar rotaciones caóticas indeseadas y estabilizar el sistema).
+    \end{itemize}
+    \item Confirmados los niveles, ejecuta el despliegue físico de las antenas e ingresa al \textit{Modo Rutina}. Si falla o los niveles no son óptimos, cae por contingencia al \textit{Modo de Seguridad}.
+\end{enumerate}
+
+\subsection{Modo Rutina (Operación Nominal)}
+El modo de operación estándar se enfoca cíclicamente en dos frentes simultáneos:
+\begin{itemize}
+    \item Enviar de manera periódica (continuamente por defecto en cada vuelta de orbita) los datos de telemetría o de sanidad del vehículo (\textit{Housekeeping}), proveyendo información del OBC, EPS y Radio.
+    \item \textbf{Priorización de Cargas Útiles:} Autoriza la ejecución de experimentos científicos (ej. adquisición de matriz en Microscopía), absorbe su información transaccional al banco de memorias, la empaca vía protocolo interno y la enruta íntegra para su transmisión hacia la Tierra.
+\end{itemize}
+
+\subsection{Modo de Seguridad (Safe Mode)}
+Ante el fracaso del \textit{Modo Inicio} o un error derivado de un evento severo (baja tensión, SEU), la máquina de estado suspende el Modo Rutina ingresando a la supervivencia extrema:
+\begin{enumerate}
+    \item \textbf{Corte Quirúrgico:} Se apagan y retiran los puertos a subsistemas y payloads no vitales.
+    \item \textbf{Transmisión Básica:} Único envío periódico de telemetría Housekeeping (EPS, OBC, UHF).
+    \item \textbf{Apuntamiento Activo Solar:} Ordena al ADCS apuntar los paneles ininterrumpidamente hacia el sol.
+    \item \textbf{Interbloqueo:} El satélite se suspende escuchando telecomandos críticos de Tierra para inyectar correcciones asincrónicas (resets estructurados del código fuente, forzar rutinas o subsanar la máquina de estados) para retornar manualmente al Modo Rutina.
+\end{enumerate}
+
+\begin{figure}[h]
+\centering
+\includegraphics[height=10cm, keepaspectratio]{figures/OBC2.jpeg}
+\caption{Flujogramas del modo de operación del satélite.}
+\end{figure}

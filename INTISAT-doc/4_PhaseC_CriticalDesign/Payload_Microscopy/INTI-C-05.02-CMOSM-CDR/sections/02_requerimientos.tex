@@ -1,0 +1,159 @@
+\chapter{Requerimientos del Payload}
+\label{ch:requerimientos}
+
+Este capítulo presenta los requerimientos formales del
+\textbf{CMOS Microscopy Payload (CMOSM)}, siguiendo lineamientos de ingeniería de
+sistemas ECSS/NASA y alineado con el \textit{System Requirements Document} (SRD)
+del proyecto INTISAT. Los requerimientos se clasifican en funcionales, de
+rendimiento, ópticos, eléctricos, ambientales y operacionales, e incluyen su
+método de verificación asociado.
+
+% -------------------------------------------------------------------
+\section{Clasificación de métodos de verificación}
+
+Los métodos de verificación utilizados en este documento se definen como:
+
+\begin{itemize}
+    \item \textbf{T} -- Test: ensayo directo de hardware y/o software.
+    \item \textbf{A} -- Analysis: análisis, simulación o evaluación numérica.
+    \item \textbf{I} -- Inspection: inspección visual o revisión física.
+    \item \textbf{R} -- Review of Design: revisión documental o de código.
+\end{itemize}
+
+% -------------------------------------------------------------------
+\section{Requerimientos funcionales (FR)}
+
+\setlength{\LTpre}{0.5\baselineskip}
+\setlength{\LTpost}{0.5\baselineskip}
+\renewcommand{\arraystretch}{1.3}
+\begin{longtable}{p{1.2cm} p{10.3cm} p{2.5cm}}
+\toprule
+\textbf{ID} & \textbf{Descripción} & \textbf{Verificación} \\
+\midrule
+FR-01 & El payload debe capturar imágenes a resolución nativa de
+2592$\times$1944 píxeles utilizando un sensor CMOS OV5647. & T, R \\
+FR-02 & El sistema debe permitir el control de iluminación mediante patrones
+programables mostrados en una pantalla OLED. & T, I \\
+FR-03 & El sistema debe generar un archivo de metadatos por cada captura,
+incluyendo parámetros de adquisición y marca temporal. & T, R \\
+FR-04 & El sistema debe permitir operación en modo manual y semiautomático. & T \\
+FR-05 & El payload debe integrarse con una Raspberry Pi actuando como
+computadora de carga útil y permitir interacción funcional con el sistema OBDH
+del proyecto INTISAT. & I, R \\
+FR-06 & El software debe permitir modificar parámetros de la iluminación OLED,
+incluyendo posición, tamaño e intensidad del patrón. & T \\
+\bottomrule
+\end{longtable}
+\renewcommand{\arraystretch}{1}
+
+% -------------------------------------------------------------------
+\section{Requerimientos de rendimiento (PR)}
+\renewcommand{\arraystretch}{1.3}
+
+\begin{longtable}{p{1.2cm} p{10.3cm} p{2.5cm}}
+\toprule
+\textbf{ID} & \textbf{Descripción} & \textbf{Verificación} \\
+\midrule
+PR-01 & El sistema debe generar imágenes con contraste suficiente para permitir
+la observación visual de estructuras celulares planas bajo condiciones nominales
+de laboratorio. & T, I \\
+PR-02 & La imagen base capturada debe presentar un nivel de ruido compatible con
+análisis visual, evaluado mediante métricas estadísticas básicas. & A, T \\
+PR-03 & El histograma de la imagen capturada no debe presentar más del 1\% de
+píxeles saturados bajo condiciones nominales de exposición. & T \\
+PR-04 & La variación relativa de intensidad luminosa entre capturas consecutivas
+debe ser inferior al 5\% bajo condiciones estables. & T \\
+PR-05 & Las técnicas computacionales experimentales evaluadas no deben degradar
+la información presente en la imagen base. & A, I \\
+\bottomrule
+\end{longtable}
+\renewcommand{\arraystretch}{1}
+
+% -------------------------------------------------------------------
+\section{Requerimientos ópticos (OR)}
+\renewcommand{\arraystretch}{1.3}
+
+\begin{longtable}{p{1.2cm} p{10.3cm} p{2.5cm}}
+\toprule
+\textbf{ID} & \textbf{Descripción} & \textbf{Verificación} \\
+\midrule
+OR-01 & El sistema debe operar en configuración de microscopía sin lentes, sin
+emplear elementos ópticos refractivos para la formación de imagen. & R \\
+OR-02 & El diseño debe permitir colocar la muestra en contacto cercano con el
+plano del sensor CMOS. & I \\
+OR-03 & El sistema de iluminación debe proporcionar una iluminación
+aproximadamente uniforme sobre el área de interés. & T \\
+OR-04 & La arquitectura óptica no debe requerir mecanismos de enfoque activo. & R \\
+OR-05 & La iluminación estructurada se implementa únicamente como modo
+experimental y no afecta la operación nominal. & R \\
+\bottomrule
+\end{longtable}
+\renewcommand{\arraystretch}{1}
+
+% -------------------------------------------------------------------
+\section{Requerimientos eléctricos (ER)}
+\renewcommand{\arraystretch}{1.3}
+
+\begin{longtable}{p{1.2cm} p{10.3cm} p{2.5cm}}
+\toprule
+\textbf{ID} & \textbf{Descripción} & \textbf{Verificación} \\
+\midrule
+ER-01 & El consumo total del payload debe ser inferior a 1.5 W en operación
+nominal. & A, T \\
+ER-02 & El sistema de iluminación OLED debe operar mediante bus I2C a nivel
+lógico de 3.3 V. & I \\
+ER-03 & La Raspberry Pi debe proveer alimentación y control al sensor CMOS. & I, R \\
+ER-04 & El diseño debe incluir protecciones básicas contra descargas
+electrostáticas en conexiones externas. & I \\
+\bottomrule
+\end{longtable}
+\renewcommand{\arraystretch}{1}
+
+% -------------------------------------------------------------------
+\section{Requerimientos ambientales (ENR)}
+\renewcommand{\arraystretch}{1.3}
+
+\begin{longtable}{p{1.2cm} p{10.3cm} p{2.5cm}}
+\toprule
+\textbf{ID} & \textbf{Descripción} & \textbf{Verificación} \\
+\midrule
+ENR-01 & El sistema debe operar en el rango de temperatura de 10--40~$^\circ$C en
+condiciones de laboratorio. & T \\
+ENR-02 & Los componentes deben resistir vibraciones de laboratorio de hasta
+3.5~g RMS. & A, T \\
+ENR-03 & El sensor CMOS debe contar con protección mecánica básica frente a polvo. & I \\
+ENR-04 & El sistema de iluminación debe mantener contraste operativo hasta
+40~$^\circ$C. & T \\
+\bottomrule
+\end{longtable}
+\renewcommand{\arraystretch}{1}
+
+% -------------------------------------------------------------------
+\section{Requerimientos operacionales (OPR)}
+\renewcommand{\arraystretch}{1.3}
+
+\begin{longtable}{p{1.2cm} p{10.3cm} p{2.5cm}}
+\toprule
+\textbf{ID} & \textbf{Descripción} & \textbf{Verificación} \\
+\midrule
+OPR-01 & El sistema debe iniciar su operación en menos de 15 s desde el
+encendido. & T \\
+OPR-02 & El usuario debe poder modificar parámetros de iluminación en tiempo
+cuasi--real ($\leq$ 100 ms). & T \\
+OPR-03 & El sistema debe permitir la ejecución de modos experimentales de captura
+sin interferir con el modo nominal. & R \\
+OPR-04 & El sistema debe disponer de un modo seguro de apagado. & R \\
+OPR-05 & El sistema debe registrar logs de operación, incluyendo errores,
+parámetros y eventos relevantes. & R \\
+\bottomrule
+\end{longtable}
+\renewcommand{\arraystretch}{1}
+
+% -------------------------------------------------------------------
+\section{Resumen}
+
+El conjunto de requerimientos definidos en este capítulo establece el marco de
+desempeño esperado para el CMOS Microscopy Payload en su fase actual de
+desarrollo. Cada requerimiento será verificado mediante los métodos descritos en
+el Capítulo~\ref{ch:verificacion}, asegurando coherencia entre diseño,
+implementación y validación experimental.

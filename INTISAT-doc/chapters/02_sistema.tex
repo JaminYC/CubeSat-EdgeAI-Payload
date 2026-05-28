@@ -1,0 +1,29 @@
+\chapter{Arquitectura del Sistema}
+\section{Visión general del sistema}
+El sistema del nanosatélite INTISAT está compuesto por un conjunto de submódulos interconectados en un bus estándar de facto (tipo PC-104 modificado o equivalente de la industria aeroespacial). La misión principal se asegura a través de un módulo de servicio (Bus) robusto frente a fallos y redundante al integrarse a las diferentes cargas útiles (p.e. la cámara de microscopía digital).
+
+\subsection{Diagrama de Potencia}
+El módulo eléctrico EPS (Electrical Power System) gestiona de forma centralizada todos los buses de poder, alimentando los subsistemas mediante voltajes de 3.3V, 5V y las líneas no reguladas (vBattery). Esto permite un control estricto sobre los convertidores y habilita esquemas de encendido y apagado de módulos de manera individual, esencial para gestionar adecuadamente el consumo de operaciones durante eclipses o ante detecciones de falla/latch-up.
+
+\subsection{Diagrama de Flujo de Datos}
+La ruta de datos tiene como nodo de control y mediación a la computadora de placa única (OBC). La comunicación principal interna entre módulos del Bus se establece por protocolos estándar robustos de baja velocidad como I2C, SPI o UART (este último crítico para las cargas útiles pesadas). La computadora recolecta datos internos (Housekeeping), información de telemetría general y del Payload, y se encarga de empaquetarlos en estructuras de enlace CCSDS/AX.25 para ser transmitidas al respectivo segmento terreno (como AYNISAT) a través del módulo transceptor de enlace descendente.
+
+
+\section{Presupuestos Técnicos y Análisis de Misión}
+Esta sección centraliza los presupuestos críticos para el ciclo de vida del nanosatélite, garantizando que cumple con los requerimientos restrictivos del formato 2U.
+
+\subsection{Parámetros de Órbita y Vida Útil}
+% Aquí se definirán los parámetros TLE de despliegue teórico, inclinación orbital, tiempo de vida previsto (Lifetime Analysis) y las ventanas de acceso a estaciones terrenas.
+
+\subsection{Presupuesto de Masa (Mass Budget)}
+% Tabla detallada del peso de cada subsistema, identificando la masa total con márgenes de error.
+
+\subsection{Presupuesto de Potencia (Power Budget)}
+% Balance energético entre generación solar, consumo promedio vs. pico y capacidad DoD.
+
+\subsection{Cálculo de Enlace (Link Budget)}
+% Cálculo del RSSI esperado, ruido, sensibilidad y factores de cobertura.
+
+\section{Documento de Control de Interfaces (ICD)}
+\subsection{Interface Data Sheet y Form Factor}
+% Diagrama de pines (pinout) de las placas de interconexión PC-104.

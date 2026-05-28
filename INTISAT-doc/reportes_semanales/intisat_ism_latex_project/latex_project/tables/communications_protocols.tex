@@ -1,0 +1,10 @@
+\begin{longtable}{L{3cm}L{3.5cm}L{3cm}L{2cm}L{4cm}}
+\toprule
+\textbf{Bus} & \textbf{Connection} & \textbf{Protocol} & \textbf{Rate} & \textbf{Justification} \\
+\midrule
+Sensor $\rightarrow$ CM4 & OV5647 to BCM2711 & MIPI CSI-2 & 84 MHz & Native high-speed camera interface \\
+CM4 $\rightarrow$ LED driver & BCM2711 to LED driver & I2C & 400 kbps & Simple pattern control \\
+CM4 $\leftrightarrow$ STM32 & Compute to supervisor & UART & 115200 baud & Sufficient for commands/HK \\
+STM32 $\rightarrow$ OBC & Payload to spacecraft bus & CAN & 250 kbps & Fault-tolerant, standard CubeSat choice \\
+\bottomrule
+\end{longtable}

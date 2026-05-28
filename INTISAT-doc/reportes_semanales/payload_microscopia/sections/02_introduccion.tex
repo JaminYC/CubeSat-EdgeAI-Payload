@@ -1,0 +1,87 @@
+﻿\chapter{Introduccion}
+\section{Contexto y motivacion}
+El desarrollo de instrumentos científicos compactos, de bajo consumo y alta funcio-
+nalidad constituye un desafío clave para las misiones espaciales modernas, especial-
+mente en plataformas con recursos limitados como los nanosatélites tipo CubeSat.
+En este contexto, la microscopía computacional surge como una alternativa viable
+frente a los sistemas ópticos tradicionales, al trasladar parte de la complejidad del
+hardware hacia el procesamiento digital de la información.
+
+El proyecto INTISAT, desarrollado bajo el marco institucional del Instituto de Ra-
+dioastronomía (INRAS), incorpora una carga útil experimental orientada a la valida-
+ción de tecnologías emergentes aplicables a observación y caracterización de muestras
+a pequeña escala. Dentro de este marco, el payload de microscopía computacional
+busca explorar la factibilidad de realizar observaciones micrométricas funcionales
+empleando sensores CMOS comerciales, óptica mínima y algoritmos de procesa-
+miento computacional.
+
+A diferencia de los microscopios de laboratorio convencionales, el sistema desarrolla-
+do no persigue fines clínicos ni de alta precisión metrológica absoluta, sino la demos-
+tración tecnológica de un sistema modular capaz de adquirir información morfológica
+básica bajo restricciones severas de masa, volumen, potencia y complejidad.
+
+Un aspecto crítico del desarrollo de sistemas de imagen no comerciales es la au-
+sencia de calibración metrológica de fábrica. En consecuencia, resulta indispensable
+validar que las mediciones digitales obtenidas a partir de las imágenes capturadas
+correspondan de manera coherente con dimensiones físicas reales. Esta validación
+constituye un requisito previo para cualquier intento de caracterización de muestras
+biológicas o biomiméticas mediante el payload propuesto.
+
+En respuesta a esta necesidad, el presente trabajo se enfoca en la validación experi-
+mental de la escala espacial del sistema de microscopía, utilizando objetos patrón y
+técnicas de comparación cruzada con sistemas de microscopía calibrados.
+\section{Objetivo general}
+Demostrar la viabilidad de un sistema de microscopía computacional basado en
+sensor CMOS como carga útil experimental para el proyecto INTISAT, mediante la
+validación metrológica de su escala espacial y la verificación de la coherencia entre
+las mediciones digitales obtenidas y las dimensiones físicas reales de objetos patrón
+micrométricos.
+
+\section{Objetivos Específicos}
+
+Los objetivos específicos del presente trabajo son:
+
+\begin{itemize}
+    \item Diseñar e implementar un sistema de adquisición de imágenes basado en sensor CMOS y configuración óptica mínima, adecuado para su integración como payload experimental dentro del proyecto INTISAT.
+    
+    \item Establecer una metodología de validación metrológica de la escala espacial del sistema de imagen (µm/pixel), empleando objetos patrón micrométricos de dimensiones conocidas.
+    
+    \item Evaluar el desempeño del sistema frente a objetos patrón micrométricos, específicamente microesferas de poliestireno de diámetro nominal de 2 µm.
+    
+    \item Comparar las mediciones obtenidas mediante el sistema CMOS con mediciones independientes realizadas por microscopía óptica calibrada y microscopía electrónica de barrido (SEM), a fin de determinar la coherencia dimensional del sistema.
+    
+    \item Analizar las limitaciones físicas y computacionales del sistema, considerando efectos de resolución espacial, difracción, tamaño de pixel y procesamiento digital de imagen.
+    
+    \item Documentar los resultados experimentales obtenidos y establecer lineamientos técnicos para etapas futuras de desarrollo, optimización y ampliación de capacidades del payload.
+\end{itemize}
+\section{Alcance del Trabajo}
+
+El presente trabajo comprende la validación experimental y documental de la escala espacial del sistema de microscopía computacional desarrollado como carga útil experimental del proyecto INTISAT, estableciendo las bases técnicas necesarias para su uso en futuras aplicaciones de caracterización de muestras biológicas y biomiméticas.
+
+En particular, el estudio abarca:
+
+\begin{itemize}
+    \item La caracterización dimensional de objetos patrón micrométricos mediante el sistema CMOS desarrollado.
+    
+    \item La comparación de las mediciones obtenidas con técnicas de microscopía óptica convencional y microscopía electrónica de barrido, como referencia metrológica independiente.
+    
+    \item El análisis de las limitaciones físicas y computacionales del sistema en términos de resolución efectiva, efectos de difracción, tamaño de pixel y capacidad de observación morfológica.
+    
+    \item La evaluación preliminar del potencial del sistema para la observación de estructuras celulares de tamaño micrométrico, sin fines diagnósticos ni clínicos.
+\end{itemize}
+
+No forman parte del alcance del presente trabajo:
+
+\begin{itemize}
+    \item La validación clínica, diagnóstica o terapéutica de muestras biológicas.
+    
+    \item El uso del sistema como herramienta médica certificada.
+    
+    \item La interpretación biomédica de resultados asociados a patologías específicas.
+    
+    \item La implementación completa de técnicas avanzadas de reconstrucción computacional, tales como la microscopía ptychográfica de Fourier, como herramienta primaria de calibración metrológica.
+\end{itemize}
+
+Sin embargo, se reconoce que, una vez validada la coherencia metrológica del sistema y optimizadas sus capacidades de adquisición y procesamiento, el payload podría emplearse como plataforma experimental para la observación de líneas celulares ampliamente utilizadas en investigación (por ejemplo, células HeLa), exclusivamente con fines exploratorios, educativos o de investigación básica.
+
+El presente trabajo se concibe como una etapa preliminar dentro del desarrollo progresivo del payload, proporcionando una base técnica sólida para futuras fases orientadas a la ampliación de capacidades de caracterización biológica y computacional.

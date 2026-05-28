@@ -1,0 +1,188 @@
+\chapter{Análisis de Riesgos}
+\label{ch:riesgos}
+
+Este capítulo identifica y analiza los principales riesgos técnicos,
+operacionales y de alcance asociados al \textbf{CMOS Microscopy Payload (CMOSM)}.
+El objetivo es reconocer de manera explícita las limitaciones del sistema en su
+fase actual de desarrollo y documentar las acciones de mitigación consideradas,
+siguiendo buenas prácticas de ingeniería de sistemas (ECSS/NASA).
+
+El análisis de riesgos se enfoca en la operación del payload como demostrador
+tecnológico en entorno de laboratorio, sin considerar aún condiciones de vuelo.
+
+% -------------------------------------------------------------------
+\section{Metodología de análisis de riesgos}
+
+Los riesgos se clasifican de acuerdo con:
+\begin{itemize}
+    \item \textbf{Tipo}: técnico, operacional o de alcance.
+    \item \textbf{Probabilidad}: baja (B), media (M) o alta (A).
+    \item \textbf{Impacto}: bajo (B), medio (M) o alto (A).
+\end{itemize}
+
+Para cada riesgo identificado se define una estrategia de mitigación o
+contención, acorde con el estado actual del proyecto.
+
+% -------------------------------------------------------------------
+\section{Riesgos técnicos}
+
+\subsection{Acoplamiento óptico muestra--sensor}
+
+\textbf{Descripción:}  
+La calidad de imagen en microscopía de contacto depende críticamente de la
+distancia y uniformidad del contacto entre la muestra y el sensor CMOS. Variaciones
+mínimas pueden degradar el contraste y la definición de bordes.
+
+\textbf{Probabilidad:} Alta  
+\textbf{Impacto:} Alto  
+
+\textbf{Mitigación:}
+\begin{itemize}
+    \item Uso de procedimientos experimentales controlados para preparación de
+    muestras.
+    \item Evaluación sistemática de distintas interfaces muestra--sensor.
+    \item Registro de condiciones experimentales en los metadatos.
+\end{itemize}
+
+\subsection{Estabilidad de iluminación}
+
+\textbf{Descripción:}  
+Derivas temporales en la intensidad del OLED pueden afectar la reproducibilidad
+entre capturas consecutivas.
+
+\textbf{Probabilidad:} Media  
+\textbf{Impacto:} Medio  
+
+\textbf{Mitigación:}
+\begin{itemize}
+    \item Calentamiento previo del sistema antes de captura.
+    \item Monitoreo de métricas de histograma y saturación.
+    \item Uso de patrones uniformes en operación nominal.
+\end{itemize}
+
+\subsection{Ruido del sensor CMOS}
+
+\textbf{Descripción:}  
+El ruido térmico y el ruido de patrón fijo del sensor pueden limitar la calidad de
+imagen en exposiciones largas.
+
+\textbf{Probabilidad:} Media  
+\textbf{Impacto:} Medio  
+
+\textbf{Mitigación:}
+\begin{itemize}
+    \item Aplicación de calibración mediante dark frame y flat field.
+    \item Operación a temperaturas controladas de laboratorio.
+\end{itemize}
+
+\subsection{Limitaciones de reconstrucción FPM}
+
+\textbf{Descripción:}  
+Las técnicas de reconstrucción FPM pueden no converger adecuadamente debido a
+limitaciones de estabilidad mecánica, alineamiento o acoplamiento óptico.
+
+\textbf{Probabilidad:} Alta  
+\textbf{Impacto:} Bajo  
+
+\textbf{Mitigación:}
+\begin{itemize}
+    \item Clasificación de FPM como modo experimental.
+    \item No dependencia de FPM para operación nominal del payload.
+\end{itemize}
+
+% -------------------------------------------------------------------
+\section{Riesgos operacionales}
+
+\subsection{Preparación y manipulación de muestras}
+
+\textbf{Descripción:}  
+La manipulación manual de muestras biológicas puede introducir variabilidad entre
+ensayos y riesgo de contaminación del sensor.
+
+\textbf{Probabilidad:} Media  
+\textbf{Impacto:} Medio  
+
+\textbf{Mitigación:}
+\begin{itemize}
+    \item Procedimientos estandarizados de preparación.
+    \item Limpieza controlada del sensor.
+    \item Uso de etiquetas experimentales en metadatos.
+\end{itemize}
+
+\subsection{Errores de configuración de captura}
+
+\textbf{Descripción:}  
+Configuraciones incorrectas de exposición o ganancia pueden provocar saturación o
+subexposición.
+
+\textbf{Probabilidad:} Baja  
+\textbf{Impacto:} Medio  
+
+\textbf{Mitigación:}
+\begin{itemize}
+    \item Vista previa en tiempo real con histograma.
+    \item Bloqueo de parámetros automáticos del sensor.
+\end{itemize}
+
+% -------------------------------------------------------------------
+\section{Riesgos de alcance y proyecto}
+
+\subsection{Extensión del alcance del procesamiento computacional}
+
+\textbf{Descripción:}  
+Existe el riesgo de sobreextender el alcance del proyecto hacia técnicas
+computacionales avanzadas que no aporten mejoras significativas a la imagen base.
+
+\textbf{Probabilidad:} Media  
+\textbf{Impacto:} Bajo  
+
+\textbf{Mitigación:}
+\begin{itemize}
+    \item Definición clara del modo nominal de operación.
+    \item Evaluación objetiva del aporte incremental de cada técnica.
+\end{itemize}
+
+\subsection{Transición a entorno espacial}
+
+\textbf{Descripción:}  
+El sistema no ha sido aún verificado para condiciones de vibración, vacío o
+radiación propias del entorno espacial.
+
+\textbf{Probabilidad:} Alta  
+\textbf{Impacto:} Alto  
+
+\textbf{Mitigación:}
+\begin{itemize}
+    \item Delimitación explícita del alcance del presente CDR a entorno de
+    laboratorio.
+    \item Identificación de ensayos ambientales como trabajo futuro.
+\end{itemize}
+
+% -------------------------------------------------------------------
+\section{Resumen de riesgos}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{4cm} p{3cm} p{3cm} p{3cm}}
+\toprule
+\textbf{Riesgo} & \textbf{Tipo} & \textbf{Probabilidad} & \textbf{Impacto} \\
+\midrule
+Acoplamiento muestra--sensor & Técnico & Alta & Alto \\
+Estabilidad de iluminación & Técnico & Media & Medio \\
+Ruido del sensor & Técnico & Media & Medio \\
+Reconstrucción FPM & Técnico & Alta & Bajo \\
+Preparación de muestras & Operacional & Media & Medio \\
+Errores de configuración & Operacional & Baja & Medio \\
+Transición a vuelo & Alcance & Alta & Alto \\
+\bottomrule
+\end{tabular}
+\caption{Resumen de riesgos identificados para el CMOSM.}
+\end{table}
+
+% -------------------------------------------------------------------
+\section{Conclusión del análisis de riesgos}
+
+El análisis de riesgos realizado permite identificar claramente los factores
+críticos que afectan el desempeño del CMOSM en su fase actual. Las mitigaciones
+propuestas son coherentes con el carácter experimental del payload y establecen
+una base sólida para futuras iteraciones del proyecto INTISAT.

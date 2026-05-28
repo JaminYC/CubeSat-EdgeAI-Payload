@@ -1,0 +1,35 @@
+\section{Block Diagrams}
+
+\subsection{Overall Payload Architecture}
+\begin{lstlisting}[basicstyle=\ttfamily\small,frame=single]
+SAMPLE INTERFACE
+      |
+      v
++-------------------+      +----------------------+
+|    SENSOR BOARD   |<-----|  ILLUMINATION BOARD  |
+| OV5647 (lensless) |      |  LED matrix + driver |
++---------+---------+      +----------+-----------+
+          | CSI-2                     | I2C
+          v                           v
++--------------------------------------------------+
+|                 CM4 CARRIER BOARD                |
+| +-------------------+  +-----------------------+ |
+| | Raspberry Pi CM4  |  | STM32 Supervisor MCU  | |
+| | BCM2711 + eMMC    |  | WDT, HK, Power Ctrl   | |
+| +-------------------+  +-----------------------+ |
+|        Power conditioning + current monitor      |
++---------------------------+----------------------+
+                            |
+                            v
+                      SATELLITE OBC
+\end{lstlisting}
+
+\subsection{Data Flow}
+\begin{lstlisting}[basicstyle=\ttfamily\small,frame=single]
+LED pattern -> OV5647 capture -> TIFF + JSON metadata -> eMMC storage
+       -> dark subtraction + flat field
+       -> FPM reconstruction
+       -> reconstructed image / phase image
+       -> compression + packetization
+       -> OBC interface -> RF downlink -> Ground station
+\end{lstlisting}

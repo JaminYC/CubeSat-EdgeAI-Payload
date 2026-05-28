@@ -1,0 +1,135 @@
+\documentclass[12pt]{report}
+
+% -------------------------------------------------
+% Paquetes
+% -------------------------------------------------
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{pucp_intisat}  % Estilo centralizado de INTISAT/INRAS
+
+% -------------------------------------------------
+% Datos del documento
+% -------------------------------------------------
+\newcommand{\doccode}{INTI-C-05.02-CMOSM-CDR}
+\newcommand{\doctitle}{CMOS Microscopy Payload – Critical Design Review}
+\newcommand{\docauthor}{J.~A.~Yauri Cajas}
+\newcommand{\docversion}{v1.0}
+\newcommand{\docstatus}{Preliminary}
+\newcommand{\docdate}{\today}
+
+\title{\doctitle}
+\author{\docauthor}
+\date{\docdate}
+
+\begin{document}
+
+% -------------------------------------------------
+% Portada oficial estilo INTISAT
+% -------------------------------------------------
+\begin{titlepage}
+    \centering
+    \vspace*{1cm}
+    \includegraphics[width=0.45\textwidth]{figures/pucp_inras_logo.png}
+
+    \vspace{1.5cm}
+    {\Large \textbf{Pontificia Universidad Católica del Perú}}\\[0.2cm]
+    {\large Instituto de Radioastronomía – INRAS}\\[1.5cm]
+
+    {\Huge \textbf{\doctitle}}\\[0.5cm]
+    {\large Código: \doccode}\\[0.2cm]
+    {\large Versión: \docversion}\\[1.0cm]
+
+    {\large Autor responsable}\\
+    {\Large \docauthor}\\[1.5cm]
+
+    {\large \docstatus}\\
+    {\large \docdate}
+
+    \vfill
+\end{titlepage}
+
+% -------------------------------------------------
+% Control de documento estilo NASA/ECSS
+% -------------------------------------------------
+\pagenumbering{roman}
+
+\chapter*{Document Information}
+\begin{table}[h!]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Title:} & \doctitle \\
+\textbf{Document Code:} & \doccode \\
+\textbf{Author:} & \docauthor \\
+\textbf{Version:} & \docversion \\
+\textbf{Status:} & \docstatus \\
+\textbf{Date:} & \docdate \\
+\textbf{Project:} & INTISAT – INRAS \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\chapter*{Revision History}
+\begin{longtable}{p{2cm} p{3cm} p{8cm}}
+\toprule
+\textbf{Version} & \textbf{Date} & \textbf{Description} \\
+\midrule
+v1.0 & \docdate & Versión preliminar del CDR del payload CMOSM. \\
+\bottomrule
+\end{longtable}
+
+\clearpage
+
+% -------------------------------------------------
+% Resumen
+% -------------------------------------------------
+\section*{Resumen}
+Este documento presenta la \textbf{Revisión Crítica de Diseño (CDR)} del 
+subsystema \textbf{CMOS Microscopy Payload} perteneciente al CubeSat INTISAT.
+Se describe la arquitectura óptica, electrónica, mecánica y de software, así 
+como los requerimientos, verificaciones, riesgos y pruebas de validación.
+El contenido se estructura siguiendo lineamientos NASA/ECSS y el formato 
+DDJF–PL del proyecto AcubeSAT.
+
+\vspace{0.3cm}
+\noindent\textbf{Palabras clave:} Fourier Ptychography, CMOS sensor, OLED illumination,
+super-resolución, microscopía computacional.
+
+\clearpage
+\tableofcontents
+\clearpage
+
+\pagenumbering{arabic}
+
+% -------------------------------------------------
+% Contenido principal basado en DDJF_PL
+% -------------------------------------------------
+
+\input{sections/01_introduccion}          % Adaptado a DDJF_PL 1. Introduction
+\input{sections/02_requerimientos}        % Adaptado a DDJF_PL 2. Mission Requirements
+\input{sections/03_modos_operacion}       % Adaptado a DDJF_PL 3. Procedures & Modes
+\input{sections/04_funcional}             % Adaptado a DDJF_PL 4. Payload Functional Description
+\input{sections/05_diseno_justificacion}  % Adaptado a DDJF_PL 5. Design Description & Justification
+\input{sections/06_verificacion}          % Adaptado a DDJF_PL 6. Verification
+\input{sections/07_riesgos}               % Riesgos (no en DDJF_PL original, pero estándar ECSS)
+\input{sections/08_conclusiones}
+
+% -------------------------------------------------
+% Apéndices
+% -------------------------------------------------
+\appendix
+
+\input{appendices/A_optica}
+\input{appendices/B_electronica}
+\input{appendices/C_capturas}
+\input{appendices/D_resultados_fpm}
+\input{appendices/E_pruebas_termicas}
+
+\end{document}

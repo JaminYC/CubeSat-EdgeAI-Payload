@@ -1,0 +1,16 @@
+\section{Executive Summary}
+
+The INTISAT Image Sensor Microscopy (ISM) payload is a CubeSat-class in-situ computational microscope implementing Fourier Ptychographic Microscopy (FPM), a computational imaging technique that reconstructs a high-resolution, complex-valued image (amplitude plus phase) from a sequence of lower-resolution intensity measurements taken under angularly diverse illumination.
+
+The concept is validated at bench level. The software pipeline (capture $\rightarrow$ FPM reconstruction $\rightarrow$ super-resolution via RealESRGAN) runs on a Raspberry Pi 4 and produces demonstrably enhanced images. The repository contains approximately 18~GB of real experimental data, production-grade Python code, and extensive sensor/algorithm documentation. No hardware design files (PCB, schematic, or Gerber) exist in the repository.
+
+This document closes the gap between the bench-level demonstrator and a flight-credible CubeSat payload by:
+\begin{itemize}[leftmargin=1.5em]
+    \item defining the hardware architecture and board partitioning,
+    \item providing mission-level parameter tables and budgets,
+    \item proposing an onboard versus ground processing split,
+    \item identifying the differentiators with respect to prior work, and
+    \item specifying the validation and test plan required for credibility.
+\end{itemize}
+
+\textbf{Recommended architecture:} Raspberry Pi Compute Module 4 (CM4) on a custom carrier board, with a separate sensor board and a microcontroller supervisor (Option D).

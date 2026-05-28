@@ -1,0 +1,150 @@
+\chapter{Modos de Operación y Procedimientos}
+\label{ch:modos-operacion}
+
+Este capítulo describe los modos de operación del \textbf{CMOS Microscopy Payload
+(CMOSM)}, la lógica de transición entre estados y los procedimientos asociados a
+la adquisición de imágenes en microscopía sin lentes en configuración de
+contacto. El enfoque prioriza la operación nominal del sistema y documenta los
+modos experimentales implementados para evaluación computacional.
+
+% -------------------------------------------------------------------
+\section{Descripción general}
+
+El payload CMOSM opera mediante una máquina de estados bien definida que controla
+la inicialización del hardware, la visualización preliminar, la captura de
+imágenes, el registro de metadatos y el apagado seguro del sistema.
+
+El \textbf{modo nominal de operación} corresponde a la captura de una imagen
+única bajo parámetros de iluminación y adquisición controlados, siendo suficiente
+para la identificación visual de estructuras celulares en muestras biológicas
+planas. De manera complementaria, el sistema implementa \textbf{modos
+experimentales} orientados a la evaluación de técnicas de reconstrucción
+computacional, como Fourier Ptychographic Microscopy (FPM).
+
+La lógica de control es ejecutada por software en la Raspberry Pi, actuando como
+computadora de carga útil y comunicándose con el sistema de OBDH cuando es
+requerido.
+
+% -------------------------------------------------------------------
+\section{Modos operativos del payload}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{3.5cm} p{9.5cm}}
+\toprule
+\textbf{Modo} & \textbf{Descripción} \\
+\midrule
+Idle & Estado pasivo sin captura activa; hardware energizado. \\
+Init & Inicialización del sensor CMOS y del sistema de iluminación OLED. \\
+Preview & Visualización en tiempo real y ajuste de parámetros de captura. \\
+Capture-Single & \textbf{Modo nominal}. Captura de una imagen única bajo
+condiciones controladas. \\
+Capture-FPM & \textbf{Modo experimental}. Captura secuencial con iluminación
+estructurada para evaluación de FPM. \\
+Metadata & Generación y almacenamiento de metadatos asociados a la captura. \\
+Diagnostics & Evaluación rápida de calidad de imagen (SNR, saturación, estabilidad). \\
+Safe & Apagado seguro del sistema y liberación de recursos. \\
+\bottomrule
+\end{tabular}
+\caption{Modos operativos del CMOS Microscopy Payload.}
+\end{table}
+
+% -------------------------------------------------------------------
+\section{Procedimiento de captura nominal (Capture-Single)}
+
+El modo \textit{Capture-Single} constituye el \textbf{modo nominal de operación
+del payload}. Permite la adquisición de una imagen única bajo parámetros de
+captura fijos y controlados, siendo suficiente para la caracterización visual de
+estructuras celulares en muestras biológicas planas.
+
+\subsection*{Secuencia de operación}
+
+\begin{enumerate}
+    \item Inicialización del sensor CMOS y del sistema de iluminación OLED.
+    \item Configuración manual de exposición y ganancia del sensor.
+    \item Aplicación del patrón de iluminación seleccionado.
+    \item Verificación del histograma para evitar saturación.
+    \item Captura de imagen en formato sin compresión.
+    \item Almacenamiento de la imagen.
+    \item Generación y almacenamiento de metadatos asociados.
+\end{enumerate}
+
+Este modo se utiliza para operación científica nominal, calibración y
+caracterización de muestras.
+
+% -------------------------------------------------------------------
+\section{Parámetros de adquisición y metadatos}
+
+Durante cada captura, el sistema registra automáticamente un conjunto de
+parámetros de adquisición y métricas básicas de calidad, los cuales se almacenan
+junto con la imagen adquirida para asegurar trazabilidad experimental.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{4cm} p{3cm} p{7cm}}
+\toprule
+\textbf{Parámetro} & \textbf{Unidad} & \textbf{Descripción} \\
+\midrule
+ExposureTime & $\mu$s & Tiempo de integración del sensor CMOS. \\
+AnalogueGain & -- & Ganancia analógica aplicada al sensor. \\
+FrameDuration & $\mu$s & Duración del frame del sensor. \\
+Resolution & píxeles & Resolución de captura (2592$\times$1944). \\
+OLED Pattern ID & -- & Identificador del patrón de iluminación utilizado. \\
+OLED Intensity & -- & Nivel relativo de intensidad del OLED. \\
+Timestamp & -- & Marca temporal de la captura. \\
+Histogram Mean & ADU & Valor medio del histograma de la imagen. \\
+Saturation Ratio & \% & Porcentaje de píxeles saturados. \\
+Sample Tag & -- & Identificador experimental de la muestra. \\
+\bottomrule
+\end{tabular}
+\caption{Parámetros registrados por captura en el CMOSM.}
+\end{table}
+
+% -------------------------------------------------------------------
+\section{Modo experimental Capture-FPM}
+
+El modo \textit{Capture-FPM} permite la adquisición secuencial de imágenes bajo
+iluminación estructurada con el objetivo de evaluar técnicas experimentales de
+reconstrucción computacional, como Fourier Ptychographic Microscopy (FPM). Este
+modo no es requerido para la operación nominal del payload.
+
+\subsection*{Secuencia experimental}
+
+\begin{enumerate}
+    \item Fijar parámetros de exposición y ganancia.
+    \item Ejecutar un barrido de patrones OLED predefinidos.
+    \item Capturar una imagen por patrón.
+    \item Registrar metadatos individuales y globales de la secuencia.
+\end{enumerate}
+
+El conjunto de imágenes obtenido se utiliza exclusivamente para análisis
+experimental y evaluación de algoritmos de reconstrucción.
+
+% -------------------------------------------------------------------
+\section{Referencia de implementación en software}
+
+A modo de referencia, el Listado~\ref{lst:capture-single} muestra un fragmento
+simplificado del flujo lógico empleado para la captura nominal. Este listado se
+incluye únicamente con fines descriptivos y no constituye una especificación de
+implementación.
+
+\begin{algorithm}[H]
+\caption{Ejemplo de flujo de captura nominal}
+\label{lst:capture-single}
+\begin{algorithmic}[1]
+\State Desactivar auto-exposición y auto-balance de blancos
+\State Configurar \texttt{ExposureTime} y \texttt{AnalogueGain}
+\State Aplicar patrón OLED seleccionado
+\State Capturar imagen desde el sensor CMOS
+\State Calcular métricas básicas de histograma
+\State Guardar imagen y metadatos
+\end{algorithmic}
+\end{algorithm}
+
+% -------------------------------------------------------------------
+\section{Modo Safe}
+
+El modo \textit{Safe} asegura la integridad del sistema ante fallas críticas o
+comandos de apagado, apagando el sistema de iluminación OLED, deteniendo la
+cámara CMOS, almacenando logs de operación y liberando recursos de hardware y
+software.

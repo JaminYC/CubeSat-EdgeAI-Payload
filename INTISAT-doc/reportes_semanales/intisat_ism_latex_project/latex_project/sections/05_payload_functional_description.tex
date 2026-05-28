@@ -1,0 +1,15 @@
+\section{Payload Functional Description}
+
+The payload operates according to the following chain:
+\begin{enumerate}[leftmargin=1.5em]
+    \item Command reception from OBC.
+    \item Sample readiness check.
+    \item Illumination sequencing over a 9$\times$9 angular grid.
+    \item Raw image acquisition per angle with metadata logging.
+    \item Onboard preprocessing: dark subtraction, flat-field correction, bad-pixel masking.
+    \item FPM reconstruction into a high-resolution complex-field image.
+    \item Optional super-resolution stage.
+    \item Compression, packetization, storage, and downlink.
+\end{enumerate}
+
+One complete acquisition session consists of 81 raw frames, one reconstructed image, optional super-resolved output, and metadata.

@@ -1,0 +1,202 @@
+﻿\chapter{Metodología}
+
+\section{Enfoque general de validación}
+
+La metodología del presente trabajo se fundamenta en una validación metrológica preliminar orientada a verificar la coherencia entre mediciones digitales obtenidas a partir del sistema de microscopía basado en sensor CMOS y dimensiones físicas reales de objetos patrón micrométricos.
+
+Dado que el sistema de imagen es un desarrollo experimental y no cuenta con calibración de fábrica, la validación se realiza mediante una estrategia de comparación cruzada. Esta estrategia consiste en medir los mismos objetos patrón utilizando: (i) el sistema CMOS propio, (ii) un sistema de microscopía óptica calibrada, y (iii) microscopía electrónica de barrido (SEM), con el fin de contrastar resultados y establecer una referencia dimensional independiente.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\textwidth]{fig/Fig_04_01_Esquema_Validacion_Cruzada.png}
+    \caption{Esquema de validación cruzada: comparación entre el sistema CMOS propio, microscopía óptica calibrada y SEM.}
+    \label{fig:cross_validation}
+\end{figure}
+
+\section{Materiales y equipos}
+
+Para la ejecución del procedimiento experimental se emplearon los materiales y equipos listados a continuación:
+
+\begin{itemize}
+    \item Sistema de microscopía basado en sensor CMOS en configuración \textit{lensless/contact}.
+    \item Computadora de carga útil: Raspberry Pi 5 (control de sensor, iluminación y almacenamiento).
+    \item Sistema de iluminación programable del payload (modo nominal y experimental).
+    \item Objetos patrón micrométricos: microesferas de poliestireno de diámetro nominal $2\,\mu m$.
+    \item Acceso a microscopía óptica calibrada en laboratorio (PUCP).
+    \item Acceso a microscopía electrónica de barrido (SEM) en el Centro de Caracterización de Materiales (CAM PUCP).
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Resumen de equipos y su rol en la validación}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Elemento} & \textbf{Rol en la metodología} \\
+\hline
+Sistema CMOS propio & Adquisición principal y medición digital \\
+Raspberry Pi 5 & Control de captura, metadatos y almacenamiento \\
+Iluminación programable & Control de condiciones de iluminación \\
+Microscopía óptica calibrada & Referencia dimensional independiente \\
+SEM (CAM PUCP) & Confirmación dimensional/morfológica de alta resolución \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Preparación de objetos patrón}
+
+Las microesferas de poliestireno de $2\,\mu m$ se emplean como objetos patrón preliminares debido a su disponibilidad y uso extendido como referencia micrométrica. Las microesferas se encuentran en suspensión acuosa, por lo que se requiere preparar una muestra adecuada para adquisición en configuración de microscopía de contacto.
+
+De manera general, la preparación de la muestra considera:
+
+\begin{itemize}
+    \item Homogeneización suave de la suspensión para reducir efectos de sedimentación.
+    \item Depósito controlado de un volumen reducido de suspensión sobre un soporte compatible.
+    \item Implementación de una interfaz muestra--sensor que permita contacto cercano sin contaminar el sensor.
+    \item Registro de un identificador de muestra (\textit{Sample Tag}) para trazabilidad experimental.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{fig/Fig_04_02_Preparacion_Muestra_Microesferas.png}
+    \caption{Preparación conceptual de la muestra: suspensión, depósito controlado y configuración muestra--sensor en modo contacto.}
+    \label{fig:sample_prep}
+\end{figure}
+
+\section{Procedimiento de adquisición con el sistema CMOS}
+
+La adquisición de imágenes se realiza mediante el sistema CMOS operando en modo nominal (\textit{Capture-Single}). El objetivo es obtener imágenes reproducibles, evitando cambios automáticos de parámetros del sensor.
+
+La secuencia general de captura es la siguiente:
+
+\begin{enumerate}
+    \item Inicialización del sensor CMOS y del sistema de iluminación.
+    \item Desactivación de mecanismos automáticos de exposición y balance (cuando aplique).
+    \item Configuración manual de parámetros de adquisición (tiempo de exposición y ganancia).
+    \item Selección del patrón de iluminación nominal (iluminación uniforme).
+    \item Captura de imagen a resolución nativa del sensor.
+    \item Cálculo de métricas básicas de calidad (histograma, saturación).
+    \item Almacenamiento de la imagen y generación del archivo de metadatos asociado.
+\end{enumerate}
+
+Con el fin de asegurar consistencia, se realizan múltiples capturas consecutivas bajo la misma configuración. Para cada captura, el sistema registra metadatos experimentales que permiten reconstruir las condiciones exactas de adquisición.
+
+\begin{table}[H]
+\centering
+\caption{Parámetros mínimos registrados por captura para trazabilidad}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Parámetro} & \textbf{Descripción} \\
+\hline
+ExposureTime & Tiempo de integración del sensor \\
+AnalogueGain & Ganancia analógica del sensor \\
+Resolution & Resolución de captura \\
+OLED Pattern ID & Identificador del patrón de iluminación \\
+OLED Intensity & Intensidad relativa del patrón \\
+Timestamp & Marca temporal de la captura \\
+Saturation Ratio & Porcentaje de píxeles saturados \\
+Sample Tag & Identificador experimental de la muestra \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Medición digital y estimación de escala espacial}
+
+La medición digital consiste en estimar el tamaño aparente de los objetos patrón sobre la imagen capturada. Para ello se seleccionan regiones de interés (ROI) que contienen microesferas aisladas y se realiza la medición de su diámetro aparente en píxeles.
+
+La conversión de píxeles a unidades físicas se realiza mediante una escala espacial ($\mu m/pixel$) definida inicialmente por estimación geométrica o por referencia preliminar. Posteriormente, esta escala se ajusta o valida mediante comparación con mediciones externas.
+
+El procedimiento general de medición digital incluye:
+
+\begin{itemize}
+    \item Selección de ROI con microesferas distinguibles.
+    \item Segmentación o detección del contorno aparente (según calidad de imagen).
+    \item Medición del diámetro aparente en píxeles.
+    \item Conversión a micrómetros mediante la escala ($\mu m/pixel$).
+    \item Cálculo de estadísticos básicos (promedio y dispersión).
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{fig/Fig_04_03_Medicion_Digital_ROI_Diametro.png}
+    \caption{Flujo de medición digital: selección de ROI, medición de diámetro aparente en píxeles y conversión a micrómetros.}
+    \label{fig:digital_measurement}
+\end{figure}
+
+\section{Comparación cruzada con microscopía óptica y SEM}
+
+Las microesferas medidas mediante el sistema CMOS se contrastan con mediciones obtenidas en microscopía óptica calibrada y microscopía electrónica de barrido (SEM). Esta comparación permite validar de manera independiente el diámetro real, la distribución de tamaños y la morfología general.
+
+La comparación cruzada se realiza mediante:
+
+\begin{itemize}
+    \item Obtención de micrografías representativas en cada técnica.
+    \item Medición del diámetro de un conjunto de microesferas en cada sistema.
+    \item Comparación de promedios y dispersión entre técnicas.
+    \item Identificación de discrepancias atribuibles a límites de resolución y efectos difractivos en el sistema CMOS.
+\end{itemize}
+
+\section{Criterios de calidad y control de errores}
+
+Para asegurar confiabilidad en la validación, se emplean criterios mínimos de calidad durante la adquisición y el análisis:
+
+\begin{itemize}
+    \item \textbf{Control de saturación:} la imagen no debe presentar saturación significativa bajo condiciones nominales.
+    \item \textbf{Consistencia entre capturas:} variación relativa baja de métricas globales (promedio e histograma).
+    \item \textbf{Trazabilidad completa:} cada imagen debe contar con metadatos completos y un identificador de muestra.
+    \item \textbf{Interpretación conservadora:} las mediciones se reportan reconociendo explícitamente limitaciones de resolución y difracción.
+\end{itemize}
+
+En caso de observar patrones dominados por difracción o falta de definición de bordes, la medición dimensional se considera preliminar y se prioriza la comparación con patrones litográficos o mediciones SEM como referencia de mayor robustez.
+
+\section{Procedimiento de adquisición mediante control programático}
+
+La adquisición de imágenes se realiza mediante control programático del sensor CMOS OV5647, utilizando una Raspberry Pi 5 como plataforma de ejecución. Este enfoque permite un control preciso y reproducible de los parámetros de captura, condición necesaria para la validación metrológica y la comparación entre múltiples adquisiciones.
+
+El control programático garantiza que todas las imágenes se obtengan bajo configuraciones conocidas y constantes, evitando variaciones introducidas por algoritmos automáticos del sensor.
+
+\subsection{Plataforma de control y entorno de ejecución}
+
+La Raspberry Pi 5 actúa como computadora de carga útil del sistema, ejecutando un entorno Linux embebido y empleando una interfaz de control de cámara basada en la librería \textit{Picamera2}. Esta interfaz permite acceder de manera directa a parámetros internos del sensor OV5647 sin requerir manipulación de registros a bajo nivel.
+
+El software de control inicializa el sensor, configura los modos de operación, ejecuta la secuencia de captura y gestiona el almacenamiento de imágenes y metadatos asociados. Todas las operaciones de adquisición se realizan en modo manual, deshabilitando mecanismos automáticos del sensor.
+
+\subsection{Configuración del sensor CMOS}
+
+Previo a cada sesión de adquisición, el sensor CMOS se configura mediante parámetros definidos explícitamente por software. Los parámetros críticos controlados durante la captura incluyen:
+
+\begin{itemize}
+    \item Tiempo de exposición (\textit{Exposure Time}), que determina el intervalo de integración en cada píxel.
+    \item Ganancia analógica (\textit{Analog Gain}), aplicada antes de la conversión analógica-digital.
+    \item Resolución de captura, definida por el tamaño activo del arreglo de píxeles.
+    \item Desactivación de control automático de exposición (AE) y balance de blancos (AWB), para asegurar consistencia entre capturas.
+\end{itemize}
+
+La selección de estos parámetros se realiza considerando el compromiso entre nivel de señal, ruido electrónico y riesgo de saturación, priorizando siempre el incremento del tiempo de exposición y la iluminación antes de incrementar la ganancia analógica.
+
+\subsection{Secuencia programática de captura}
+
+La captura de una imagen sigue una secuencia programática definida, diseñada para asegurar estabilidad del sensor y reproducibilidad experimental:
+
+\begin{enumerate}
+    \item Inicialización del sensor CMOS y aplicación de la configuración de captura.
+    \item Aplicación explícita de parámetros manuales de exposición y ganancia.
+    \item Estabilización temporal del sensor para asegurar integración completa.
+    \item Captura de la imagen a resolución nativa del sensor.
+    \item Conversión de la imagen adquirida a escala de grises para análisis posterior (cuando aplique).
+    \item Retorno a modo de espera para la siguiente captura.
+\end{enumerate}
+
+\subsection{Registro automático de metadatos}
+
+Durante la adquisición, el sistema genera automáticamente metadatos asociados a cada imagen capturada. Estos incluyen información del sensor, parámetros de captura, configuración de iluminación y métricas básicas de calidad de imagen.
+
+El registro automático de metadatos asegura la trazabilidad experimental de cada imagen, facilita la reproducibilidad del experimento y permite la comparación posterior con mediciones obtenidas mediante otras técnicas.
+
+Cada imagen y su archivo de metadatos asociado se almacenan de manera conjunta, constituyendo una unidad experimental indivisible para las etapas posteriores de análisis y validación.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{fig/Fig_04_04_Pipeline_Captura_Metadatos.png}
+    \caption{Pipeline de captura programática: configuración manual, adquisición, cálculo de métricas y almacenamiento con metadatos.}
+    \label{fig:pipeline_capture}
+\end{figure}

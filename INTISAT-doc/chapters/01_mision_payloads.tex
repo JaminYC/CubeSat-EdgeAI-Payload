@@ -1,0 +1,43 @@
+\chapter{Introduction}
+\pagestyle{fancy}
+
+\section{Mission Description}
+INTISAT is a 2U CubeSat-class technology demonstration mission led by the Pontifical Catholic University of Peru (PUCP) through the Instituto de Radioastronomía (INRAS). The mission aims to validate the integration of a compact image-based microscopy payload for Earth orbit operation, developed by students and researchers as part of PUCP’s space education and technology development efforts.
+
+INTISAT will demonstrate a fully integrated platform composed of an On-Board Computer (OBC), Electrical Power System (EPS), Telemetry, Tracking and Command (TTC) system, structural components, and a custom scientific payload. The system is enclosed within a 2U CubeSat mechanical envelope. The current implementation corresponds to an Engineering Model, serving as a foundation for future improvements and eventual flight qualification.
+
+\insertfigure{IntiSat_Renderization.png}{0.25}{INTISAT 3D model view.}
+
+\section{Mission Objectives}
+The primary objectives of INTISAT are:
+\begin{itemize}
+    \item To validate the integration and operation of a miniaturized image sensor for microscopy in low Earth orbit (LEO).
+    \item To demonstrate the functionality of student-developed subsystems working within a unified nanosatellite platform.
+    \item To develop and verify a scalable and modular CubeSat architecture aligned with academic and educational standards.
+    \item To serve as a hands-on training platform for students in satellite systems engineering, design, integration, and testing.
+\end{itemize}
+
+\section{Concept of Operations (ConOps)}
+Following standardized satellite operation approaches, INTISAT's operating layout is defined by distinct mission modes. 
+% [Flowchart Placeholder: Flowchart of the Mission State Machine]
+
+\begin{itemize}
+    \item \textbf{Deployment \& Initialization Mode:} During launch, all systems are physically disabled by kill-switches. Upon ejection, systems power up. The OBC boots, initial housekeeping checks are executed, and the antenna deployment sequence starts after a mandatory silence window. % [Flowchart Placeholder: Deployment Sequence]
+    
+    \item \textbf{Nominal Mode:} The standard operational state where the EPS maximizes solar harvesting, the beacon transmits periodically, and the specific payload (Microscopy / AI) is activated during predetermined windows over specific targets or the Peruvian territory. % [Flowchart Placeholder: Normal Beacon and OBDH Operation]
+    
+    \item \textbf{Contingency Mode:} A safe-state entered automatically if a critical anomaly is detected (e.g., low battery SoC or latch-up events). Non-essential loads are disabled until ground control intervenes.
+    
+    \item \textbf{Decommissioning Mode:} End-of-life state activated via a ground telecommand or programmed timeout, securing safe passivation of the battery and shutdown of transceivers prior to atmospheric reentry.
+\end{itemize}
+
+\section{Project Members}
+INTISAT is an academic initiative driven by interdisciplinary teams at PUCP. The project structure includes:
+\begin{itemize}
+    \item \textbf{INRAS – PUCP}: Mission coordination, systems engineering, TTC module development, and platform integration.
+    \item \textbf{Faculty of Science and Engineering – PUCP}: Development of software, electronics, and mechanical subsystems.
+    \item \textbf{External partners (future phase)}: Collaborators for testing, launch coordination, or mission operations.
+\end{itemize}
+
+\section{Mission Patch}
+\insertfigure{pucp_inras_logo.png}{0.25}{Official mission patch of INTISAT.}

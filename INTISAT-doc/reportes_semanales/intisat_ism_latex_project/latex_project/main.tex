@@ -1,0 +1,71 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[english]{babel}
+\usepackage{geometry}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{ragged2e}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{float}
+
+\geometry{margin=2.3cm}
+\setlength{\parskip}{0.5em}
+\setlength{\parindent}{0pt}
+\renewcommand{\arraystretch}{1.2}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{INTISAT -- ISM Payload}
+\rhead{Rev. 0.1 Draft}
+\cfoot{\thepage}
+
+\newcolumntype{Y}{>{\RaggedRight\arraybackslash}p{11cm}}
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+
+\title{\textbf{INTISAT -- ISM PAYLOAD}\\
+\large Complete Payload Architecture and Mission Engineering Document}
+\author{Document ID: INTISAT-ISM-PAY-001}
+\date{Revision 0.1 Draft --- 2026-04-09}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{fancy}
+
+\begin{center}
+\textbf{Classification:} Engineering Working Document
+\end{center}
+
+\input{sections/01_executive_summary}
+\input{sections/02_repository_audit}
+\input{sections/03_system_objective}
+\input{sections/04_mission_context}
+\input{sections/05_payload_functional_description}
+\input{sections/06_subsystem_decomposition}
+\input{sections/07_hardware_architecture_options}
+\input{sections/08_recommended_architecture}
+\input{sections/09_block_diagrams}
+\input{sections/10_imaging_chain_definition}
+\input{sections/11_communications_and_protocols}
+\input{sections/12_data_budget}
+\input{sections/13_power_budget}
+\input{sections/14_calibration_and_metrology}
+\input{sections/15_validation_and_verification}
+\input{sections/16_comparison_against_prior_work}
+\input{sections/17_novelty_statement}
+\input{sections/18_risks_and_failure_points}
+\input{sections/19_next_engineering_actions}
+\input{sections/20_appendix_requirements}
+
+\end{document}

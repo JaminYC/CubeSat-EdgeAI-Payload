@@ -1,0 +1,21 @@
+\begin{longtable}{L{4cm} L{3cm} L{7cm}}
+\toprule
+\textbf{Category} & \textbf{Status} & \textbf{Evidence} \\
+\midrule
+Capture code & Production-ready & \texttt{capturaclaude.py}, \texttt{captura\_circulo\_movil\_tftcolorSBARRIDO.py} \\
+FPM reconstruction & Production-ready & \texttt{fpm\_procesador\_tft.py}, \texttt{fpm\_procesador\_tft\_fixed.py}, \texttt{fpm-py/} library \\
+Super-resolution (ESRGAN) & Implemented / tested & \texttt{run\_esrgan\_fpm.py}, \texttt{rrdbnet\_standalone.py} \\
+Metadata system & Implemented & JSON schema in capture scripts \\
+Sensor documentation & Comprehensive & \texttt{CMOS\_SENSOR\_OV5647\_TECHNICAL\_GUIDE.md} \\
+Algorithm documentation & Comprehensive & \texttt{TECHNICAL\_REPORT\_FPM\_WORKFLOW.md} \\
+Real experimental data & Present ($\sim$18 GB) & \texttt{data/raw/}, \texttt{data/processed/}, \texttt{data/calibration/} \\
+Hardware design (PCB/SCH) & Missing & Directory stubs only, no KiCad/Eagle/Gerber \\
+Bus subsystems & Stubs only & ADCS, EPS, OBC, TCS all \texttt{.gitkeep} \\
+Ground segment software & Stub & \texttt{ground/mcs/}, \texttt{ground/station/} empty \\
+Link budget simulation & Stub & \texttt{sim/link\_budget/} empty \\
+Orbital dynamics sim & Stub & \texttt{sim/dynamics/} empty \\
+Power budget & Missing & No power analysis found \\
+Thermal analysis & Missing & No thermal model found \\
+Calibration data & Sparse & \texttt{data/calibration/} minimal content \\
+\bottomrule
+\end{longtable}

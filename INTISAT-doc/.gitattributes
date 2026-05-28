@@ -1,0 +1,4 @@
+4_PhaseC_CriticalDesign/Payload_AI/INTI-C-05.03-SAI-CDR/Super-Resolution[[:space:]]AI[[:space:]]Critical[[:space:]]Design[[:space:]]Review[[:space:]]V3.1.pdf filter=lfs diff=lfs merge=lfs -text
+4_PhaseC_CriticalDesign/Payload_AI/INTI-C-05.03-SAI-CDR/SuperResolution[[:space:]]AI[[:space:]]Critical[[:space:]]Design[[:space:]]Review[[:space:]]SAI.pdf filter=lfs diff=lfs merge=lfs -text
+4_PhaseC_CriticalDesign/Payload_Microscopy.zip filter=lfs diff=lfs merge=lfs -text
+4_PhaseC_CriticalDesign/Payload_Microscopy/INTI-C-05.02-CMOSM-CDR/figures/Prueba2_x4ERSGANxxx.png filter=lfs diff=lfs merge=lfs -text
