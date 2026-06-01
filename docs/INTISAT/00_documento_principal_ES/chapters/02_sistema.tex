@@ -1,0 +1,156 @@
+\chapter{Arquitectura del Sistema}
+
+\section{Visión general del sistema}
+El sistema del nanosatélite INTISAT está compuesto por un conjunto de submódulos interconectados sobre un bus estándar de facto (tipo PC-104 modificado o equivalente de la industria aeroespacial). La misión principal se asegura mediante un módulo de servicio (Bus) robusto frente a fallos y compatible con las distintas cargas útiles (cámara de microscopía CMOS, aceleración IA y otras planificadas).
+
+\subsection{Diagrama de Potencia}
+El módulo EPS (\textit{Electrical Power System}) gestiona de forma centralizada todos los buses de poder, alimentando los subsistemas mediante rieles de 3{,}3~V, 5~V y la línea no regulada $V_{batt}$. Esto permite control estricto sobre los convertidores y habilita esquemas de encendido/apagado de módulos de manera individual, esencial para gestionar el consumo durante eclipses o ante eventos de \textit{latch-up}.
+
+\subsection{Diagrama de Flujo de Datos}
+La ruta de datos tiene como nodo de control y mediación a la computadora de a bordo (OBC). La comunicación interna entre módulos del Bus se establece por protocolos estándar robustos de baja velocidad (I2C, SPI, UART) y un bus CAN para telemetría cruzada con subsistemas vitales (EPS). La OBC recolecta datos internos (\textit{housekeeping}), telemetría general y datos del \textit{payload}, los empaca en estructuras de enlace CCSDS/AX.25 y los enruta al segmento terreno (AYNISAT) a través del módulo transceptor UHF.
+
+
+\section{Presupuestos Técnicos y Análisis de Misión}
+Esta sección centraliza los presupuestos críticos para el ciclo de vida del nanosatélite, garantizando que cumple con los requerimientos restrictivos del formato 2U. Los datos numéricos se gestionan en \texttt{03\_recursos/presupuestos/Requerimiento de energía - INTISAT.xlsx} y se consolidan aquí para el CDR.
+
+\subsection{Parámetros de Órbita y Vida Útil}
+\begin{table}[h]
+\centering
+\caption{Parámetros orbitales esperados de INTISAT.}
+\label{tab:orbita}
+\begin{tabular}{ll}
+\toprule
+\textbf{Parámetro} & \textbf{Valor} \\
+\midrule
+Altitud orbital nominal           & TBD km (LEO típica: 400--550 km) \\
+Inclinación                       & TBD$^\circ$ (típica SSO: 97--98$^\circ$) \\
+Periodo orbital                   & TBD min ($\sim$93 min para 500 km) \\
+Tiempo de vida en órbita          & TBD años (lifetime analysis pendiente) \\
+Estación terrena de referencia    & INRAS (PUCP, Lima, Perú) \\
+Inyector previsto                 & P-POD (TBD: SpaceX, ISRO, JAXA, etc.) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Presupuesto de Masa (Mass Budget)}
+Según la especificación CubeSat \textit{Design Specification} (CDS Rev~14, Cal Poly), la masa máxima de cada unidad debe ser $\le 1{,}33$~kg. Al ser INTISAT un CubeSat 2U, la masa máxima permitida es $2{,}66$~kg. La Tabla~\ref{tab:mass_budget} resume el presupuesto preliminar.
+
+\begin{table}[h]
+\centering
+\caption{Presupuesto preliminar de masa de INTISAT 2U. Valores TBD pendientes de medición del Modelo de Ingeniería.}
+\label{tab:mass_budget}
+\begin{tabular}{lll@{}r}
+\toprule
+\textbf{Subsistema} & \textbf{Modelo} & \textbf{Notas} & \textbf{Masa [g]} \\
+\midrule
+OBC (OBDH)              & PUCP-INRAS OBC-STM32H7 & TBC & TBD \\
+TTC (UHF)               & PUCP-INRAS UHF v1.0     & TBC & TBD \\
+EPS                     & PUCP-INRAS EPS v1.0     & TBC & TBD \\
+Batería                 & 4$\times$ 18650 Li-Ion  & TBC & TBD \\
+Antena                  & Dipolos UHF plegados    & TBC & TBD \\
+ADCS (pasivo)           & Imán + barras histéresis & TBC & TBD \\
+Payload Microscopía CMOS & OV5647 + OLED + RPi      & TBC & TBD \\
+Payload IA (planificado) & ---                     & --- & --- \\
+Interfaz PC-104         & PUCP-INRAS              & TBC & TBD \\
+Paneles solares         & Triple-junction COTS    & TBC & TBD \\
+Estructura              & Al-7075-T73, 2U         & TBC & TBD \\
+Cables (harness)        & ---                     & TBC & TBD \\
+Otros                   & Tornillería, marcado    & TBC & TBD \\
+\midrule
+\textbf{Total}                  & --- & --- & \textbf{TBD} \\
+\textbf{Máximo CubeSat 2U}      & --- & --- & \textbf{2660} \\
+\textbf{Margen}                 & --- & --- & \textbf{TBD} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Criterio de aceptación.} Margen de masa $\ge 15$\,\% sobre el máximo 2U (referencia FloripaSat-2: 16\,\%).
+
+\subsection{Presupuesto de Potencia (Power Budget)}
+El presupuesto de potencia sigue tres pasos: (i) preparar el presupuesto operacional, (ii) dimensionar la batería (DoD, ciclos), (iii) estimar degradación.
+
+\begin{table}[h]
+\centering
+\caption{Consumo de potencia por módulo y \textit{duty cycle}. Fuente: \texttt{Requerimiento de energía - INTISAT.xlsx}.}
+\label{tab:power_consumption}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Módulo} & \textbf{Duty Cycle [\%]} & \textbf{Potencia [mW]} \\
+\midrule
+OBC (riel 3{,}3~V)                & 100 & 4060 \\
+OBC (riel 5~V, CANBUS)            & 100 & 1100 \\
+TTC UHF (RX)                      & 95  & TBD \\
+TTC UHF (TX, beacon)              & 5   & TBD \\
+EPS (idle)                        & 100 & TBD \\
+Batería (heater, eclipse)         & 10  & TBD \\
+Antena (despliegue, una vez)      & 0   & TBD \\
+Payload Microscopía CMOS          & TBD & TBD \\
+Payload IA / SAI (planificado)    & 0   & --- \\
+\midrule
+\textbf{Total satélite}           & --- & \textbf{TBD} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Dimensionamiento de batería.}
+La profundidad de descarga (DoD) se calcula como:
+\begin{equation}
+\mathrm{DoD} = \frac{D_i \cdot D_t}{C} \cdot 100\;[\%]
+\label{eq:dod}
+\end{equation}
+donde $D_i$ es la corriente de descarga, $D_t$ el periodo de descarga, y $C$ la capacidad de la batería.
+
+\textbf{Criterio:} DoD $\le 25$\,\% para vida útil LEO de 5 años. Referencia FloripaSat-2: DoD $\approx 8{,}5$\,\% con margen energético positivo (+643~mWh/órbita).
+
+\subsection{Cálculo de Enlace (Link Budget)}
+El presupuesto de enlace se calcula para los enlaces uplink y downlink en banda UHF, considerando el peor caso orbital (satélite en horizonte, $\theta=0^\circ$).
+
+\begin{table}[h]
+\centering
+\caption{Link budget preliminar de INTISAT. Detalle de cálculo en Anexo.}
+\label{tab:link_budget}
+\begin{tabular}{lrrl}
+\toprule
+\textbf{Parámetro} & \textbf{Uplink} & \textbf{Downlink} & \textbf{Unidad} \\
+\midrule
+Frecuencia                         & TBD & TBD & MHz \\
+Potencia de transmisión            & TBD & TBD & dBm \\
+Ganancia de antena TX              & TBD & TBD & dBi \\
+EIRP                               & TBD & TBD & dBm \\
+Pérdida en espacio libre (FSPL)    & TBD & TBD & dB \\
+Pérdida por polarización           & TBD & TBD & dB \\
+Ganancia de antena RX              & TBD & TBD & dBi \\
+G/T                                & TBD & TBD & dB/K \\
+C/N$_0$ recibido                   & TBD & TBD & dB$\cdot$Hz \\
+E$_b$/N$_0$ disponible             & TBD & TBD & dB \\
+\textbf{Margen}                    & \textbf{TBD} & \textbf{TBD} & \textbf{dB} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Criterio:} margen $\ge 3$~dB. Referencia FloripaSat-2: downlink $\ge 9{,}57$~dB, uplink $\ge 17{,}81$~dB.
+
+\section{Documento de Control de Interfaces (ICD)}
+
+\subsection{Interface Data Sheet y Form Factor}
+Las placas de los subsistemas se interconectan mediante el bus PC-104 modificado. La distribución de pines, voltajes y señales de control se detalla a continuación. Cada subsistema declara su uso de rieles de potencia, buses de datos (I2C, SPI, UART, CAN) y GPIO compartidos.
+
+\begin{table}[h]
+\centering
+\caption{Resumen del uso de buses internos por subsistema (interfaz PC-104).}
+\label{tab:icd_buses}
+\begin{tabular}{lp{3cm}p{6.5cm}}
+\toprule
+\textbf{Subsistema} & \textbf{Riel de potencia} & \textbf{Buses de datos} \\
+\midrule
+OBC                & 3{,}3~V + 5~V & I2C, SPI, UART$\times$4, CAN, GPIO$\times$22 \\
+EPS                & $V_{batt}$    & I2C (telemetría), CAN (housekeeping) \\
+TTC UHF            & 5~V           & SPI (módem), UART (control) \\
+Payload Microscopía & 3{,}3~V + 5~V (TBC) & I2C (OLED), CSI (cámara), UART (control) \\
+Payload IA         & TBD           & TBD \\
+ADCS pasivo        & ---           & I2C (magnetómetro), GPIO (magnetorquers) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+El detalle pin-a-pin del conector PC-104 y los ICDs eléctricos completos están en los respectivos CDRs de subsistema (\texttt{01\_CDRs\_subsistemas/}).

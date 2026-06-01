@@ -1,0 +1,29 @@
+\section{Repository Audit}
+
+\subsection{Audit Summary}
+\input{tables/repository_audit}
+
+\subsection{What Already Exists}
+\begin{itemize}[leftmargin=1.5em]
+    \item Complete FPM acquisition software (controlled, swept, circular illumination patterns).
+    \item Full FPM reconstruction pipeline including NaN-safe variant.
+    \item RealESRGAN 4$\times$ super-resolution integrated.
+    \item OV5647 sensor interface via \texttt{picamera2} over MIPI CSI-2.
+    \item OLED illumination control via I2C (SSD1306, 128$\times$64).
+    \item Real experimental data sets and JSON metadata schema.
+    \item Calibration framework documented, though data remain sparse.
+\end{itemize}
+
+\subsection{What Is Missing}
+\begin{itemize}[leftmargin=1.5em]
+    \item Hardware design files (schematics, PCB, BOM).
+    \item Power budget and conditioning design.
+    \item Thermal analysis.
+    \item Mechanical integration drawings.
+    \item Communications/downlink software.
+    \item Ground station software.
+    \item Orbital or mission simulation artifacts.
+    \item Radiation tolerance assessment.
+    \item Watchdog/supervisor firmware.
+    \item Flight software architecture and qualification plan.
+\end{itemize}

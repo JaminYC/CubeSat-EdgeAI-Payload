@@ -1,0 +1,94 @@
+
+\documentclass[12pt]{report}
+
+\usepackage{pucp_intisat}  % Estilo centralizado
+
+\title{INTISAT – Revisión Crítica de Diseño (CDR)}
+\author{Instituto de Radioastronomía PUCP (INRAS)}
+\date{\today}
+
+\begin{document}
+
+\selectlanguage{spanish}
+
+\begin{titlepage}
+    \centering
+    \vspace*{3cm}
+    \includegraphics[width=0.4\textwidth]{figures/pucp_inras_logo.png}\par\vspace{1cm}
+    {\scshape\Large PUCP – Instituto de Radioastronomía (INRAS) \par}
+    \vspace{1.5cm}
+    {\Huge\bfseries INTISAT – Revisión Crítica de Diseño \par}
+    \vspace{0.5cm}
+    {\large\itshape Critical Design Review (CDR) – Modelo de Ingeniería\par}
+    \vspace{0.5cm}
+    \rule{\textwidth}{0.4pt}
+    \vspace{0.5cm}
+    {\small Departamento de Ingeniería – Pontificia Universidad Católica del Perú \par}
+    \vfill
+    {\large Noviembre 2025\par}
+\end{titlepage}
+
+
+
+\clearpage
+\listoffigures
+\clearpage
+\listoftables
+\clearpage
+
+\chapter*{Nomenclatura}
+\addcontentsline{toc}{chapter}{Nomenclatura}
+\begin{tabular}{ll}
+ADCS    & Attitude Determination and Control Subsystem \\
+AIT     & Assembly, Integration and Testing \\
+BMS     & Battery Management System \\
+CCSDS   & Consultative Committee for Space Data Systems \\
+CDR     & Critical Design Review \\
+ConOps  & Concept of Operations \\
+DoD     & Depth of Discharge \\
+EMC     & Electromagnetic Compatibility \\
+EPS     & Electrical Power System \\
+FEA     & Finite Element Analysis \\
+FPM     & Fourier Ptychographic Microscopy \\
+INRAS   & Instituto de Radioastronomía \\
+LCL     & Latch-up Current Limiter \\
+LEO     & Low Earth Orbit \\
+MPPT    & Maximum Power Point Tracking \\
+OBC     & On-Board Computer \\
+OBDH    & On-Board Data Handling \\
+P-POD   & Poly-PicoSatellite Orbital Deployer \\
+PUCP    & Pontificia Universidad Católica del Perú \\
+RF      & Radiofrecuencia \\
+SEU     & Single Event Upset \\
+SoC     & State of Charge \\
+TCS     & Thermal Control Subsystem \\
+TTC     & Telemetry, Tracking and Command \\
+TVAC    & Thermal Vacuum Chamber \\
+UHF/VHF & Ultra/Very High Frequency \\
+WBS     & Work Breakdown Structure \\
+\end{tabular}
+
+\clearpage
+\tableofcontents
+\clearpage
+%\pagestyle{fancy} % Reactivar después de portada
+% Capítulos principales
+\input{chapters/01_mision_payloads}
+\input{chapters/02_sistema}
+\input{chapters/03_obc}
+\input{chapters/04_eps}
+\input{chapters/05_adcs}
+\input{chapters/06_ttc}
+\input{chapters/07_payload}
+\input{chapters/08_estructura}
+\input{chapters/09_termico}
+\input{chapters/10_segmento_tierra}
+\input{chapters/11_verificacion}
+\input{chapters/12_gestion}
+
+% Apéndices
+\appendix
+\input{appendices/referencias}
+\input{appendices/anexos}
+
+\end{document}

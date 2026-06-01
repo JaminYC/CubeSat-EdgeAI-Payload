@@ -1,0 +1,52 @@
+% =====================================================
+% Plantilla adaptada de FloripaSat-2 / GOLDS-UFSC §4.5 + Apéndice A
+% Para usar en: 00_documento_principal/chapters/02_sistema.tex (§2.2.4)
+% =====================================================
+
+\subsection{Cálculo de Enlace (Link Budget)}
+
+El presupuesto de enlace se calcula para los enlaces de subida (uplink) y bajada
+(downlink) en banda UHF/VHF, considerando el peor caso orbital: satélite en el horizonte
+($\theta = 0^\circ$ de elevación). Los pasos detallados están en el Anexo de cálculo de enlace.
+
+\begin{table}[h]
+\centering
+\caption{Resultados del link budget de INTISAT.}
+\label{tab:link_budget}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{lrrl}
+\toprule
+\textbf{Parámetro}                       & \textbf{Uplink} & \textbf{Downlink} & \textbf{Unidad} \\
+\midrule
+Frecuencia                                & TBD   & TBD   & MHz \\
+Potencia de transmisión                   & TBD   & TBD   & dBm \\
+Ganancia de antena TX                     & TBD   & TBD   & dBi \\
+Pérdida por cable + conectores            & TBD   & TBD   & dB \\
+EIRP                                      & TBD   & TBD   & dBm \\
+Pérdida en espacio libre (FSPL)           & TBD   & TBD   & dB \\
+Pérdida por polarización                  & TBD   & TBD   & dB \\
+Pérdida atmosférica + lluvia              & TBD   & TBD   & dB \\
+Ganancia de antena RX                     & TBD   & TBD   & dBi \\
+Temperatura de ruido del sistema          & TBD   & TBD   & K \\
+G/T                                       & TBD   & TBD   & dB/K \\
+\textbf{C/N$_0$ recibido}                 & TBD   & TBD   & dB·Hz \\
+Bit rate                                  & TBD   & TBD   & bps \\
+E$_b$/N$_0$ requerido (BER $10^{-5}$)     & TBD   & TBD   & dB \\
+E$_b$/N$_0$ disponible                    & TBD   & TBD   & dB \\
+\textbf{Margen}                           & \textbf{TBD} & \textbf{TBD} & \textbf{dB} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Criterio de aceptación.}
+El margen debe ser $\ge 3$~dB para considerar el enlace operativo. FloripaSat-2 logró
+márgenes de $\ge 9{,}57$~dB en downlink y $\ge 17{,}81$~dB en uplink (con FEC).
+
+\paragraph{Análisis de pasadas sobre estación INRAS.}
+Considerando órbita TLE-objetivo y estación INRAS (PUCP, Lima), se espera:
+\begin{itemize}
+    \item Periodo de contacto máximo: TBD~s
+    \item Periodo de contacto promedio: TBD~s
+    \item Periodo de contacto total (60 días): TBD~s
+    \item Transferencia teórica de datos: TBD~bits/día
+\end{itemize}

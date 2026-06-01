@@ -1,0 +1,25 @@
+\chapter{Structure and Mechanics}
+
+\section{Modular General Structural Design}
+The shell and fuselage make up the modular master container (standard CubeSat rigid stacking layout in 2U format). Its purposes are twofold: resistance to the mechanical stresses (compression and vibration) of leaving Earth, and providing precise rigid rails allowing high-speed injection into vacuum from the integrated launcher dispenser.
+
+\section{Structural Design and Mass Requirements}
+\subsection{Aerospace-Alloy Properties}
+At the metal-mechanical level, vertical rails and side panels (Ribs and Side Panels) are machined from solid aerospace-grade COTS aluminum blocks (Al-7075-T73 or Al-6061-T6 series).
+\begin{itemize}
+    \item \textbf{Surface robustness:} the standard chemical treatment is \textit{hard anodizing}, optionally combined with local gold chemical conversion treatment (Alodine). This exponentially increases surface hardness and prevents molecular fatigue.
+    \item \textbf{Cold-Welding:} the coating prevents zones where aluminum rubs during high acoustic stress inside the launcher fairing from experiencing vacuum cold-welding.
+\end{itemize}
+
+\subsection{Geometry Standardization and CG Tolerance}
+By regulatory restrictions, the empirical modular sum of all subassemblies is formally recorded in the \textbf{Center of Gravity and Mass Geometric Report}.
+\begin{itemize}
+    \item The stacked PC-104 distribution in a 2U requires a CG located within a few millimeters of the ideal geometric center on the 3 axes ($<2$~cm tolerance) to prevent the vehicle from developing parasitic rotational impulses post-ejection, ensuring ADCS can damp residual polar moments in the first days.
+\end{itemize}
+
+\section{Finite Element Analysis (FEA) Simulation}
+The parametric CAD model has yielded an optimized structure (lightening redundant material via cutouts on the main solar panel face), validated virtually:
+\begin{itemize}
+    \item \textbf{Dynamic Resonance Modes:} theoretical verification of stiffness with the first natural resonance mode isolated above $100$~Hz, decoupling the satellite chassis from destructive acoustics and natural frequencies historically transmitted by the inter-stage dynamic modulators of the injector rocket.
+    \item \textbf{Static Stresses:} verification of longitudinal axial stress simulating extreme g-forces above $>10$~g with a conservative elastic safety margin of 1.25 per GSFC-NASA standard recommendations.
+\end{itemize}

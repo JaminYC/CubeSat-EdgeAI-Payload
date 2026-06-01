@@ -1,0 +1,10 @@
+\begin{longtable}{L{3.8cm}L{3.8cm}L{2.5cm}L{2.5cm}L{3cm}}
+\toprule
+\textbf{Calibration Type} & \textbf{Method} & \textbf{Frequency} & \textbf{Storage} & \textbf{Notes} \\
+\midrule
+Dark frame & Same T, exposure, gain; LED off & Before each session + daily & eMMC & Must track sensor aging \\
+Flat field & Uniform sample at each angle & Pre-launch, monthly & eMMC & Critical for quantitative imaging \\
+PRNU & Uniform illumination, multiple exposures & Pre-launch & Lookup table & Fixed sensor characteristic \\
+Thermal characterization & Dark frames vs temperature & Pre-launch TVAC & Lookup table & Temp-compensated correction \\
+\bottomrule
+\end{longtable}

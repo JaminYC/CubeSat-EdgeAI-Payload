@@ -1,0 +1,23 @@
+\chapter{TTC – Telecommunications}
+
+\section{Tracking, Telemetry and Command Module (TTC)}
+The TTC subsystem (\textit{Telemetry, Tracking and Command}) establishes the unified RF link between the Ground Segment (INRAS station and affiliated networks) and the Space Segment synthesized by the OBC.
+
+\section{LEO Transmission Architecture}
+
+\subsection{UHF/VHF Links and Segmentation}
+The internal modulation system assumes all transmissions are segmented under coupled radial subsystems:
+\begin{itemize}
+    \item \textbf{Beacon (Life Beacon):} an independent hardware-driven transmitter periodically switched on, reporting vital compressed telemetry in CW Morse, AFSK or GMSK. It is the last barrier indicating life mode or restart without requiring full computation.
+    \item \textbf{Uplink / Downlink UHF/VHF:} bidirectional half-duplex or full-duplex transit. The Payload transfers raw segmented files via CCSDS packets over the SPI bus to the modem on the downlink. The uplink receives corrective commands from ground, verifying CRC and a secure code (HMAC/SHA) to authorize alterations of the operational memory.
+\end{itemize}
+
+\section{Antennas and Electrical Deployment Mechanisms}
+\subsection{Fixed Architecture and Ballistic Retention}
+The antenna design (commonly dipoles/monopoles or crossed metallic ribbons for isotropic gain) requires absolute volumetric folding fitted to the 2U \textit{form factor}.
+\begin{itemize}
+    \item Antennas are initially anchored peripherally with pre-tensioned wires made of a nylon polymer, physically bonded by burner resistors adjacent to the external PCB structure.
+\end{itemize}
+
+\subsection{Active Activation Sequence}
+Total responsibility for the release lies with the \textit{Initialization Mode} commanded by the OBC. Once the \textbf{40-minute} silence window (Ch.~3) is over, the electrical system injects high currents over a short period ($\sim$5--10 seconds), generating the thermal fusion of the nylon thread and allowing the dynamic deployment by elastic release to the orthogonal position of omnidirectional LEO RF coverage.

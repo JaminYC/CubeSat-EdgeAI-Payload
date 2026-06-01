@@ -1,0 +1,75 @@
+\chapter{Integration, Verification and Validation (AIT)}
+
+\section{Overall Definition of the AIT Campaign}
+The Assembly, Integration and Testing (AIT) campaign establishes the mandatory set of experimental and systematic requirements before flight clearance (\textit{Flight Model}). After this campaign, hardware and firmware are frozen (\textit{design freeze}) to preserve qualification integrity.
+
+Test profiles follow the standards \textbf{GSFC-STD-7000 (GEVS)}, \textbf{ECSS-E-ST-10-03} (testing), and \textbf{CubeSat Design Specification Rev~14} (Cal Poly).
+
+\section{Assembly Instructions and FlatSat}
+Prior to final physical integration, key tests are performed at the expanded-system level.
+
+\subsection{FlatSat (Bench Tests)}
+The \textit{FlatSat} configuration consists of interconnecting all satellite boards outside the chassis, via jumper cables, to perform \textit{Hardware-In-the-Loop} (HIL) tests and identify interface issues before mechanical assembly.
+
+\textbf{FlatSat sequence:}
+\begin{enumerate}
+    \item Board interconnection on bench per PC-104 topology.
+    \item Continuity check and power rails verification (3.3~V, 5~V, $V_{batt}$).
+    \item Controlled power-up with a \textit{current-limited} lab power supply.
+    \item Verification of \textit{boot} and handshake OBC$\leftrightarrow$EPS$\leftrightarrow$UHF.
+    \item Execution of typical commands (housekeeping, beacon, payload trigger).
+    \item Validation of the four OBC operating modes: Initialization, Nominal, Safe, Decommissioning.
+\end{enumerate}
+
+\subsection{Mechanical Integration Procedure}
+\begin{enumerate}
+    \item Surface cleaning and dimensional verification of the structure.
+    \item Mounting of boards on the PC-104 bus with standardized torques (TBD~N$\cdot$m per M3 screw).
+    \item Internal harness connection per wiring diagram.
+    \item Mounting of solar panels and folded antennas.
+    \item Insertion of kill-switches and continuity check of RBF (\textit{Remove-Before-Flight}).
+    \item Final structural closure and verification of the 2U CubeSat envelope.
+\end{enumerate}
+
+\section{Physical and Environmental Validation Test Plan}
+Tests qualify physical and functional properties of the satellite against launch and LEO operation environments.
+
+\subsection{Physical-Mechanical Tests}
+\begin{itemize}
+    \item \textbf{Dimensions:} CMM or 3D-scan measurement against the 2U envelope. Tolerance: $\pm 0.1$~mm on rails.
+
+    \item \textbf{Physical interface verification (Fit Check):} insertion/extraction into the P-POD injector. Verify clearances and kill-switch orientation.
+
+    \item \textbf{Mass and Center of Gravity (CG):} precision balance and suspension method. CG must lie within $<2.0$~cm of geometric center on the 3 axes (CDS Rev~14).
+
+    \item \textbf{Sinusoidal and Random Vibration (Vibration \& Shock):} vibration table on 3 axes (X, Y, Z) with launcher-representative profile (TBD: Falcon 9, PSLV, Soyuz, etc.).
+    \begin{itemize}
+        \item Sinusoidal \textit{sweep}: 5--100~Hz, $\pm 2$~mm or 2.5~g.
+        \item \textit{Random}: \textit{Component Minimum Workmanship} profile from GSFC-STD-7000.
+    \end{itemize}
+
+    \item \textbf{Shock:} sinusoidal or simulated pyrotechnic, $\sim$1000~g peak, 0.5~ms.
+\end{itemize}
+
+\subsection{Space Environment and EMC Tests}
+\begin{itemize}
+    \item \textbf{Thermal Cycling:} chamber $-15$ to $+60\ ^\circ$C, minimum 10 cycles. The OBC must keep transmitting via umbilical to detect thermal fatigue in critical solders.
+
+    \item \textbf{Thermal Vacuum (TVAC + Bake-Out):} $+60\ ^\circ$C in high vacuum for weeks, promoting outgassing and certifying cleanliness for launcher integration.
+
+    \item \textbf{Electromagnetic Compatibility (EMC):} immunity and intermodulation testing between subsystems, with emphasis on the UHF/VHF receiver to rule out self-interference.
+\end{itemize}
+
+\subsection{Recommended AIT campaign sequence}
+Based on the FloripaSat-2 practice and CDS Rev~14:
+\begin{enumerate}
+    \item Visual inspection and mass/CG verification.
+    \item Fit check in P-POD.
+    \item Vibration (sequential X, Y, Z).
+    \item Shock.
+    \item Visual and electrical re-inspection.
+    \item Thermal cycling.
+    \item TVAC + Bake-Out.
+    \item EMC.
+    \item Final functional test (FlatSat-equivalent on integrated satellite).
+\end{enumerate}

@@ -1,0 +1,162 @@
+\chapter{Descripción Funcional del Payload}
+\label{ch:funcional}
+
+Este capítulo presenta la descripción funcional del \textbf{CMOS Microscopy
+Payload (CMOSM)}, incluyendo la arquitectura general del sistema, la
+descomposición en bloques funcionales y el flujo de datos desde la adquisición
+hasta el almacenamiento. El objetivo es describir \textbf{cómo está organizado
+internamente el sistema} y cómo interactúan sus componentes de hardware y
+software durante la operación nominal y experimental.
+
+% -------------------------------------------------------------------
+\section{Visión general de la arquitectura}
+
+El CMOSM está concebido como un sistema compacto de adquisición de imágenes,
+basado en un sensor CMOS comercial y un sistema de iluminación programable,
+controlados por una computadora de carga útil (Raspberry Pi). La arquitectura
+funcional se divide en cuatro bloques principales:
+
+\begin{itemize}
+    \item Bloque de adquisición óptica,
+    \item Bloque de iluminación,
+    \item Bloque de control y procesamiento,
+    \item Bloque de almacenamiento y datos.
+\end{itemize}
+
+Esta arquitectura permite separar claramente las funciones físicas de captura
+de imagen de las funciones de control, procesamiento y análisis, facilitando la
+verificación y la trazabilidad del sistema.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/fig_architectura_general_cmosm.png}
+    \caption{Arquitectura funcional del CMOS Microscopy Payload, mostrando los cuatro bloques principales y el flujo de datos.}
+    \label{fig:arquitectura_cmosm}
+\end{figure}
+
+% -------------------------------------------------------------------
+\section{Descomposición funcional del sistema}
+
+\subsection{Bloque de adquisición óptica}
+
+El bloque de adquisición óptica está compuesto por el sensor CMOS OV5647,
+operando en configuración de microscopía sin lentes (lensless) y en contacto
+cercano con la muestra. La formación de imagen se basa en la interacción directa
+de la luz transmitida o dispersada por la muestra con el plano del sensor.
+
+Las funciones principales de este bloque son:
+\begin{itemize}
+    \item Conversión de fotones incidentes en señal eléctrica.
+    \item Integración temporal de carga controlada mediante el parámetro
+    \texttt{ExposureTime}.
+    \item Digitalización de la señal y entrega de frames al sistema de control.
+\end{itemize}
+
+El sensor opera bajo control manual de exposición y ganancia, deshabilitando
+mecanismos automáticos para garantizar consistencia entre capturas.
+
+% -------------------------------------------------------------------
+\subsection{Bloque de iluminación}
+
+El bloque de iluminación utiliza una pantalla OLED de 1.3 pulgadas controlada
+vía bus I2C como fuente de iluminación plana y programable. Este bloque permite
+la generación de patrones simples de iluminación, tanto uniformes como
+estructurados.
+
+Sus funciones incluyen:
+\begin{itemize}
+    \item Generación de patrones de iluminación estáticos.
+    \item Control del nivel relativo de intensidad luminosa.
+    \item Conmutación rápida de patrones para modos experimentales.
+\end{itemize}
+
+En operación nominal, el sistema emplea patrones de iluminación uniformes para
+optimizar el contraste de la muestra. La iluminación estructurada se utiliza
+exclusivamente en modos experimentales.
+
+% -------------------------------------------------------------------
+\subsection{Bloque de control y procesamiento}
+
+El bloque de control y procesamiento está implementado en la Raspberry Pi,
+ejecutando el software principal del payload. Este bloque coordina la operación
+de todos los subsistemas y gestiona la lógica de estados descrita en el
+Capítulo~\ref{ch:modos-operacion}.
+
+Las funciones principales incluyen:
+\begin{itemize}
+    \item Configuración del sensor CMOS mediante la librería Picamera2.
+    \item Control del sistema de iluminación OLED.
+    \item Gestión de los modos operativos (Init, Preview, Capture, Safe).
+    \item Ejecución de calibraciones básicas (dark frame y flat field).
+    \item Cálculo de métricas rápidas de calidad de imagen.
+\end{itemize}
+
+Este bloque actúa como interfaz entre el hardware de captura y el bloque de
+almacenamiento de datos.
+
+% -------------------------------------------------------------------
+\subsection{Bloque de almacenamiento y datos}
+
+El bloque de almacenamiento se encarga de la persistencia de la información
+generada por el payload. Incluye tanto las imágenes adquiridas como los
+metadatos asociados a cada captura.
+
+Las funciones de este bloque son:
+\begin{itemize}
+    \item Almacenamiento de imágenes en formatos sin compresión (PNG/TIFF).
+    \item Generación de archivos de metadatos en formato estructurado (JSON).
+    \item Organización de archivos siguiendo una convención temporal estándar.
+\end{itemize}
+
+Este diseño asegura trazabilidad completa de cada experimento y facilita el
+análisis posterior en tierra.
+
+% -------------------------------------------------------------------
+\section{Flujo funcional de datos}
+
+El flujo funcional del CMOSM durante una captura nominal puede resumirse como:
+
+\begin{enumerate}
+    \item La iluminación OLED emite el patrón seleccionado.
+    \item La luz interactúa con la muestra y alcanza el sensor CMOS.
+    \item El sensor integra la señal durante el tiempo de exposición definido.
+    \item El frame digital es transferido al bloque de control.
+    \item Se aplican correcciones básicas (dark y flat).
+    \item Se calculan métricas de calidad de imagen.
+    \item La imagen y los metadatos son almacenados.
+\end{enumerate}
+
+Este flujo se mantiene constante tanto para capturas nominales como
+experimentales, variando únicamente la secuencia de iluminación y el número de
+frames adquiridos.
+
+% -------------------------------------------------------------------
+\section{Interfaz funcional con el sistema OBDH}
+
+El CMOSM se comunica con el sistema de OBDH del CubeSat INTISAT a nivel funcional
+mediante comandos de control y estados de operación. En la fase actual del
+proyecto, esta interfaz se limita a:
+
+\begin{itemize}
+    \item Comandos de inicio y detención de captura.
+    \item Señales de estado operativo (Idle, Capturing, Safe).
+    \item Sincronización temporal básica.
+\end{itemize}
+
+El manejo detallado de telemetría y enlaces de datos se considera fuera del
+alcance del presente CDR y será abordado en fases posteriores del proyecto.
+
+% -------------------------------------------------------------------
+\section{Consideraciones de diseño funcional}
+
+Desde el punto de vista funcional, el diseño del CMOSM prioriza:
+
+\begin{itemize}
+    \item Simplicidad operativa y reproducibilidad experimental.
+    \item Separación clara entre funciones nominales y experimentales.
+    \item Control manual de parámetros críticos del sensor.
+    \item Trazabilidad completa de los datos generados.
+\end{itemize}
+
+Estas decisiones permiten validar el sistema como demostrador tecnológico de
+microscopía sin lentes y facilitan futuras extensiones del diseño.

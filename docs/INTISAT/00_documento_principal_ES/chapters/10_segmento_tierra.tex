@@ -1,0 +1,20 @@
+\chapter{Segmento Tierra}
+
+\section{Misión Operacional en Tierra INRAS}
+El segmento terreno es la infraestructura fundamental para las fases pre-vuelo (AIT y FlatSat) y operativo-en-vuelo. Dirige la coordinación del flujo desde las Estaciones Terrenas distribuidas hacia el Centro de Control de la Misión.
+
+\section{Arquitectura de la Estación Terrena, Control y Monitoreo}
+Acorde a arquitecturas COTS, el circuito de rastreo RF es el espejo terrestre de nuestro módulo transmisor (TTC) espacial:
+\begin{itemize}
+    \item \textbf{Capa Analógica y Seguimiento Inercial:} Para maximizar al milisegundo el handshake en órbitas (SSO o polares), la base empela conjuntos \textit{Quad-Yagi} cruzados. Gobernados por \textit{Rotadores automatizados Azimut-Elevación} que siguen vectorialmente los efemérides (archivos de predicción TLE) actualizados por NORAD/Celestrak. 
+    \item \textbf{Capa Base de Amplificadores (LNA \& Power Amp):} Alojado muy cerca del rotor para mitigar pérdidas coaxiales de ruido (NF). Amplifica la huella de UHF ultradébil del espacio, mientras que la etapa de potencia envía entre $50\text{W}-100\text{W}$ cruzando la alta atmósfera hacia el CubeSat.
+    \item \textbf{Capa Digital y SDR:} Uso profundo de radios definidas por software (SDR). Realizan ininterrumpidamente demodulación digital en bandas base compensando el estiramiento extremo de frecuencia causado por el efecto Doppler físico.
+\end{itemize}
+
+\section{Ciclo Operacional Terrestre Lógico (Ops)}
+Las tareas consolidadas de Operación interactúan directamente respondiendo a los \textbf{Modos del OBC}:
+\begin{itemize}
+    \item \textbf{Rastreo Rutinario:} Decodificación pasiva en cascada del \textit{Housekeeping} (vital para el monitoreo pasivo diario).
+    \item \textbf{Manejo de Payloads Científicos:} Envíos específicos programados de ventanas lógicas sobre el territorio ordenando a la computadora embarcada abrir y enviar el \textit{buffer redundado} microscópico al \textit{Downlink CCSDS}.
+    \item \textbf{Resolución de Contingencias de Vuelo (HMAC/Seguridad):} En caso de ser notificados mediante el flujo Beacon del ingreso automático del satélite en el \textit{Modo de Seguridad/Safe Mode}. La línea de mando transmite criptogramas asimétricos cifrados (Hashes de seguridad SHA/HMAC), los cuales reactivan manual y forzadamente los microcontroladores (OTA reset) sacando del \textit{Interbloqueo} al sistema periférico ADCS para salvar la misión.
+\end{itemize}

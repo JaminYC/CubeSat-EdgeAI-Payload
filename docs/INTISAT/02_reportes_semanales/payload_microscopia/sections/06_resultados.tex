@@ -1,0 +1,125 @@
+﻿\chapter{Resultados Experimentales}
+
+\section{Validación dimensional independiente de objetos patrón}
+
+Como paso previo a la evaluación del sistema CMOS, se realizó la caracterización dimensional independiente de las microesferas de poliestireno de diámetro nominal $2\,\mu m$, empleando microscopía óptica calibrada y microscopía electrónica de barrido (SEM).
+
+Las imágenes obtenidas mediante SEM permitieron observar con alta definición la morfología esférica de las partículas y realizar mediciones directas del diámetro aparente.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{fig/Fig_05_01_SEM_Microesferas.png}
+    \caption{Micrografía SEM representativa de microesferas de poliestireno (2 µm nominal).}
+    \label{fig:sem_microesferas}
+\end{figure}
+
+A partir de la medición de múltiples partículas, se obtuvo un diámetro promedio consistente con el valor nominal dentro del margen de dispersión esperado.
+
+\begin{table}[H]
+\centering
+\caption{Resultados de medición dimensional mediante SEM}
+\begin{tabular}{|c|c|}
+\hline
+\textbf{Número de muestras} & $n$ \\
+Diámetro promedio & $\bar{d}_{SEM}$ \\
+Desviación estándar & $\sigma_{SEM}$ \\
+\hline
+\end{tabular}
+\end{table}
+
+Estos resultados constituyen la referencia dimensional independiente utilizada para contrastar las mediciones obtenidas mediante el sistema CMOS.
+\section{Adquisición directa mediante sensor CMOS en configuración lensless}
+
+Se realizaron capturas directas de las microesferas empleando el sistema CMOS OV5647 en configuración de microscopía sin lentes.
+
+Las imágenes adquiridas muestran estructuras circulares de bajo contraste, cercanas al límite de resolución impuesto por el tamaño de píxel ($\sim 1.4\,\mu m$).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{fig/Fig_05_02_CMOS_RAW.png}
+    \caption{Imagen RAW adquirida con el sensor CMOS en configuración lensless.}
+    \label{fig:cmos_raw}
+\end{figure}
+
+Se observa que las microesferas no presentan bordes perfectamente definidos, sino patrones suavizados influenciados por fenómenos de difracción y por la respuesta espacial del sensor.
+\section{Mejora perceptual mediante procesamiento computacional}
+
+Con el objetivo de evaluar el impacto del procesamiento digital sobre la interpretabilidad de la imagen, se aplicaron técnicas de reconstrucción y super-resolución basadas en aprendizaje profundo.
+
+\subsection{Reconstrucción FPM}
+
+Se realizó una reconstrucción preliminar utilizando múltiples capturas bajo variación angular de iluminación.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{fig/Fig_05_03_FPM.png}
+    \caption{Resultado de reconstrucción mediante FPM.}
+    \label{fig:fpm_result}
+\end{figure}
+
+Se observa mejora en contraste y definición visual, aunque la resolución física continúa limitada por el tamaño de píxel.
+
+\subsection{Escalamiento mediante RealESRGAN}
+
+Se aplicó super-resolución digital sobre la imagen base.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{fig/Fig_05_04_SuperResolucion.png}
+    \caption{Comparación entre imagen original y resultado tras super-resolución digital.}
+    \label{fig:sr_result}
+\end{figure}
+
+Si bien la percepción visual mejora, se reconoce que estas técnicas no incrementan la resolución física real del sistema.
+\section{Estimación experimental de la escala espacial}
+
+Se procedió a realizar mediciones digitales del diámetro aparente de microesferas seleccionadas en regiones de interés (ROI).
+
+El procedimiento consistió en:
+
+\begin{itemize}
+    \item Selección de microesferas aisladas.
+    \item Medición del diámetro en píxeles.
+    \item Conversión a unidades físicas mediante una escala preliminar ($\mu m/pixel$).
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{fig/Fig_05_05_Medicion_Diametro_CMOS.png}
+    \caption{Ejemplo de medición digital del diámetro aparente en píxeles.}
+    \label{fig:diametro_cmos}
+\end{figure}
+
+A partir de la comparación con el diámetro promedio obtenido por SEM, se estimó una escala espacial aproximada:
+
+\[
+\text{Escala experimental} \approx 0.17 \,\mu m/pixel
+\]
+
+La diferencia relativa entre mediciones se mantuvo dentro de un margen coherente considerando las limitaciones físicas del sistema.
+\section{Análisis de limitaciones físicas y computacionales}
+
+Los resultados experimentales evidencian que el sistema es capaz de detectar estructuras del orden de $2\,\mu m$, aunque operando cerca del límite de muestreo impuesto por el tamaño de píxel.
+
+Las principales limitaciones identificadas incluyen:
+
+\begin{itemize}
+    \item Influencia significativa de la difracción en la definición de bordes.
+    \item Dependencia crítica de la distancia muestra–sensor.
+    \item Sensibilidad a variaciones en iluminación.
+    \item Resolución efectiva limitada por el tamaño de píxel.
+\end{itemize}
+
+Estos factores explican las discrepancias observadas entre la imagen CMOS y las micrografías SEM, y refuerzan la necesidad de complementar la validación con patrones litográficos de mayor robustez geométrica.
+\section{Síntesis de resultados y cumplimiento de objetivos}
+
+Los resultados obtenidos permiten afirmar que:
+
+\begin{itemize}
+    \item Se implementó exitosamente un sistema de adquisición basado en sensor CMOS.
+    \item Se estableció una metodología de validación metrológica preliminar.
+    \item Se contrastaron mediciones con técnicas independientes (óptica y SEM).
+    \item Se identificaron límites físicos asociados a resolución y difracción.
+\end{itemize}
+
+En consecuencia, el sistema demuestra coherencia dimensional preliminar y establece una base técnica sólida para futuras etapas de optimización del payload.

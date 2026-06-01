@@ -1,0 +1,94 @@
+\chapter{Conclusiones}
+\label{ch:conclusiones}
+
+El presente documento ha presentado la \textbf{Revisión Crítica de Diseño (CDR)}
+del subsistema de \textbf{Super--Resolución basada en Inteligencia Artificial
+(SAI)} del proyecto CubeSat INTISAT, concebido como un módulo complementario de
+postprocesamiento para las imágenes adquiridas por el \textit{CMOS Microscopy
+Payload (CMOSM)}.
+
+A lo largo del documento se ha definido un alcance técnico claro y conservador,
+alineado con principios de ingeniería de sistemas ECSS/NASA, evitando atribuir
+al subsistema capacidades que excedan su función real dentro de la arquitectura
+de la misión.
+
+\section{Síntesis de resultados}
+
+El análisis realizado permite concluir que:
+
+\begin{itemize}
+    \item El subsistema SAI cumple su rol como herramienta de apoyo visual para la
+    interpretación de imágenes microscópicas adquiridas en configuración de
+    microscopía sin lentes.
+    \item La arquitectura del pipeline de super--resolución es modular, trazable
+    y coherente con la separación entre adquisición física y procesamiento
+    computacional.
+    \item Los modelos de super--resolución evaluados permiten mejorar la
+    legibilidad perceptual de estructuras ya presentes en la imagen original,
+    sin alterar la información base adquirida.
+    \item La estrategia de verificación aplicada demuestra el correcto
+    funcionamiento del subsistema dentro de un marco experimental y
+    cualitativo.
+\end{itemize}
+
+\section{Integración con el CMOS Microscopy Payload}
+
+El subsistema SAI se integra de manera natural con el CMOSM, manteniendo una
+separación estricta entre:
+
+\begin{itemize}
+    \item adquisición de datos primarios (CMOSM),
+    \item procesamiento y realce visual posterior (SAI).
+\end{itemize}
+
+Esta separación garantiza que la validez científica del sistema de adquisición
+no depende del uso de técnicas de inteligencia artificial, preservando la
+trazabilidad y la reproducibilidad de los resultados experimentales.
+
+\section{Limitaciones reconocidas}
+
+Se reconoce explícitamente que:
+
+\begin{itemize}
+    \item el subsistema SAI no incrementa la resolución óptica real del sistema,
+    \item los resultados generados no son adecuados para análisis cuantitativos
+    ni metrológicos,
+    \item la inferencia se realiza fuera de línea y no constituye una función
+    crítica de misión.
+\end{itemize}
+
+Estas limitaciones han sido incorporadas de manera consciente en el diseño y la
+documentación del subsistema.
+
+\section{Estado de madurez del subsistema}
+
+En base a la evidencia presentada, el subsistema SAI alcanza un nivel de madurez
+adecuado para su integración como \textbf{demostrador tecnológico}, permitiendo:
+
+\begin{itemize}
+    \item la evaluación controlada de técnicas modernas de super--resolución,
+    \item la generación de productos derivados para apoyo visual,
+    \item la exploración de futuras extensiones metodológicas.
+\end{itemize}
+
+\section{Trabajo futuro}
+
+Como líneas de trabajo futuras se identifican:
+
+\begin{itemize}
+    \item ampliación del conjunto de datos de evaluación,
+    \item comparación sistemática entre distintos modelos de super--resolución,
+    \item estudio del impacto de la super--resolución en distintos tipos de
+    muestras,
+    \item evaluación preliminar de viabilidad de ejecución en plataformas
+    embebidas, sin comprometer la arquitectura actual.
+\end{itemize}
+
+\section{Conclusión final}
+
+La Revisión Crítica de Diseño del subsistema SAI concluye que el diseño propuesto
+es técnicamente consistente, correctamente acotado y compatible con los
+objetivos del proyecto INTISAT. El enfoque adoptado permite incorporar técnicas
+de inteligencia artificial de forma responsable, transparente y defendible,
+fortaleciendo el valor experimental y formativo de la misión sin comprometer la
+integridad científica del sistema de adquisición.

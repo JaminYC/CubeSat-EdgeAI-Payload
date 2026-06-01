@@ -1,0 +1,140 @@
+\chapter{Requerimientos del Subsistema SAI}
+\label{ch:requerimientos}
+
+Este capítulo define los requerimientos formales del \textbf{Subsistema de
+Super-Resolución basada en Inteligencia Artificial (SAI)} del proyecto INTISAT.
+Los requerimientos se formulan siguiendo principios de ingeniería de sistemas
+ECSS/NASA y se enfocan en funcionalidad, desempeño computacional, interfaces,
+operación y limitaciones del subsistema.
+
+Es importante destacar que los requerimientos del SAI se formulan como
+\textbf{requerimientos de postprocesamiento}, y no como requerimientos de
+adquisición o generación de información científica primaria.
+
+% -------------------------------------------------------------------
+\section{Clasificación de métodos de verificación}
+
+Los métodos de verificación utilizados se definen como:
+
+\begin{itemize}
+    \item \textbf{T} -- Test: ejecución controlada del software y evaluación de
+    resultados.
+    \item \textbf{A} -- Analysis: análisis cuantitativo o cualitativo de salidas.
+    \item \textbf{I} -- Inspection: inspección visual de resultados procesados.
+    \item \textbf{R} -- Review of Design: revisión de arquitectura, código o
+    documentación.
+\end{itemize}
+
+% -------------------------------------------------------------------
+\section{Requerimientos funcionales (FR)}
+
+\begin{longtable}{p{0.12\textwidth} p{0.68\textwidth} p{0.12\textwidth}}
+\toprule
+\textbf{ID} & \textbf{Descripción} & \textbf{Verificación} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Descripción} & \textbf{Verificación} \\
+\midrule
+\endhead
+FR-SAI-01 & El subsistema SAI debe recibir como entrada imágenes digitales
+previamente adquiridas por el CMOS Microscopy Payload. & R \\
+FR-SAI-02 & El subsistema debe aplicar modelos de super-resolución basados en
+aprendizaje profundo como etapa de postprocesamiento. & T \\
+FR-SAI-03 & El sistema debe generar una imagen procesada sin modificar ni
+sobrescribir la imagen original de entrada. & T, I \\
+FR-SAI-04 & El subsistema debe permitir seleccionar el modelo de
+super-resolución a emplear. & T \\
+FR-SAI-05 & El sistema debe conservar la trazabilidad entre imagen de entrada y
+salida procesada. & R \\
+\bottomrule
+\end{longtable}
+
+% -------------------------------------------------------------------
+\section[Requerimientos de desempeño (PR)]{Requerimientos de desempeño computacional (PR)}
+
+\begin{longtable}{p{0.12\textwidth} p{0.68\textwidth} p{0.12\textwidth}}
+\toprule
+\textbf{ID} & \textbf{Descripción} & \textbf{Verificación} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Descripción} & \textbf{Verificación} \\
+\midrule
+\endhead
+PR-SAI-01 & El subsistema debe ejecutar inferencia de super-resolución en tiempo
+finito sobre imágenes individuales en entorno de laboratorio o en tierra. & T \\
+PR-SAI-02 & El tiempo de procesamiento no debe impedir el análisis posterior de
+los datos adquiridos. & A \\
+PR-SAI-03 & El consumo de memoria del subsistema debe ser compatible con la
+plataforma de ejecución seleccionada. & A, R \\
+PR-SAI-04 & El subsistema no debe introducir artefactos visuales evidentes que
+distorsionen las estructuras presentes en la imagen original. & I, A \\
+\bottomrule
+\end{longtable}
+
+% -------------------------------------------------------------------
+\section{Requerimientos de interfaz (IR)}
+
+\begin{longtable}{p{0.12\textwidth} p{0.68\textwidth} p{0.12\textwidth}}
+\toprule
+\textbf{ID} & \textbf{Descripción} & \textbf{Verificación} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Descripción} & \textbf{Verificación} \\
+\midrule
+\endhead
+IR-SAI-01 & El subsistema debe aceptar imágenes en formatos estándar sin
+compresión (PNG o TIFF). & T \\
+IR-SAI-02 & El subsistema debe generar salidas en un formato compatible con
+herramientas de análisis en tierra. & T \\
+IR-SAI-03 & El subsistema debe mantener compatibilidad con los metadatos
+generados por el CMOSM. & R \\
+\bottomrule
+\end{longtable}
+
+% -------------------------------------------------------------------
+\section{Requerimientos operacionales (OR)}
+
+\begin{longtable}{p{0.12\textwidth} p{0.68\textwidth} p{0.12\textwidth}}
+\toprule
+\textbf{ID} & \textbf{Descripción} & \textbf{Verificación} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Descripción} & \textbf{Verificación} \\
+\midrule
+\endhead
+OR-SAI-01 & El subsistema SAI debe operar de manera independiente a la captura de
+datos del CMOSM. & R \\
+OR-SAI-02 & El subsistema debe permitir la ejecución manual del procesamiento por
+parte del operador. & T \\
+OR-SAI-03 & El uso del subsistema no debe ser obligatorio para la interpretación
+de las imágenes originales. & R \\
+\bottomrule
+\end{longtable}
+
+% -------------------------------------------------------------------
+\section{Limitaciones explícitas del subsistema}
+
+Con el fin de evitar interpretaciones erróneas, se establecen las siguientes
+limitaciones explícitas del subsistema SAI:
+
+\begin{itemize}
+    \item El SAI no genera información física nueva ni incrementa la resolución
+    óptica real del sistema.
+    \item Los resultados del procesamiento no deben utilizarse como única base
+    para conclusiones científicas cuantitativas.
+    \item El subsistema no sustituye procesos de calibración física del sistema
+    de adquisición.
+\end{itemize}
+
+% -------------------------------------------------------------------
+\section{Resumen}
+
+Los requerimientos definidos en este capítulo establecen un marco claro y
+conservador para el desarrollo e integración del subsistema SAI. La formulación
+adoptada garantiza coherencia con el CMOS Microscopy Payload y limita
+explícitamente el alcance del uso de técnicas de super-resolución dentro del
+proyecto INTISAT.

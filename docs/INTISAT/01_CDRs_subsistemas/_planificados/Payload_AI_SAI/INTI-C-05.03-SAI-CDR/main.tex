@@ -1,0 +1,108 @@
+\documentclass[12pt]{report}
+
+\usepackage{pucp_intisat}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{subcaption}
+\usepackage{hyperref}
+
+% Seleccionar español como idioma principal
+\selectlanguage{spanish}
+
+% -------------------------------------------------
+% Datos del documento
+% -------------------------------------------------
+\newcommand{\doccode}{INTI-C-05.03-SAI-CDR}
+\newcommand{\doctitle}{Super-Resolution AI Subsystem -- Critical Design Review}
+\newcommand{\docauthor}{J.~Yauri \& AI/ML Payload Team}
+
+\title{INTISAT -- \doctitle}
+\author{\docauthor}
+\date{\today}
+
+\begin{document}
+
+% -------------------------------------------------
+% PORTADA
+% -------------------------------------------------
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    \includegraphics[width=0.45\textwidth]{figures/pucp_inras_logo.png}\par\vspace{1cm}
+    {\scshape\Large Pontificia Universidad Católica del Perú \par}
+    {\scshape\large Instituto de Radioastronomía -- INRAS \par}
+    \vspace{2cm}
+    {\huge\bfseries \doctitle\par}
+    \vspace{0.5cm}
+    {\Large Código: \doccode\par}
+    \vspace{1.5cm}
+    {\large Autor responsable:\par}
+    {\Large \docauthor\par}
+    \vfill
+    {\large Versión preliminar CDR\par}
+    {\large \today\par}
+\end{titlepage}
+
+% -------------------------------------------------
+% Historial de Revisiones
+% -------------------------------------------------
+\pagenumbering{roman}
+
+\chapter*{Revision History}
+\begin{longtable}{p{2cm} p{3cm} p{9cm}}
+\toprule
+\textbf{Version} & \textbf{Date} & \textbf{Description} \\
+\midrule
+v1.0 & 13 Nov 2025 & Versión inicial del CDR del subsistema SAI. Definición de conceptos y alcance del postprocesamiento con IA. \\
+v2.0 & 19 Dic 2025 & Revisión intermedia. Actualización de arquitectura del pipeline y selección de modelos de super-resolución. \\
+v3.0 & 05 Ene 2026 & Versión preliminar del CDR del subsistema SAI. Inclusión de estrategias de evaluación y análisis de riesgos. \\
+\bottomrule
+\end{longtable}
+
+\clearpage
+
+% -------------------------------------------------
+% Resumen
+% -------------------------------------------------
+\section*{Resumen}
+
+Este documento presenta la \textbf{Revisión Crítica de Diseño (CDR)} del
+\textbf{Subsystema de Super-Resolución basada en Inteligencia Artificial (SAI)}
+del CubeSat INTISAT. El SAI constituye un módulo de \textbf{postprocesamiento
+computacional} diseñado para mejorar la interpretabilidad visual de imágenes
+capturadas por el CMOS Microscopy Payload, sin introducir información física
+adicional.
+
+Se describen los requerimientos, la arquitectura del pipeline de IA, los modelos
+empleados, la estrategia de evaluación experimental y los riesgos asociados a su
+uso como herramienta de realce visual.
+
+\textbf{Palabras clave:} super-resolución, deep learning, ESRGAN, postprocesamiento,
+microscopía computacional.
+
+\clearpage
+\tableofcontents
+\clearpage
+
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\pagestyle{fancy}
+
+% -------------------------------------------------
+% Contenido
+% -------------------------------------------------
+\input{sections/01_introduccion}     % Rol del SAI
+\input{sections/02_requerimientos}   % Requerimientos del subsistema
+\input{sections/03_arquitectura}     % Pipeline y diseño
+\input{sections/04_verificacion}     % Evaluación y pruebas
+\input{sections/05_riesgos}          % Riesgos de IA
+\input{sections/06_conclusiones}     % Cierre
+
+\appendix
+
+% \input{appendices/datasets}
+% \input{appendices/model_details}
+
+\end{document}

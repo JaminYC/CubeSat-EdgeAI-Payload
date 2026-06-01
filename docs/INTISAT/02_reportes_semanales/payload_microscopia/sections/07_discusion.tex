@@ -1,0 +1,80 @@
+\chapter{Discusión}
+
+\section{Coherencia dimensional del sistema CMOS}
+
+Los resultados obtenidos evidencian que el sistema de adquisición basado en sensor CMOS es capaz de detectar estructuras del orden de $2\,\mu m$, aunque operando cerca de su límite físico de resolución.
+
+La comparación con mediciones independientes realizadas mediante microscopía óptica calibrada y microscopía electrónica de barrido (SEM) permitió establecer una referencia dimensional externa. La diferencia relativa observada entre las mediciones digitales del sistema CMOS y la referencia SEM se mantiene dentro de un margen coherente con las limitaciones impuestas por el tamaño de píxel y los efectos difractivos.
+
+Es importante destacar que la coherencia dimensional observada no implica que el sistema alcance resolución óptica equivalente a la de un microscopio convencional, sino que demuestra consistencia metrológica preliminar dentro de su régimen operativo.
+\section{Influencia del tamaño de píxel y el límite de muestreo}
+
+El sensor OV5647 posee un tamaño de píxel aproximado de $1.4\,\mu m$. Al intentar observar estructuras de $2\,\mu m$, el sistema opera en un régimen donde el objeto ocupa apenas unos pocos píxeles efectivos.
+
+Desde el punto de vista del muestreo espacial, esto implica que la representación digital de la microesfera se encuentra cercana al límite de Nyquist, reduciendo la capacidad de definir bordes con nitidez.
+
+La apariencia suavizada de las microesferas en las imágenes CMOS no constituye un error experimental, sino una consecuencia directa del muestreo discreto y de la respuesta espacial del detector.
+
+Este comportamiento confirma que la resolución efectiva del sistema está dominada por:
+
+\begin{itemize}
+    \item Tamaño físico del píxel.
+    \item Distancia muestra–sensor.
+    \item Longitud de onda de la iluminación.
+    \item Respuesta espectral del sensor.
+\end{itemize}
+\section{Efectos de difracción en configuración lensless}
+
+En microscopía sin lentes, la formación de imagen no depende de un sistema óptico que enfoque la muestra, sino de la interacción directa entre la luz transmitida o dispersada y el plano del sensor.
+
+Cuando las dimensiones del objeto son comparables a la longitud de onda de la iluminación o al tamaño de píxel, la imagen registrada se encuentra influenciada por fenómenos de difracción.
+
+En el caso analizado, los patrones observados en las imágenes CMOS presentan características compatibles con un régimen dominado parcialmente por difracción, lo cual explica la transición suave entre objeto y fondo y la ausencia de bordes abruptos.
+
+Este comportamiento es consistente con los fundamentos físicos de la formación de imagen en sistemas de contacto.
+\section{Impacto del procesamiento computacional}
+
+Las técnicas de reconstrucción y super-resolución aplicadas durante el análisis experimental mejoran la interpretabilidad visual de las estructuras observadas. Sin embargo, es fundamental diferenciar entre:
+
+\begin{itemize}
+    \item Mejora perceptual (contraste, nitidez aparente).
+    \item Incremento real de resolución física.
+\end{itemize}
+
+Los algoritmos de reconstrucción no generan información física adicional más allá de la contenida en la señal original capturada por el sensor.
+
+En consecuencia, si bien el procesamiento computacional constituye una herramienta valiosa para interpretación y análisis exploratorio, la validación metrológica debe fundamentarse en la imagen base adquirida bajo condiciones controladas.
+\section{Limitaciones identificadas}
+
+A partir de los resultados experimentales y su análisis teórico, se identifican las siguientes limitaciones principales del sistema:
+
+\begin{itemize}
+    \item Resolución efectiva limitada por tamaño de píxel.
+    \item Sensibilidad crítica a la distancia muestra–sensor.
+    \item Dependencia significativa de la estabilidad de iluminación.
+    \item Influencia de ruido electrónico en regímenes de baja señal.
+\end{itemize}
+
+Estas limitaciones no invalidan la coherencia dimensional observada, pero establecen el marco físico dentro del cual deben interpretarse las mediciones.
+\section{Implicancias para el desarrollo del payload}
+
+Desde el punto de vista del proyecto INTISAT, los resultados obtenidos constituyen una validación preliminar de la viabilidad de integrar un sistema de microscopía computacional compacto como carga útil experimental.
+
+La arquitectura lensless demuestra ventajas significativas en términos de:
+
+\begin{itemize}
+    \item Simplicidad mecánica.
+    \item Bajo volumen y masa.
+    \item Reducción de complejidad óptica.
+\end{itemize}
+
+No obstante, para aplicaciones de caracterización biológica más exigentes, será necesario considerar:
+
+\begin{itemize}
+    \item Uso de sensores con menor tamaño de píxel.
+    \item Integración de patrones litográficos certificados para calibración robusta.
+    \item Optimización del sistema de iluminación.
+    \item Implementación controlada de técnicas avanzadas de reconstrucción.
+\end{itemize}
+
+La presente etapa debe entenderse como una validación fundacional que establece las bases técnicas para futuras iteraciones del sistema.

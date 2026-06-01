@@ -1,0 +1,24 @@
+\chapter{EPS – Electrical Power System}
+
+\section{Subsystem Overview}
+The Electrical Power System (EPS) is responsible for three primary functions in LEO orbit: (i) energy harvesting via solar panels, (ii) storage via battery cells, and (iii) conditioning and safe distribution to the whole load bus. Additionally, the EPS indirectly orchestrates the life of the satellite by controlling the main switches (\textit{kill-switches}).
+
+\section{Power Generation (Solar Panels)}
+INTISAT's energy source is provided by body-mounted arrays of solar cells (typically high-efficiency space-grade triple-junction photovoltaic cells, such as Emcore or AzurSpace) distributed across the external faces of the CubeSat prism.
+\begin{itemize}
+    \item \textbf{Generation Management:} the EPS processor handles energy input through Maximum Power Point Tracking (MPPT) algorithms, ensuring maximum flow under highly variable irradiance conditions and optimizing panel efficiency.
+\end{itemize}
+
+\section{Storage and Capacity (Battery Module)}
+Any excess energy harvested over immediate consumption during the sunlit phase is preferentially routed to the \textit{Battery Module}.
+\begin{itemize}
+    \item \textbf{Cells:} composed of robust Li-Ion cells in series/parallel (18650 form factor), with resistive thermal heaters to survive LEO orbital eclipses without freezing the electrolyte.
+    \item \textbf{Battery Management System (BMS):} continuously measures Depth of Discharge (DoD), cell differential voltages, currents and thermistors, feeding the EPS module with warning parameters to prevent destructive under-voltages.
+\end{itemize}
+
+\section{Conditioning, Distribution and Safety}
+Power is segmented from the battery and transformed via DC-DC converters into standard regulated lines (3.3~V and 5~V) and the native unregulated line ($V_{batt}$).
+\begin{itemize}
+    \item \textbf{Analog protection and bus interface:} provides immediate hardware protection through Latch-up Current Limiters (LCL) that detect transient short-circuits induced by radiation or runaway payload consumption, cutting power on individual ports.
+    \item \textbf{Integration (Interface Data Sheet):} the EPS communicates bidirectionally through I2C/CAN on PC-104, reporting sanity telemetry to the OBC and indicating the battery SoC, the central trigger for contingency routines.
+\end{itemize}

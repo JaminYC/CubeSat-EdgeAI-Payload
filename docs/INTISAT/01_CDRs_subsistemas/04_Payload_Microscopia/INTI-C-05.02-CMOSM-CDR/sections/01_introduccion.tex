@@ -1,0 +1,111 @@
+\chapter{Introducción}
+\label{ch:introduccion}
+
+\section{Propósito y alcance}
+
+El presente documento corresponde a la \textbf{Revisión Crítica de Diseño (CDR)}
+del \textit{CMOS Microscopy Payload} (CMOSM) del CubeSat INTISAT, desarrollado en
+el Instituto de Radioastronomía (INRAS) de la Pontificia Universidad Católica del
+Perú (PUCP).
+
+El objetivo principal del payload CMOSM es demostrar un sistema de
+\textbf{microscopía sin lentes (lensless) en configuración de contacto}, basado
+en un sensor CMOS comercial, capaz de capturar imágenes de muestras biológicas
+planas con suficiente contraste y resolución para la identificación de
+estructuras celulares, tales como paredes celulares en tejidos vegetales.
+
+El sistema prioriza la obtención de imágenes reproducibles mediante un control
+adecuado de la iluminación, el registro de parámetros de captura y el correcto
+\textbf{acoplamiento óptico entre la muestra y el sensor}. Este último se
+identifica como un factor crítico para maximizar el contraste y la definición
+de bordes en microscopía de contacto, y es validado experimentalmente en la
+fase actual del proyecto.
+\section{Alcance técnico del payload}
+
+El diseño del CMOSM se fundamenta en un enfoque de microscopía de contacto, en el
+cual la muestra se coloca a una distancia del orden de micrómetros del plano del
+sensor CMOS. En este régimen, la formación de imagen está dominada por fenómenos
+de absorción, dispersión cercana y sombreado, siendo altamente sensible a la
+interfaz óptica muestra--sensor.
+
+Durante la fase actual de desarrollo, la interfaz de muestra se implementa
+mediante soluciones experimentales de laboratorio, empleadas con el objetivo de
+validar el principio físico de acoplamiento óptico y su impacto en la calidad de
+imagen. La definición de un material definitivo para dicha interfaz se
+identifica como trabajo futuro y queda fuera del alcance del presente CDR.
+
+Sobre esta base física, el payload incorpora capacidades de procesamiento
+computacional orientadas a la mejora de la legibilidad visual de las imágenes
+adquiridas. Técnicas avanzadas como la Fourier Ptychographic Microscopy (FPM) y
+la super--resolución basada en aprendizaje profundo se consideran
+\textbf{modos complementarios y experimentales}, evaluados en función de su
+aporte incremental sobre la imagen base capturada directamente por el sistema.
+Las capacidades principales del sistema incluyen:
+
+\begin{itemize}
+    \item Captura directa de imágenes mediante un sensor CMOS comercial
+    operando en configuración sin lentes.
+    \item Control de iluminación estructurada y de intensidad para optimizar el
+    contraste de la muestra.
+    \item Registro completo de parámetros de captura (exposición, ganancia,
+    configuración de iluminación y métricas de intensidad) como metadatos
+    asociados a cada imagen.
+    \item Procesamiento computacional posterior para realce visual, incluyendo
+    técnicas de super--resolución.
+    \item Evaluación experimental de técnicas de reconstrucción avanzadas,
+    como Fourier Ptychographic Microscopy (FPM).
+\end{itemize}
+\section{Estructura del documento}
+
+El documento se organiza siguiendo una estructura inspirada en los
+\emph{Design Definition \& Justification Files} (DDJF) utilizados en misiones
+CubeSat de referencia y alineada con lineamientos ECSS/NASA, priorizando la
+descripción del sistema físico de adquisición, su validación experimental y la
+justificación de las decisiones de diseño adoptadas.
+
+\begin{itemize}
+    \item \textbf{Capítulo~\ref{ch:introduccion}}: contexto general, propósito,
+    documentos aplicables y definiciones.
+    \item \textbf{Capítulo~\ref{ch:requerimientos}}: definición de
+    requerimientos de misión y de payload.
+    \item \textbf{Capítulo~\ref{ch:modos-operacion}}: modos de operación,
+    secuencias de captura y procedimientos nominales y anómalos.
+    \item \textbf{Capítulo~\ref{ch:funcional}}: descripción funcional de la
+    arquitectura del payload y descomposición en subsistemas.
+    \item \textbf{Capítulo~\ref{ch:diseno-justificacion}}: diseño detallado y
+    justificación de las decisiones ópticas, mecánicas, electrónicas y de
+    software.
+    \item \textbf{Capítulo~\ref{ch:verificacion}}: estrategia de verificación,
+    matriz de cumplimiento y resumen de pruebas.
+    \item \textbf{Capítulo~\ref{ch:riesgos}}: identificación de riesgos
+    técnicos y operacionales, con sus mitigaciones.
+    \item \textbf{Capítulo~\ref{ch:conclusiones}}: conclusiones de la CDR y
+    recomendaciones para la siguiente fase.
+    \item \textbf{Apéndices}: información de soporte y resultados detallados.
+\end{itemize}
+\section{Contexto del proyecto INTISAT}
+
+INTISAT es un proyecto CubeSat académico del INRAS orientado a la validación de
+tecnologías de observación y experimentación científica en órbita baja (LEO).
+Dentro de su arquitectura de cargas útiles, el payload CMOSM se concibe como un
+\textbf{demostrador tecnológico} de microscopía sin lentes de contacto y
+procesamiento computacional asociado, reutilizable en futuras misiones
+educativas o científicas.
+
+El diseño del CMOSM prioriza:
+\begin{itemize}
+    \item Uso de componentes \emph{Commercial Off-The-Shelf} (COTS) como la
+    cámara CMOS OV5647.
+    \item Arquitectura mecánica simple, ligera y replicable en laboratorio.
+    \item Alto nivel de telemetría y trazabilidad de parámetros de captura para
+    análisis en tierra.
+    \item Modularidad del software para permitir iteración rápida sobre
+    algoritmos de procesamiento y reconstrucción experimental.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{figures/IntiSat_Renderization_CMOS.png}
+    \caption{Renderizado del CubeSat INTISAT mostrando la configuración del payload CMOSM.}
+    \label{fig:intisat_render}
+\end{figure}

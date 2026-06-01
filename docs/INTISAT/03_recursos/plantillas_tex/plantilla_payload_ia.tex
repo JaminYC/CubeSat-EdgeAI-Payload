@@ -1,0 +1,175 @@
+﻿% Plantilla general de reportes INTISAT (independiente del main.tex)
+\documentclass[a4paper, twoside, 12pt]{report}
+
+% -------------------------------------------------
+% 1. PAQUETES DE IDIOMA Y FORMATO
+% -------------------------------------------------
+\usepackage[spanish, es-tabla]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{booktabs}
+\usepackage{placeins}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{longtable}
+
+% Geometria (margenes)
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Matematicas y unidades
+\usepackage{amsmath,amssymb}
+\usepackage{siunitx}
+
+% Estilo de parrafos moderno (sin sangria, con espacio entre parrafos)
+\usepackage{parskip}
+
+% Enlaces y colores
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\hypersetup{
+  linkcolor=black,
+  urlcolor=blue,
+  citecolor=black
+}
+
+% Encabezados y pies de pagina
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\nouppercase{\leftmark}}
+\fancyhead[R]{\thepage}
+
+% -------------------------------------------------
+% 2. VARIABLES DEL DOCUMENTO
+% -------------------------------------------------
+\newcommand{\doccode}{INTI-SAI-2025}
+\newcommand{\doctitle}{Carga Útil: Inteligencia Artificial (SAI)}
+\newcommand{\docsubtitle}{Aceleración y Súper Resolución en Órbita}
+\newcommand{\docproject}{Proyecto INTISAT -- APSCO}
+\newcommand{\docauthor}{Nombre del Autor}
+\newcommand{\docversion}{v1.0}
+\newcommand{\docdate}{\today}
+
+\title{\doctitle}
+\author{\docauthor}
+
+% Linea horizontal en portada
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+\begin{document}
+
+% -------------------------------------------------
+% 3. PORTADA
+% -------------------------------------------------
+\begin{titlepage}
+    \centering
+    \vspace*{-1.5cm}
+
+    % Logo y organizacion superior
+    \noindent
+    \begin{minipage}{0.15\textwidth}
+        \includegraphics[width=2cm]{Images/Logo_APSCO.png}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}{0.8\textwidth}
+        \raggedleft
+        \Huge \textbf{APSCO}
+    \end{minipage}
+
+    \vspace{0.2cm}
+    \HRule \\[0.5cm]
+
+    % Encabezados del proyecto
+    \textbf{\LARGE \docproject}\\[0.5cm]
+    \textsc{\Large Reporte Tecnico: \doccode}\\[0.3cm]
+    \textsc{\Large Paquete de Trabajo: XXXXX}\\[0.3cm]
+
+    % Fecha
+    {\Large \docdate}\\[0.5cm]
+
+    % Titulo principal
+    \HRule \\[0.4cm]
+    { \huge \bfseries \doctitle: \\ \Large \docsubtitle}\\[0.4cm]
+    \HRule \\[0.5cm]
+
+    % Informacion del documento
+    \noindent
+    \begin{flushleft}
+        \large \textbf{Preparado por:} \\
+        \large Instituto de Radioastronomia (INRAS) - Equipo INTISAT\\[0.3cm]
+
+        \large \textbf{Autor(es):} \large \docauthor\\[0.3cm]
+
+        \large \textbf{Supervisado por:} \large Nombre del Supervisor\\[0.3cm]
+
+        \large \textbf{Version:} \docversion \\[0.1cm]
+        \large \textbf{Estado:} Reporte Tecnico
+    \end{flushleft}
+
+    \vfill
+
+    % Logo inferior
+    \begin{center}
+        \includegraphics[width=8cm]{Images/Intisat_logo.png}
+    \end{center}
+
+    \vspace{0.1cm}
+\end{titlepage}
+
+% -------------------------------------------------
+% 4. PREAMBULO
+% -------------------------------------------------
+\pagenumbering{roman}
+
+\begin{abstract}
+    \addcontentsline{toc}{chapter}{Resumen Ejecutivo}
+    Escribe aqui el resumen ejecutivo del reporte.
+\end{abstract}
+
+\chapter*{Historial de Revisiones}
+\begin{center}
+\begin{tabular}{p{2cm} p{3cm} p{9cm}}
+\toprule
+\textbf{Version} & \textbf{Fecha} & \textbf{Descripcion} \\
+\midrule
+v1.0 & \today & Reporte inicial. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\clearpage
+\tableofcontents
+\listoffigures
+\listoftables
+\clearpage
+
+\pagenumbering{arabic}
+
+% -------------------------------------------------
+% 5. CONTENIDO
+% -------------------------------------------------
+\chapter{Introduccion}
+El sub-bloque de la estructura o acelerador de red neuronal (Hardware de A.I.) tiene la meta principal de analizar topografías moleculares e inducir resoluciones matemáticas superiores sin generar pesos extra al ancho de banda clásico. La implementación es un requerimiento ineludible en el bus del espacio profundo debido al alto nivel fotográfico que las telecomunicaciones UHF no pueden cubrir directamente.
+
+\chapter{Especificaciones Tecnicas}
+Contenido inicial aqui.
+
+\chapter{Diseno del Sistema}
+Contenido inicial aqui.
+
+\chapter{Pruebas y Validacion}
+Contenido inicial aqui.
+
+\chapter{Resultados y Conclusiones}
+Contenido inicial aqui.
+
+% -------------------------------------------------
+% 6. REFERENCIAS
+% -------------------------------------------------
+% \bibliographystyle{alpha}
+% \bibliography{bibs/sample}
+
+\end{document}

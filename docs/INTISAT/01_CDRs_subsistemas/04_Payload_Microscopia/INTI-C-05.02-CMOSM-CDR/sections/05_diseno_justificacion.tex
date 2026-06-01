@@ -1,0 +1,181 @@
+\chapter{Diseño y Justificación}
+\label{ch:diseno-justificacion}
+
+Este capítulo presenta el diseño detallado del \textbf{CMOS Microscopy Payload
+(CMOSM)} y justifica las decisiones adoptadas en los dominios óptico, mecánico,
+electrónico y de software. Las elecciones de diseño se fundamentan en los
+requerimientos definidos en el Capítulo~\ref{ch:requerimientos}, los modos de
+operación descritos en el Capítulo~\ref{ch:modos-operacion} y la arquitectura
+funcional presentada en el Capítulo~\ref{ch:funcional}.
+
+El enfoque de diseño prioriza la simplicidad, reproducibilidad experimental y
+trazabilidad de datos, alineándose con el carácter académico del proyecto
+INTISAT y las restricciones propias de un CubeSat.
+
+% -------------------------------------------------------------------
+\section{Justificación del enfoque de microscopía}
+
+El sistema CMOSM adopta un enfoque de \textbf{microscopía sin lentes en
+configuración de contacto}, en lugar de una arquitectura óptica convencional
+basada en lentes. Esta decisión se justifica por:
+
+\begin{itemize}
+    \item Reducción significativa de complejidad mecánica y óptica.
+    \item Eliminación de elementos refractivos sensibles a desalineación.
+    \item Compatibilidad con arquitecturas compactas de bajo volumen y masa.
+    \item Adecuación para demostradores tecnológicos y misiones educativas.
+\end{itemize}
+
+Los ensayos experimentales realizados demuestran que, bajo condiciones adecuadas
+de iluminación y acoplamiento óptico, la microscopía de contacto permite la
+identificación de estructuras celulares relevantes en muestras biológicas
+planas, cumpliendo el objetivo científico del payload.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figures/Captura_muestra1.png}
+    \caption{Captura de tejido vegetal mediante microscopía de contacto sin lentes, mostrando estructuras celulares identificables.}
+    \label{fig:captura_muestra1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figures/Captura_muestra2.jpg}
+    \caption{Captura de muestra biológica con iluminación optimizada, demostrando el contraste alcanzable con el sistema CMOSM.}
+    \label{fig:captura_muestra2}
+\end{figure}
+
+% -------------------------------------------------------------------
+\section{Diseño óptico y justificación}
+
+\subsection{Sensor CMOS}
+
+El sensor CMOS OV5647 fue seleccionado por su disponibilidad como componente
+\emph{Commercial Off-The-Shelf} (COTS), su resolución nativa de 2592×1944 píxeles
+y su compatibilidad con plataformas embebidas como la Raspberry Pi.
+
+La operación del sensor se realiza bajo control manual de exposición y ganancia,
+deshabilitando mecanismos automáticos de ajuste. Esta decisión permite:
+
+\begin{itemize}
+    \item Consistencia entre capturas consecutivas.
+    \item Control explícito de la integración fotónica.
+    \item Reproducibilidad experimental.
+\end{itemize}
+
+\subsection{Iluminación}
+
+El sistema de iluminación emplea una pantalla OLED de 1.3 pulgadas controlada vía
+bus I2C como fuente plana y programable. Esta solución se eligió frente a arreglos
+de LEDs discretos por:
+
+\begin{itemize}
+    \item Flexibilidad para generar múltiples patrones sin modificar hardware.
+    \item Integración compacta con bajo consumo de potencia.
+    \item Capacidad de conmutación rápida de patrones.
+\end{itemize}
+
+En operación nominal se utilizan patrones uniformes para maximizar el contraste
+de la muestra. La iluminación estructurada se reserva para modos experimentales.
+
+\subsection{Interfaz muestra--sensor}
+
+La interfaz entre la muestra y el sensor se reconoce como un elemento crítico
+del desempeño óptico del sistema. Durante la fase actual del proyecto, se
+emplean soluciones experimentales de laboratorio para validar el principio de
+acoplamiento óptico y su impacto en la calidad de imagen.
+
+La selección e implementación de un material definitivo para esta interfaz se
+identifica como trabajo futuro y no forma parte del alcance del presente CDR.
+
+% -------------------------------------------------------------------
+\section{Diseño mecánico y justificación}
+
+El diseño mecánico del CMOSM prioriza la simplicidad estructural y la estabilidad
+geométrica del sistema. La arquitectura mecánica se concibe como un soporte
+rígido que mantiene:
+
+\begin{itemize}
+    \item Posicionamiento estable del sensor CMOS.
+    \item Alineamiento fijo entre el sensor y el sistema de iluminación.
+    \item Acceso controlado a la superficie del sensor para preparación de
+    muestras.
+\end{itemize}
+
+Esta aproximación reduce la necesidad de mecanismos de ajuste fino y minimiza
+riesgos asociados a vibraciones y desalineaciones durante operación de
+laboratorio.
+
+% -------------------------------------------------------------------
+\section{Diseño electrónico y justificación}
+
+Desde el punto de vista electrónico, el CMOSM se apoya en la Raspberry Pi como
+computadora de carga útil. Esta elección se justifica por:
+
+\begin{itemize}
+    \item Compatibilidad directa con el sensor OV5647.
+    \item Disponibilidad de librerías maduras (Picamera2).
+    \item Capacidad de procesamiento suficiente para control y análisis básico
+    de imágenes.
+\end{itemize}
+
+El control del OLED mediante bus I2C permite una implementación simple y robusta,
+con bajo número de líneas y reducido consumo de potencia, alineado con los
+requerimientos eléctricos del payload.
+
+Se incluyen consideraciones básicas de protección eléctrica, tales como manejo
+adecuado de niveles lógicos y prevención de descargas electrostáticas en
+conexiones externas.
+
+% -------------------------------------------------------------------
+\section{Diseño de software y justificación}
+
+El software del CMOSM se diseña bajo una arquitectura modular, separando
+claramente las funciones de control, adquisición, procesamiento y almacenamiento
+de datos.
+
+Las decisiones clave de diseño de software incluyen:
+
+\begin{itemize}
+    \item Implementación de una máquina de estados para gestión de modos
+    operativos.
+    \item Control manual explícito de parámetros críticos del sensor.
+    \item Registro automático de metadatos para cada captura.
+    \item Inclusión de rutinas de calibración básica (dark frame y flat field).
+\end{itemize}
+
+El procesamiento computacional avanzado, incluyendo reconstrucción FPM y
+super--resolución basada en aprendizaje profundo, se implementa como extensión
+experimental, sin afectar la operación nominal del sistema.
+
+% -------------------------------------------------------------------
+\section{Justificación del uso de técnicas computacionales}
+
+Las técnicas de reconstrucción computacional y realce visual se incorporan con
+un enfoque conservador y evaluativo. En particular:
+
+\begin{itemize}
+    \item Fourier Ptychographic Microscopy (FPM) se emplea como herramienta de
+    investigación experimental.
+    \item La super--resolución basada en redes neuronales se utiliza únicamente
+    como realce visual, sin introducir información física nueva.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/fpm_reconstruction1.png}
+    \caption{Ejemplo de reconstrucción mediante Fourier Ptychographic Microscopy (FPM), mostrando el potencial de las técnicas computacionales para la mejora de resolución.}
+    \label{fig:fpm_reconstruction}
+\end{figure}
+
+Esta distinción permite aprovechar las ventajas de dichas técnicas sin
+comprometer la validez física ni la trazabilidad de los resultados obtenidos por
+el sistema.
+
+% -------------------------------------------------------------------
+\section{Resumen del diseño}
+
+El diseño del CMOSM refleja un compromiso consciente entre simplicidad,
+funcionalidad y capacidad experimental. Las decisiones adoptadas permiten validar
+el sistema como demostrador tecnológico de microscopía sin lentes, manteniendo
+una arquitectura extensible para futuras iteraciones del proyecto INTISAT.

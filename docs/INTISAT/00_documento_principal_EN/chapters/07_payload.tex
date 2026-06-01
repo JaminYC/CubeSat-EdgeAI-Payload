@@ -1,0 +1,25 @@
+\chapter{Payloads}
+
+\section{Strategic Description of the Instruments}
+The INTISAT mission incorporates as its orbital evaluation core a set of payloads oriented to optical biometrics supported by Artificial Intelligence (AI). The goal is to demonstrate low-consumption computational microscopy and \textit{Edge Computing}-style analysis under severe mass and power constraints in a CubeSat-class platform.
+
+\section{Computational CMOS Microscopy}
+
+\subsection{General Architecture}
+The microscopy system is organized into four functional blocks: optical acquisition, illumination, control/processing and storage.
+It operates under a centralized architecture where a payload computer (based on ARM-class architectures, such as Raspberry Pi~5) coordinates capture, illumination control and metadata persistence, ensuring experimental traceability.
+
+\subsection{Optical Acquisition Block (\textit{Lensless} Configuration)}
+This block uses a commercial CMOS sensor operating in lensless / contact microscopy configuration. In this architecture, the biological or biomimetic sample is placed in close contact with the sensor plane, eliminating refractive optical elements. The digital image is formed from the direct recording of the spatial intensity distribution (diffraction/shadow pattern) produced by the interaction of incident light with the sample. Manual control of exposure time and analog gain is prioritized to maintain strict calibration and metric consistency.
+
+\subsection{Illumination Block}
+Implemented as a flat, programmable system, this block generates patterns controlled in intensity and geometry (uniform illumination to maximize contrast, or structured grid/point patterns) ensuring temporal stability.
+
+\subsection{Validation Methodology and Metrology}
+Due to the COTS nature of the system and the absence of factory calibration, spatial scale ($\mu$m/pixel) validation rests on comparative observation of standard objects, specifically polystyrene microspheres of nominal diameter 2~$\mu$m. Before operational flight, samples are cross-checked using calibrated laboratory optical microscopy and scanning electron microscopy (SEM), bounding errors caused by the diffraction limits of the lensless approach.
+
+\section{Data Control and Processing}
+The payload computer acts as the logical core of the system. Its role is limited to sensor initialization (CSI/I2C), manual exposure application, capture of basic saturation metrics, and pairing of raw images with their operational metadata (\textit{Sample Tag}, \textit{ExposureTime}, \textit{Timestamp}).
+
+\section{AI Acceleration On-Orbit}
+The neural-network acceleration sub-block induces higher mathematical resolution or \textit{Super-Resolution} algorithms on the diffractive captures of the microscopy block without saturating the radio link. This implementation allows extracting morphology and inferring key vector parameters, reducing the UHF link bottleneck and transmitting analyzed, condensed information to the ground segment.
