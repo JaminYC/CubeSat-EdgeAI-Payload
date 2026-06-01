@@ -1,0 +1,26 @@
+\chapter{Thermal Control}
+
+\section{LEO Thermal Control Mechanisms}
+INTISAT's thermal control is transversal; it protects hardware to survive the extreme orbital cycles between severe direct solar illumination ($+100\ ^\circ$C) and deep Earth-umbra eclipses ($-40\ ^\circ$C). It is divided into two philosophies coupled to the spacecraft hardware:
+
+\subsection{Passive Control (Optical Coatings and Mass)}
+Inherently delegated to the construction of the \textit{chassis (structure)}:
+\begin{itemize}
+    \item \textbf{Radiators:} zones of non-anodized aluminum (bare or polished surfaces left at the end of geometric assembly), through which excess heat from the battery dissipates into deep space vacuum.
+    \item \textbf{Insulation and optical coatings:} use of Kapton or aluminized tapes to internally shield PCB faces sensitive to the external cold bridge.
+\end{itemize}
+
+\subsection{Active Control (EPS and OBC Integration)}
+To permanently protect the battery cells against low temperatures during eclipse (which would cause electrolyte freezing and capacity loss):
+\begin{itemize}
+    \item \textbf{Flexible heaters:} resistive patches adhered directly to the \textit{Battery Module}. Activation is orchestrated by the EPS control system through indirect BMS feedback and the 6 RTD temperature sensors of the central OBC architecture.
+\end{itemize}
+
+\section{Thermal Test Campaign (AIT)}
+Behavior is simulated in CAD programs but rectified only empirically.
+
+\subsection{Thermal Cycling}
+The integrated satellite is subjected to dynamic chamber tests, cycling the temperature (e.g.\ between $-15\ ^\circ$C and $+60\ ^\circ$C) repeated times (e.g.\ 10 cycles). The OBC must continue transmitting through the umbilical interface to detect thermal fatigue in critical perimeter solders.
+
+\subsection{Thermal Vacuum Test (Bake-Out LEO)}
+In sync with the launcher provider, the hardware is baked in high vacuum for weeks at $+60\ ^\circ$C promoting maximum outgassing. This depuration is mandatory to certify that the satellite prevents contamination of the microscopy payload optics and neighboring instruments inside the launcher.

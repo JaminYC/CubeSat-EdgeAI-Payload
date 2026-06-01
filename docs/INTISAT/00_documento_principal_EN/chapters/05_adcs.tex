@@ -1,0 +1,20 @@
+\chapter{ADCS – Attitude Determination and Control}
+
+\section{Introduction to Orbital Attitude Control}
+The Attitude Determination and Control Subsystem (ADCS) aims to stabilize residual spins (\textit{detumbling}) carried over from ejection and to lock a stable reference with respect to terrestrial vectors. Operating coupled with the OBC, it is critical for both the nominal mission phase (imaging pointing) and Safe Mode.
+
+\section{Passive and Dynamic Attitude Scheme}
+
+\subsection{Passive Magnetic Stabilization and Materials}
+The first-level low-cost spin control is a thermally tolerant passive design:
+\begin{itemize}
+    \item \textbf{Magnetic guide body:} one or more permanent magnets (e.g.\ N45 Neodymium) housed directly in the chassis or in a dedicated ADCS board, forcing the satellite to align and drag along the static magnetic field lines between Earth's North/South poles.
+    \item \textbf{Hysteresis bars:} perpendicular mechanical strips (e.g.\ \textit{Permanorm}) inducing magnetic friction that damps and dissipates the CubeSat's uncontrolled rotational energy (\textit{detumbling}) by passively converting it to latent heat.
+\end{itemize}
+
+\subsection{Active Management and Sensor Modules}
+For the precision required to continuously sun-point the solar panels and assist with microscopy and communications routing:
+\begin{itemize}
+    \item \textbf{Determination:} multiple magnetometers on the Cartesian axes interact with LDR photodiodes sensing orbital solar fluxes. The matrix feeds the general ADCS measurement bus, reading the current orbital point with angular precision at high speed.
+    \item \textbf{Actuators (dynamic):} a set of three or more \textit{magnetorquers} (PCB-embedded coils with reversible polarization or copper cylinder tubes) generate artificial dipolar moments against the Earth's magnetic field, voluntarily modifying the attitude to channel light to the photovoltaic ports. They respond strictly in \textit{Safe Mode} to direct OBC commands.
+\end{itemize}

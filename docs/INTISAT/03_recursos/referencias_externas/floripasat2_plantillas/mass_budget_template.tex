@@ -1,0 +1,43 @@
+% =====================================================
+% Plantilla adaptada de FloripaSat-2 / GOLDS-UFSC §4.3
+% Para usar en: 00_documento_principal/chapters/02_sistema.tex (§2.2.2)
+% =====================================================
+
+\subsection{Presupuesto de Masa (Mass Budget)}
+
+Según la especificación CubeSat \cite{CDS_Rev14}, la masa máxima de cada unidad debe ser
+$\le 1{,}33$~kg. Al ser INTISAT un CubeSat 2U, la masa máxima permitida del proyecto es
+$2{,}66$~kg. La Tabla~\ref{tab:mass_budget} resume el presupuesto de masa por subsistema.
+
+\begin{table}[h]
+\centering
+\caption{Presupuesto de masa de INTISAT 2U.}
+\label{tab:mass_budget}
+\begin{tabular}{lll@{}r}
+\toprule
+\textbf{Subsistema} & \textbf{Modelo} & \textbf{Notas} & \textbf{Masa [g]} \\
+\midrule
+OBC (OBDH)          & PUCP-INRAS OBC-STM32H7 & TBC & TBD \\
+TTC (UHF)           & PUCP-INRAS UHF v1.0     & TBC & TBD \\
+EPS                 & PUCP-INRAS EPS v1.0     & TBC & TBD \\
+Batería (Battery)   & 4× 18650 Li-Ion         & TBC & TBD \\
+Antena              & Dipolos UHF plegados    & TBC & TBD \\
+ADCS (pasivo)       & Imán + barras histéresis & TBC & TBD \\
+Payload Microscopía & CMOS OV5647 + OLED + RPi & TBC & TBD \\
+Payload IA          & (planificado)           & --- & --- \\
+Interfaz (PC-104)   & PUCP-INRAS Interfaces   & TBC & TBD \\
+Paneles solares     & Triple-junction COTS    & TBC & TBD \\
+Estructura          & Al-7075-T73, 2U         & TBC & TBD \\
+Cables (harness)    & ---                     & TBC & TBD \\
+Otros               & ---                     & TBC & TBD \\
+\midrule
+\textbf{Total}                  & --- & --- & \textbf{TBD} \\
+\textbf{Máximo CubeSat 2U}      & --- & --- & \textbf{2660} \\
+\textbf{Margen}                 & --- & --- & \textbf{TBD} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Criterio de aceptación.} El margen de masa debe ser
+$\ge 15\,\%$ respecto al máximo CubeSat 2U para considerar el diseño aceptable a
+nivel CDR (referencia: FloripaSat-2 cerró con $16\,\%$ de margen).

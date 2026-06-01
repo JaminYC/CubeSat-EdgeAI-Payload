@@ -1,0 +1,20 @@
+\chapter{Ground Segment}
+
+\section{INRAS Ground Operational Mission}
+The ground segment is the fundamental infrastructure for the pre-flight (AIT and FlatSat) and operational-in-flight phases. It directs the flow coordination from distributed Ground Stations to the Mission Control Center.
+
+\section{Ground Station Architecture, Control and Monitoring}
+In accordance with COTS architectures, the RF tracking circuit is the terrestrial mirror of the space TTC module:
+\begin{itemize}
+    \item \textbf{Analog and inertial-tracking layer:} to maximize handshake on orbital passes (SSO or polar) to the millisecond, the station uses crossed \textit{Quad-Yagi} arrays. They are governed by \textit{Azimuth-Elevation automated rotators} that vectorially track ephemeris (TLE prediction files) updated by NORAD/Celestrak.
+    \item \textbf{Amplifier base layer (LNA \& Power Amp):} hosted close to the rotor to mitigate coaxial noise losses (NF). It amplifies the ultra-weak UHF footprint from space, while the power stage transmits between $50$ and $100$~W across the upper atmosphere to the CubeSat.
+    \item \textbf{Digital and SDR layer:} extensive use of Software Defined Radios (SDRs). They continuously perform baseband digital demodulation, compensating for the extreme frequency stretching caused by the physical Doppler effect.
+\end{itemize}
+
+\section{Logical Ground Operations Cycle (Ops)}
+Consolidated operations tasks interact directly responding to \textbf{OBC modes}:
+\begin{itemize}
+    \item \textbf{Routine tracking:} passive cascaded decoding of \textit{housekeeping} (vital for daily passive monitoring).
+    \item \textbf{Scientific payload handling:} programmed sending of logical windows over territory, ordering the on-board computer to open and send the microscopy buffer to the CCSDS downlink.
+    \item \textbf{Flight contingency resolution (HMAC/Security):} when notified via the Beacon flow that the satellite has automatically entered \textit{Safe Mode}, the command line transmits asymmetric encrypted cryptograms (SHA/HMAC hashes), which manually and forcibly reactivate the microcontrollers (OTA reset), pulling the ADCS peripheral system out of \textit{interlock} to save the mission.
+\end{itemize}

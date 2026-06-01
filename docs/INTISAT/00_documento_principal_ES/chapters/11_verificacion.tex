@@ -1,0 +1,75 @@
+\chapter{Integración, Verificación y Validación (AIT)}
+
+\section{Definición Global de la Campaña AIT}
+La campaña de Ensamblaje, Integración y Pruebas (AIT, \textit{Assembly, Integration and Testing}) determina la batería de requisitos experimentales y sistemáticos necesarios antes del dictamen de vuelo (\textit{Flight Model}). Tras esta campaña, el hardware y firmware quedan congelados (\textit{design freeze}) para preservar la integridad de la calificación.
+
+Los perfiles de prueba siguen los estándares \textbf{GSFC-STD-7000 (GEVS)}, \textbf{ECSS-E-ST-10-03} (testing) y \textbf{CubeSat Design Specification Rev~14} (Cal Poly).
+
+\section{Instrucciones de Ensamblaje y FlatSat}
+Antes de la integración física final, se realizan pruebas clave a nivel de sistema expandido.
+
+\subsection{FlatSat (Pruebas sobre mesa)}
+La configuración \textit{FlatSat} consiste en interconectar todas las placas del satélite fuera del chasis, mediante cables puente, para realizar pruebas \textit{Hardware-In-the-Loop} (HIL) e identificar problemas de interfaz antes del ensamblaje mecánico.
+
+\textbf{Secuencia FlatSat:}
+\begin{enumerate}
+    \item Conexión de placas en mesa según topología PC-104.
+    \item Verificación de continuidad y rieles de alimentación (3{,}3~V, 5~V, $V_{batt}$).
+    \item Encendido controlado con fuente de laboratorio (\textit{current-limited}).
+    \item Verificación de \textit{boot} y handshake OBC$\leftrightarrow$EPS$\leftrightarrow$UHF.
+    \item Ejecución de comandos típicos (housekeeping, beacon, payload trigger).
+    \item Validación de los cuatro modos de operación de la OBC: Inicio, Rutina, Seguridad, Decomisión.
+\end{enumerate}
+
+\subsection{Procedimiento de Integración Mecánica}
+\begin{enumerate}
+    \item Limpieza de superficies y verificación dimensional de la estructura.
+    \item Montaje de placas en el bus PC-104 con torques estandarizados (TBD~N$\cdot$m por tornillo M3).
+    \item Conexión del arnés interno (\textit{harness}) según diagrama de cableado.
+    \item Montaje de paneles solares y antenas plegadas.
+    \item Inserción de kill-switches y verificación de continuidad RBF (\textit{Remove-Before-Flight}).
+    \item Cierre estructural final y verificación de envolvente CubeSat 2U.
+\end{enumerate}
+
+\section{Plan de pruebas físicas y validación ambiental}
+Las pruebas califican las propiedades físicas y funcionales del satélite ante los entornos del lanzamiento y operación en LEO.
+
+\subsection{Pruebas Físico-Mecánicas}
+\begin{itemize}
+    \item \textbf{Dimensiones:} medición por CMM o escáner 3D contra envolvente 2U. Tolerancia: $\pm 0{,}1$~mm en rieles.
+
+    \item \textbf{Verificación de Interfaz Física (Fit Check):} inserción y extracción dentro del inyector P-POD. Verificar holguras y orientación de \textit{kill-switches}.
+
+    \item \textbf{Masa y Centro de Gravedad (CG):} balanza de precisión y método de suspensión. CG debe ubicarse a $<2{,}0$~cm del centro geométrico en los 3 ejes (CDS Rev~14).
+
+    \item \textbf{Vibración Sinusoidal y Aleatoria (Vibration \& Shock):} mesa vibratoria en los 3 ejes (X, Y, Z) con perfil representativo del lanzador (TBD: Falcon 9, PSLV, Soyuz, etc.).
+    \begin{itemize}
+        \item \textit{Sweep} sinusoidal: 5--100~Hz, $\pm 2$~mm o 2{,}5~g.
+        \item \textit{Random}: perfil \textit{Component Minimum Workmanship} de GSFC-STD-7000.
+    \end{itemize}
+
+    \item \textbf{Shock:} sinusoidal o pirotécnico simulado, $\sim$1000~g pico, 0{,}5~ms.
+\end{itemize}
+
+\subsection{Pruebas de Ambiente Espacial y EMC}
+\begin{itemize}
+    \item \textbf{Ciclos Térmicos (Thermal Cycling):} cámara $-15$ a $+60\,^\circ$C, mínimo 10~ciclos. El OBC debe seguir transmitiendo vía umbilical para detectar termofatiga en soldaduras críticas.
+
+    \item \textbf{Vacío Térmico (TVAC + Bake-Out):} $+60\,^\circ$C en alto vacío durante semanas, promoviendo desgasificación (\textit{outgassing}) y certificando limpieza para integración en el lanzador.
+
+    \item \textbf{Compatibilidad Electromagnética (EMC):} prueba de inmunidad e intermodulación entre subsistemas, con énfasis en el receptor UHF/VHF para descartar autointerferencia.
+\end{itemize}
+
+\subsection{Secuencia recomendada de campaña AIT}
+Basada en la práctica del proyecto FloripaSat-2 y CDS Rev~14:
+\begin{enumerate}
+    \item Inspección visual y verificación de masa/CG.
+    \item Fit check en P-POD.
+    \item Vibración (X, Y, Z secuencial).
+    \item Shock.
+    \item Re-inspección visual y eléctrica.
+    \item Ciclos térmicos.
+    \item TVAC + Bake-Out.
+    \item EMC.
+    \item Test funcional final (FlatSat-equivalente sobre satélite integrado).
+\end{enumerate}

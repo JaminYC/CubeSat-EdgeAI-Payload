@@ -1,0 +1,104 @@
+% =====================================================
+% Plantilla adaptada de FloripaSat-2 / GOLDS-UFSC §4.4
+% Para usar en: 00_documento_principal/chapters/02_sistema.tex (§2.2.3)
+% Fuente de datos: 03_recursos/presupuestos/Requerimiento de energía - INTISAT.xlsx
+% =====================================================
+
+\subsection{Presupuesto de Potencia (Power Budget)}
+
+El presupuesto de potencia se construye en tres pasos (ref. \cite{Wertz2011}):
+\begin{enumerate}
+    \item Preparar el \textbf{presupuesto de potencia operacional} (consumo por subsistema y modo).
+    \item Dimensionar la \textbf{batería} (DoD, ciclos, profundidad de descarga).
+    \item Estimar la \textbf{degradación} de potencia sobre la vida útil de la misión.
+\end{enumerate}
+
+% -----------------------------------------------------
+\subsubsection*{Entrada de potencia (paneles solares)}
+
+\begin{table}[h]
+\centering
+\caption{Potencia generada por los paneles solares (simulación orbital).}
+\label{tab:power_input}
+\begin{tabular}{lr}
+\toprule
+\textbf{Parámetro} & \textbf{Valor} \\
+\midrule
+Potencia pico (sin eclipse)         & TBD~mW \\
+Potencia promedio (con eclipse)     & TBD~mW \\
+Duración media iluminación (sunlight) & TBD~min \\
+Duración media eclipse              & TBD~min \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% -----------------------------------------------------
+\subsubsection*{Consumo operacional por subsistema}
+
+Tomando como fuente el archivo
+\texttt{03\_recursos/presupuestos/Requerimiento de energía - INTISAT.xlsx}:
+
+\begin{table}[h]
+\centering
+\caption{Consumo de potencia por módulo y \textit{duty cycle}.}
+\label{tab:power_consumption}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Módulo} & \textbf{Duty Cycle [\%]} & \textbf{Potencia [mW]} \\
+\midrule
+OBC (rail 3.3 V)               & 100  & 4060 \\
+OBC (rail 5 V, CANBUS)         & 100  & 1100 \\
+TTC UHF (RX)                   & 95   & TBD \\
+TTC UHF (TX, beacon)           & 5    & TBD \\
+EPS (idle)                     & 100  & TBD \\
+Batería (heater, eclipse)      & 10   & TBD \\
+Antena (despliegue, una vez)   & 0    & TBD \\
+Payload Microscopía CMOS       & TBD  & TBD \\
+Payload IA / SAI (planificado) & 0    & --- \\
+\midrule
+\textbf{Total satélite}        & ---  & \textbf{TBD} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% -----------------------------------------------------
+\subsubsection*{Dimensionamiento de batería}
+
+Pasos (ref. \cite{Wertz2011}, sec.~10.3):
+\begin{enumerate}
+    \item Estimar nivel de potencia que debe suministrar la batería.
+    \item Calcular duración de descarga, carga y número de ciclos.
+    \item Seleccionar profundidad de descarga (DoD).
+    \item Seleccionar tasa de carga.
+    \item Calcular potencia de recarga.
+\end{enumerate}
+
+\paragraph{Profundidad de descarga (DoD).}
+\begin{equation}
+\mathrm{DoD} = \frac{D_i \cdot D_t}{C} \cdot 100\,\%
+\label{eq:dod}
+\end{equation}
+donde $D_i$ es la corriente de descarga, $D_t$ el periodo de descarga y $C$ la capacidad de la batería.
+
+\begin{table}[h]
+\centering
+\caption{Resultados del dimensionamiento de batería.}
+\label{tab:battery_sizing}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Parámetro} & \textbf{Valor} & \textbf{Unidad} \\
+\midrule
+Capacidad de batería                 & TBD & mWh \\
+Consumo en iluminación               & TBD & mW \\
+Consumo en eclipse                   & TBD & mW \\
+Duración iluminación                 & TBD & h \\
+Duración eclipse                     & TBD & h \\
+DoD calculado                        & TBD & \% \\
+Margen energético                    & TBD & mWh \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Criterio de aceptación.}
+Para una órbita LEO con 5 años de vida útil (típico CubeSat), el DoD recomendado es
+$\le 25\,\%$. FloripaSat-2 cerró con DoD$=8{,}5\,\%$ y margen energético positivo (+643~mWh por órbita).

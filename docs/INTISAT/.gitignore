@@ -1,0 +1,119 @@
+# =====================================================
+# INTISAT-doc .gitignore
+# =====================================================
+# IMPORTANTE: el .gitignore raiz del repo destino
+# (CubeSat-EdgeAI-Payload) excluye *.png/*.jpg/*.jpeg/*.tiff/*.zip
+# globalmente. Aqui NEGAMOS esas reglas para que las figuras
+# del CDR INTISAT SI se versionen.
+
+# Re-incluir figuras necesarias del CDR
+!*.png
+!*.jpg
+!*.jpeg
+!*.tiff
+!*.tif
+!*.bmp
+!*.webp
+!*.gif
+
+# Re-incluir CAD del INTISAT
+!*.step
+!*.stl
+!*.dwg
+
+# Re-incluir docx/pptx exports de INTISAT
+!*.docx
+!*.pptx
+!*.doc
+
+# Re-incluir xlsx (presupuesto de energia)
+!*.xlsx
+
+# Re-incluir tar.gz de referencias externas
+!*.tar.gz
+
+# Re-incluir notebooks (cuando aplique)
+!*.ipynb
+
+# Pero seguimos ignorando ZIPs (suelen ser duplicados)
+*.zip
+
+# --- LaTeX build artifacts ---
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.dvi
+*.fdb_latexmk
+*.fls
+*.idx
+*.ilg
+*.ind
+*.lof
+*.log
+*.lot
+*.nav
+*.out
+*.run.xml
+*.snm
+*.synctex.gz
+*.synctex(busy)
+*.toc
+*.vrb
+*.xdv
+
+# TeX4ht
+*.4ct
+*.4tc
+*.4as
+*.idv
+*.lg
+*.tmp
+*.xref
+
+# --- LaTeX backup / editor files ---
+*.tex.bak
+*.tex~
+*~
+
+# --- Word / Office temp & lock files ---
+~$*
+*.docx#
+
+# --- Python ---
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# --- Editor / IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- OS ---
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# --- Project-specific ---
+# Compiled PDF outputs from LaTeX go to 05_exports_pdf/ when ready;
+# the auto-built ones during local edits should NOT be tracked.
+00_documento_principal/main.pdf
+01_CDRs_subsistemas/**/main.pdf
+02_reportes_semanales/**/main.pdf
+
+# Quarantine and unrelated files: NOT pushed to GitHub
+# (Por decision del usuario 2026-06-01)
+06_quarantine/
+99_no_relacionado/
+
+# PDFs grandes de versiones intermedias (mantener solo el master)
+01_CDRs_subsistemas/**/CMOS Microscopy Critical Design Review V*.pdf
+01_CDRs_subsistemas/**/Super-Resolution AI Critical Design Review V*.pdf
+01_CDRs_subsistemas/**/SuperResolution AI Critical Design Review SAI.pdf
+01_CDRs_subsistemas/**/Super-Resolution AI Critical Design Review.pdf
+01_CDRs_subsistemas/**/CMOS Microscopy Critical Design Review.pdf
+# Mantener solo el main.pdf de cada subsistema

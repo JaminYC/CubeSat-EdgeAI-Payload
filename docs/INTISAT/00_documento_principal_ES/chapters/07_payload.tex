@@ -1,0 +1,25 @@
+\chapter{Cargas Útiles (Payloads)}
+
+\section{Descripción Estratégica de los Instrumentos}
+La misión INTISAT incorpora como núcleo de evaluación orbital cargas útiles orientadas a la biometría óptica apoyadas por Inteligencia Artificial (IA). El objetivo es demostrar tecnologías de microscopía computacional de bajo consumo y análisis tipo \textit{Edge Computing} bajo restricciones severas de masa y potencia en plataformas tipo CubeSat.
+
+\section{Microscopía Computacional CMOS}
+
+\subsection{Arquitectura General}
+El sistema de microscopía se organiza en cuatro bloques funcionales: adquisición óptica, iluminación, control/procesamiento y almacenamiento.
+Opera bajo una arquitectura centralizada donde una computadora de carga útil (basada en arquitecturas tipo ARM, como Raspberry Pi 5) coordina la captura, el control de la iluminación y la persistencia de metadatos, asegurando la trazabilidad experimental.
+
+\subsection{Bloque de Adquisición Óptica (Configuración \textit{Lensless})}
+Está compuesto por un sensor CMOS comercial operando en configuración de microscopía sin lentes (\textit{lensless/contact}). En esta arquitectura, la muestra biológica o biomimética se coloca en contacto cercano con el plano del sensor, eliminando elementos ópticos refractivos. La imagen digital se forma a partir del registro directo de la distribución espacial de intensidad (patrón de difracción/sombra) producida por la interacción de la luz incidente con la muestra. Se prioriza el control manual de los tiempos de exposición y ganancia analógica para mantener una calibración estricta y consistencia métrica.
+
+\subsection{Bloque de Iluminación}
+Desarrollado mediante un sistema plano y programable, el bloque genera patrones controlados en intensidad y geometría (iluminación uniforme para maximizar contraste o patrones estructurados tipo rejilla/puntual) asegurando estabilidad temporal.
+
+\subsection{Metodología de Validación y Metrología}
+Debido a la naturaleza COTS del conjunto y a la ausencia de calibración de fábrica, la validación de la escala espacial ($\mu m/\text{pixel}$) se asienta en la observación comparativa de objetos patrón, específicamente microesferas de poliestireno de diámetro nominal de $2\,\mu m$. Antes del vuelo operacional, las muestras son verificadas cruzadamente empleando microscopía óptica calibrada de laboratorio y microscopía electrónica de barrido (SEM), lo que permite acotar los errores causados por los límites de difracción del enfoque \textit{lensless}.
+
+\section{Control y Procesamiento de Datos}
+La computadora de carga útil actúa como núcleo lógico del sistema. Su rol se limita a las tareas de inicialización del sensor CSI/I2C, aplicación de exposición manual, captura de métricas elementales de saturación, y conjunción de las imágenes raw con sus respectivos metadatos operacionales (\textit{Sample Tag, ExposureTime, Timestamp}). 
+
+\section{Aceleración IA en Órbita}
+El sub-bloque de aceleración de red neuronal tiene la función de inducir reconstrucciones de resolución superior o algoritmos de \textit{super-resolution} sobre las capturas difractivas del bloque de microscopía sin saturar el enlace de radio. Esta implementación permite extraer la morfología e inferir parámetros vectoriales clave, reduciendo el cuello de botella del enlace UHF y transmitiendo al segmento terreno información analizada y condensada.

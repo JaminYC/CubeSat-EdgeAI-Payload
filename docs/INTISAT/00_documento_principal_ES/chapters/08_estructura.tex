@@ -1,0 +1,25 @@
+\chapter{Estructura y Mecánica}
+
+\section{Diseño Estructural General Modular}
+La chapa y fuselaje comprenden el contenedor maestro modular (esquema rígido estibado estándar internacional CubeSat en formato 2U). Sus finalidades son dos: la resistencia a los estragos mecánicos de compresión y vibración que implican abandonar la superficie terrestre, y facilitar guías sólidas precisas (\textit{rails} acanalados) permitiendo la inyección a alta velocidad al vacío desde el contenedor integrado del vehículo de lanzamiento.
+
+\section{Diseño Estructural y Requerimientos de Masa}
+\subsection{Propiedades de Aleación Aeronáutica}
+A nivel metalo-mecánico, los parales verticales y escudos laterales (Ribs y Side Panels) están mecanizados y fresados desde origen en bloques sólidos de aluminio de uso aeroespacial COTS (series Al-7075-T73 o Al-6061-T6). 
+\begin{itemize}
+    \item \textbf{Robustez Superficial:} El tratamiento químico estándar es el \textit{Anodizado duro} combinado opcionalmente con tratamiento químico local de oro (Alodine). Esto incrementa exponencialmente la dureza superficial y previene la fatiga molecular.
+    \item \textbf{Cold-Welding:} La recubierta previene que zonas donde el aluminio frote durante altos niveles de estrés acústico dentro del cañón del cohete experimenten soldadura por fricción al vacío (\textit{Vacuum cold-welding}).
+\end{itemize}
+
+\subsection{Estandarización de Geometría y Tolerancia del CG}
+Por restricciones normadas, la suma modular empírica de todas las subetapas se anota formalmente en el \textbf{Reporte de Centro de Gravedad y Masa Geométrico}. 
+\begin{itemize}
+    \item La distribución apilada (PC-104 Stacking) en un 2U requiere un CG ubicado a escasos milímetros del centro geométrico ideal en los 3 ejes ($<2\text{cm}$ de tolerancia) para impedir que el vehículo desarrolle impulsos rotacionales parásitos post-eyección, asegurando que ADCS pueda calmar en los días iniciales los momentos polares residuales.
+\end{itemize}
+
+\section{Simulación y Análisis de Elementos Finitos (FEA)}
+El modelado paramétrico CAD ha derivado en una estructura optimizada (aligerando material redundante mediante recortes en la cara principal de paneles solares) que se ha validado de manera virtual:
+\begin{itemize}
+    \item \textbf{Modos Dinámicos de Resonancia:} Comprobación teórica de rigidez con el primer modo de resonancia natural aislado por sobre los $100\text{Hz}$, desacoplando de esta forma al chasis satelital de la acústica destructiva y la frecuencia natural transmitida históricamente por los pre-moduladores dinámicos del cohete inter-etapar inyector.
+    \item \textbf{Esfuerzos Estáticos:} Verificación de esfuerzo axial longitudinal simulando fuerzas de gravedad extrema de entre $>10\text{g}$ y un margen de seguridad elástico conservador del 1.25 según recomendaciones del GSFC-NASA estándar.
+\end{itemize}

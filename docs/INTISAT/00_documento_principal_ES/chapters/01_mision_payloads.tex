@@ -1,0 +1,42 @@
+\chapter{Introducción}
+\pagestyle{fancy}
+
+\section{Descripción de la Misión}
+INTISAT es una misión de demostración tecnológica en formato \textbf{CubeSat 2U} liderada por la Pontificia Universidad Católica del Perú (PUCP) a través del Instituto de Radioastronomía (INRAS). El objetivo principal es validar la integración de una carga útil compacta de microscopía por imagen para operación en órbita terrestre, desarrollada por estudiantes e investigadores como parte de los esfuerzos de PUCP en educación y desarrollo de tecnología espacial.
+
+INTISAT demostrará una plataforma totalmente integrada compuesta por una computadora de a bordo (OBC), un sistema de energía eléctrica (EPS), un sistema de telemetría, rastreo y comando (TTC), componentes estructurales y una carga útil científica. Todo el sistema está contenido en una envolvente mecánica CubeSat 2U. La implementación actual corresponde a un \textit{Modelo de Ingeniería}, base para mejoras posteriores y una eventual calificación de vuelo.
+
+\insertfigure{IntiSat_Renderization.png}{0.25}{Vista del modelo 3D de INTISAT.}
+
+\section{Objetivos de la Misión}
+Los objetivos principales de INTISAT son:
+\begin{itemize}
+    \item Validar la integración y operación de un sensor de imagen miniaturizado para microscopía en órbita terrestre baja (LEO).
+    \item Demostrar la funcionalidad de subsistemas desarrollados por estudiantes operando dentro de una plataforma de nanosatélite unificada.
+    \item Desarrollar y verificar una arquitectura CubeSat escalable y modular alineada con estándares académicos y educativos.
+    \item Servir como plataforma de entrenamiento práctico en ingeniería de sistemas, diseño, integración y pruebas de satélites.
+\end{itemize}
+
+\section{Concepto de Operaciones (ConOps)}
+Siguiendo enfoques estandarizados de operación satelital, el ciclo operativo de INTISAT se define mediante cuatro modos de misión claramente delimitados. La gestión y transiciones entre modos las ejecuta la OBC (ver Cap.~3).
+
+\begin{itemize}
+    \item \textbf{Modo Despliegue e Inicialización:} durante el lanzamiento todos los sistemas están físicamente deshabilitados por \textit{kill-switches}. Tras la eyección, los sistemas se energizan, la OBC arranca, se ejecutan verificaciones iniciales de \textit{housekeeping} y se inicia la secuencia de despliegue de antenas después de una ventana de silencio obligatoria de 40~minutos.
+
+    \item \textbf{Modo Nominal (Rutina):} estado operativo estándar en el que el EPS maximiza la recolección solar, la baliza transmite periódicamente y la carga útil (Microscopía / IA) se activa durante ventanas predeterminadas sobre el territorio peruano u otros objetivos planificados.
+
+    \item \textbf{Modo Contingencia (Seguridad):} estado seguro al que se entra automáticamente si se detecta una anomalía crítica (por ejemplo, SoC bajo de batería o eventos \textit{latch-up}). Las cargas no esenciales se deshabilitan hasta la intervención del control terreno.
+
+    \item \textbf{Modo Decomisión:} estado de fin de vida activado mediante telecomando desde tierra o por temporizador programado. Asegura la pasivación segura de la batería y el apagado de transceptores antes del reingreso atmosférico.
+\end{itemize}
+
+\section{Miembros del Proyecto}
+INTISAT es una iniciativa académica impulsada por equipos interdisciplinarios de PUCP. La estructura del proyecto incluye:
+\begin{itemize}
+    \item \textbf{INRAS – PUCP:} coordinación de misión, ingeniería de sistemas, desarrollo del módulo TTC e integración de la plataforma.
+    \item \textbf{Facultad de Ciencias e Ingeniería – PUCP:} desarrollo de software, electrónica y subsistemas mecánicos.
+    \item \textbf{Socios externos (fase futura):} colaboradores para pruebas, coordinación de lanzamiento u operaciones de misión.
+\end{itemize}
+
+\section{Logotipo de Misión}
+\insertfigure{pucp_inras_logo.png}{0.25}{Logotipo oficial de la misión INTISAT.}

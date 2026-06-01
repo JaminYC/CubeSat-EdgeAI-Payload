@@ -1,0 +1,82 @@
+% =====================================================
+% Plantilla adaptada de FloripaSat-2 / GOLDS-UFSC Cap. 9 (AIT Plan)
+% Para usar en: 00_documento_principal/chapters/11_verificacion.tex (§11.2, §11.3)
+% =====================================================
+
+\section{Instrucciones de Ensamblaje y FlatSat}
+
+\subsection{FlatSat (Pruebas sobre mesa)}
+La configuración \textit{FlatSat} consiste en interconectar todas las placas del satélite
+fuera del chasis, mediante cables puente, para realizar pruebas
+\textit{Hardware-In-the-Loop} (HIL) e identificar problemas de interfaz antes del
+ensamblaje mecánico final.
+
+\textbf{Secuencia FlatSat:}
+\begin{enumerate}
+    \item Conexión de placas en mesa según topología PC-104.
+    \item Verificación de continuidad y rieles de alimentación (3.3 V, 5 V, vBatt).
+    \item Encendido controlado con fuente de laboratorio (current-limited).
+    \item Verificación de \textit{boot} y handshake OBC$\leftrightarrow$EPS$\leftrightarrow$UHF.
+    \item Ejecución de comandos típicos (housekeeping, beacon, payload trigger).
+    \item Validación de modos de operación de la OBC (Inicio, Rutina, Seguridad, Decomisión).
+\end{enumerate}
+
+\subsection{Procedimiento de Integración Mecánica}
+\begin{enumerate}
+    \item Limpieza de superficies y verificación dimensional de la estructura.
+    \item Montaje de placas en el bus PC-104 con torques estandarizados (TBD~N·m por tornillo M3).
+    \item Conexión del arnés interno según diagrama de cableado.
+    \item Montaje de paneles solares y antenas plegadas.
+    \item Inserción de kill-switches y verificación de continuidad RBF (Remove-Before-Flight).
+    \item Cierre estructural final y verificación de envolvente.
+\end{enumerate}
+
+\section{Plan de pruebas físicas y validación ambiental}
+
+\subsection{Pruebas Físico-Mecánicas}
+\begin{itemize}
+    \item \textbf{Dimensiones (Dimensions):} medición CMM/scanner contra envolvente CubeSat 2U.
+    Tolerancia: $\pm 0{,}1$~mm en rieles.
+
+    \item \textbf{Verificación de interfaz física (Fit Check):} inserción y extracción dentro
+    del P-POD inyector. Verificar holguras y orientación de kill-switches.
+
+    \item \textbf{Masa y Centro de Gravedad (CG):} balanza de precisión y método de
+    suspensión. CG debe ubicarse a $< 2{,}0$~cm del centro geométrico en los 3 ejes.
+
+    \item \textbf{Vibración Sinusoidal y Aleatoria (Random):} mesa vibratoria, perfil
+    representativo del lanzador (TBD: Falcon 9, PSLV, Soyuz, etc.) en los 3 ejes (X, Y, Z).
+    \begin{itemize}
+        \item Sweep sinusoidal: 5--100~Hz, $\pm 2$~mm o 2.5~g.
+        \item Random: perfil \textit{Component Minimum Workmanship} del estándar GSFC-STD-7000.
+    \end{itemize}
+
+    \item \textbf{Shock:} medio sinusoidal o pirotécnico simulado, 1000~g pico, 0.5~ms.
+\end{itemize}
+
+\subsection{Pruebas de Ambiente Espacial}
+\begin{itemize}
+    \item \textbf{Ciclos Térmicos (Thermal Cycling):} cámara $-15$ a $+60\,^\circ$C, 10
+    ciclos. El OBC debe seguir transmitiendo vía umbilical. Detección de termofatiga
+    en soldaduras críticas.
+
+    \item \textbf{Vacío Térmico (TVAC + Bake-Out):} $+60\,^\circ$C en alto vacío durante
+    semanas para promover desgasificación (outgassing) y certificar limpieza para
+    integración en cohete.
+
+    \item \textbf{Compatibilidad Electromagnética (EMC):} prueba de inmunidad e intermodulación
+    entre subsistemas. Especial énfasis en el receptor UHF/VHF para descartar autointerferencia.
+\end{itemize}
+
+\subsection{Secuencia recomendada}
+\begin{enumerate}
+    \item Inspección visual y verificación de masa/CG.
+    \item Fit check en P-POD.
+    \item Vibración (X, Y, Z secuencial).
+    \item Shock.
+    \item Re-inspección visual y eléctrica.
+    \item Ciclos térmicos.
+    \item TVAC + Bake-Out.
+    \item EMC.
+    \item Test funcional final (FlatSat-equivalente sobre satélite integrado).
+\end{enumerate}

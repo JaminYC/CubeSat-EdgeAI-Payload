@@ -1,0 +1,21 @@
+# =====================================================
+# Git LFS rules for INTISAT-doc (reorganized layout)
+# =====================================================
+# Files > 50 MB go to LFS. GitHub rejects files > 100 MB without LFS.
+
+# Microscopy CDR — large figure (super-resolution sample, 72 MB)
+01_CDRs_subsistemas/04_Payload_Microscopia/**/figures/Prueba2_x4ERSGANxxx.png filter=lfs diff=lfs merge=lfs -text
+
+# CAD — PCB step file (38 MB)
+03_recursos/cad/*.step filter=lfs diff=lfs merge=lfs -text
+
+# General rules for binaries (catch-all per type)
+*.step  filter=lfs diff=lfs merge=lfs -text
+*.stl   filter=lfs diff=lfs merge=lfs -text
+*.dwg   filter=lfs diff=lfs merge=lfs -text
+*.zip   filter=lfs diff=lfs merge=lfs -text
+
+# Texto LaTeX normal (no LFS)
+*.tex   text
+*.md    text
+*.bib   text
